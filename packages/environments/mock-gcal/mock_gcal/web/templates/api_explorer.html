@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}API Explorer - Mock GCal{% endblock %}
+
+{% block content %}
+<div class="min-h-full bg-gray-50 p-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-semibold text-gray-800">API Explorer</h1>
+        <p class="text-sm text-gray-500 mt-1">Interactive Google Calendar v3 API reference</p>
+    </div>
+
+    {% macro badge(method) %}
+    <span class="inline-block px-2 py-0.5 rounded text-xs font-mono font-bold
+        {% if method == 'GET' %}bg-blue-100 text-blue-700
+        {% elif method == 'POST' %}bg-green-100 text-green-700
+        {% elif method == 'PATCH' %}bg-yellow-100 text-yellow-700
+        {% elif method == 'PUT' %}bg-orange-100 text-orange-700
+        {% elif method == 'DELETE' %}bg-red-100 text-red-700{% endif %}">
+        {{ method }}
+    </span>
+    {% endmacro %}
+
+    {% macro endpoint(method, path, desc, example_url=None) %}
+    <div class="border border-gray-200 rounded-lg mb-2 overflow-hidden">
+        <div class="flex items-center gap-3 px-4 py-2.5 bg-white hover:bg-gray-50 cursor-pointer"
+             onclick="this.nextElementSibling.classList.toggle('hidden')">
+            {{ badge(method) }}
+            <code class="text-xs text-gray-800 flex-1">{{ path }}</code>
+            <span class="text-xs text-gray-500">{{ desc }}</span>
+        </div>
+        <div class="hidden border-t border-gray-100 bg-gray-50 p-4">
+            {% if example_url %}
+            <div class="flex gap-2 items-center">
+                <code class="text-xs bg-white border border-gray-200 rounded px-3 py-1.5 flex-1 text-gray-700">{{ method }} {{ example_url }}</code>
+                <button onclick="tryIt('{{ method }}', '{{ example_url }}', this)"
+                        class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Try it</button>
+            </div>
+            <pre class="response-box hidden mt-2 text-xs bg-white border border-gray-200 rounded p-3 overflow-x-auto text-gray-700"></pre>
+            {% endif %}
+        </div>
+    </div>
+    {% endmacro %}
+
+    {% macro endpoint_form(method, path, desc, form_id) %}
+    <div class="border border-gray-200 rounded-lg mb-2 overflow-hidden">
+        <div class="flex items-center gap-3 px-4 py-2.5 bg-white hover:bg-gray-50 cursor-pointer"
+             onclick="this.nextElementSibling.classList.toggle('hidden')">
+            {{ badge(method) }}
+            <code class="text-xs text-gray-800 flex-1">{{ path }}</code>
+            <span class="text-xs text-gray-500">{{ desc }}</span>
+        </div>
+        <div class="hidden border-t border-gray-100 bg-gray-50 p-4" id="form-{{ form_id }}">
+            {{ caller() }}
+            <pre class="response-box hidden mt-2 text-xs bg-white border border-gray-200 rounded p-3 overflow-x-auto text-gray-700"></pre>
+        </div>
+    </div>
+    {% endmacro %}
+
+    {% macro section(title) %}
+    <h2 class="text-base font-semibold text-gray-700 mt-6 mb-3 flex items-center gap-2">
+        <span class="w-1 h-4 bg-blue-500 rounded"></span>
+        {{ title }}
+    </h2>
+    {% endmacro %}
+
+    <div class="max-w-3xl">
+        {{ section("Calendar List") }}
+        {{ endpoint("GET",    "/calendar/v3/users/me/calendarList",             "List calendars",     "/calendar/v3/users/me/calendarList") }}
+        {{ endpoint("GET",    "/calendar/v3/users/me/calendarList/{calendarId}", "Get calendar entry", "/calendar/v3/users/me/calendarList/" ~ sample_cal_id) }}
+        {{ endpoint("POST",   "/calendar/v3/users/me/calendarList",             "Insert calendar",    None) }}
+        {{ endpoint("PATCH",  "/calendar/v3/users/me/calendarList/{calendarId}", "Patch calendar",    None) }}
+        {{ endpoint("DELETE", "/calendar/v3/users/me/calendarList/{calendarId}", "Delete calendar",   None) }}
+
+        {{ section("Calendars") }}
+        {{ endpoint("GET",    "/calendar/v3/calendars/{calendarId}", "Get calendar resource", "/calendar/v3/calendars/" ~ sample_cal_id) }}
+        {{ endpoint("POST",   "/calendar/v3/calendars",              "Create calendar",       None) }}
+        {{ endpoint("PATCH",  "/calendar/v3/calendars/{calendarId}", "Patch calendar",        None) }}
+        {{ endpoint("DELETE", "/calendar/v3/calendars/{calendarId}", "Delete calendar",       None) }}
+
+        {{ section("Events") }}
+        {{ endpoint("GET",    "/calendar/v3/calendars/{calendarId}/events",            "List events",    "/calendar/v3/calendars/" ~ sample_cal_id ~ "/events?maxResults=10") }}
+        {{ endpoint("GET",    "/calendar/v3/calendars/{calendarId}/events/{eventId}",  "Get event",      "/calendar/v3/calendars/" ~ sample_cal_id ~ "/events/" ~ sample_event_id) }}
+        {{ endpoint("POST",   "/calendar/v3/calendars/{calendarId}/events",            "Insert event",   None) }}
+        {{ endpoint("PATCH",  "/calendar/v3/calendars/{calendarId}/events/{eventId}",  "Patch event",    None) }}
+        {{ endpoint("DELETE", "/calendar/v3/calendars/{calendarId}/events/{eventId}",  "Delete event",   None) }}
+        {% call endpoint_form("GET", "/calendar/v3/calendars/{calendarId}/events/{eventId}/instances", "Get instances", "instances") %}
+            <div class="space-y-2 mb-3">
+                <div class="flex gap-2">
+                    <input id="inst-cal-id" type="text" value="{{ sample_cal_id }}" placeholder="calendarId"
+                           class="flex-1 border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                    <input id="inst-ev-id" type="text" value="{{ sample_event_id }}" placeholder="eventId"
+                           class="flex-1 border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                </div>
+            </div>
+            <button onclick="tryIt('GET', '/calendar/v3/calendars/' + encodeURIComponent(document.getElementById('inst-cal-id').value) + '/events/' + encodeURIComponent(document.getElementById('inst-ev-id').value) + '/instances', this)"
+                    class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Try it</button>
+        {% endcall %}
+        {{ endpoint("POST",   "/calendar/v3/calendars/{calendarId}/events/quickAdd",   "Quick add",      None) }}
+        {{ endpoint("POST",   "/calendar/v3/calendars/{calendarId}/events/{eventId}/move", "Move event", None) }}
+
+        {{ section("ACL") }}
+        {{ endpoint("GET",    "/calendar/v3/calendars/{calendarId}/acl",           "List ACL rules",  "/calendar/v3/calendars/" ~ sample_cal_id ~ "/acl") }}
+        {{ endpoint("GET",    "/calendar/v3/calendars/{calendarId}/acl/{ruleId}",  "Get ACL rule",    None) }}
+        {% call endpoint_form("POST", "/calendar/v3/calendars/{calendarId}/acl", "Insert ACL rule", "acl-insert") %}
+            <div class="space-y-2 mb-3">
+                <div class="flex gap-2">
+                    <input id="acl-ins-cal-id" type="text" value="{{ sample_cal_id }}" placeholder="calendarId"
+                           class="flex-1 border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                </div>
+                <div class="flex gap-2">
+                    <select id="acl-ins-role"
+                            class="flex-1 border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                        <option value="reader">reader</option>
+                        <option value="writer">writer</option>
+                        <option value="owner">owner</option>
+                        <option value="freeBusyReader">freeBusyReader</option>
+                    </select>
+                    <select id="acl-ins-scope-type"
+                            class="flex-1 border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                        <option value="user">user</option>
+                        <option value="group">group</option>
+                        <option value="domain">domain</option>
+                        <option value="default">default</option>
+                    </select>
+                </div>
+                <input id="acl-ins-scope-value" type="text" placeholder="Scope value (e.g. email)"
+                       class="w-full border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+            </div>
+            <button onclick="tryAclInsert(this)"
+                    class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Try it</button>
+        {% endcall %}
+        {% call endpoint_form("PATCH", "/calendar/v3/calendars/{calendarId}/acl/{ruleId}", "Patch ACL rule", "acl-patch") %}
+            <div class="space-y-2 mb-3">
+                <div class="flex gap-2">
+                    <input id="acl-patch-cal-id" type="text" value="{{ sample_cal_id }}" placeholder="calendarId"
+                           class="flex-1 border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                    <input id="acl-patch-rule-id" type="text" placeholder="ruleId"
+                           class="flex-1 border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                </div>
+                <select id="acl-patch-role"
+                        class="w-full border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                    <option value="reader">reader</option>
+                    <option value="writer">writer</option>
+                    <option value="owner">owner</option>
+                    <option value="freeBusyReader">freeBusyReader</option>
+                </select>
+            </div>
+            <button onclick="tryAclPatch(this)"
+                    class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Try it</button>
+        {% endcall %}
+        {% call endpoint_form("DELETE", "/calendar/v3/calendars/{calendarId}/acl/{ruleId}", "Delete ACL rule", "acl-delete") %}
+            <div class="space-y-2 mb-3">
+                <div class="flex gap-2">
+                    <input id="acl-del-cal-id" type="text" value="{{ sample_cal_id }}" placeholder="calendarId"
+                           class="flex-1 border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                    <input id="acl-del-rule-id" type="text" placeholder="ruleId"
+                           class="flex-1 border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                </div>
+            </div>
+            <button onclick="tryAclDelete(this)"
+                    class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Try it</button>
+        {% endcall %}
+
+        {{ section("Free/Busy & Colors") }}
+        {% call endpoint_form("POST", "/calendar/v3/freeBusy", "Query free/busy", "freebusy") %}
+            <div class="space-y-2 mb-3">
+                <div class="flex gap-2">
+                    <div class="flex-1">
+                        <label class="block text-xs text-gray-500 mb-1">timeMin</label>
+                        <input id="fb-time-min" type="datetime-local"
+                               class="w-full border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-xs text-gray-500 mb-1">timeMax</label>
+                        <input id="fb-time-max" type="datetime-local"
+                               class="w-full border border-gray-200 rounded px-2 py-1 text-xs bg-white">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Calendar IDs (one per line)</label>
+                    <textarea id="fb-cal-ids" rows="3" placeholder="{{ sample_cal_id }}"
+                              class="w-full border border-gray-200 rounded px-2 py-1 text-xs bg-white resize-none">{{ sample_cal_id }}</textarea>
+                </div>
+            </div>
+            <button onclick="tryFreeBusy(this)"
+                    class="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">Try it</button>
+        {% endcall %}
+        {{ endpoint("GET",  "/calendar/v3/colors",    "Get colors",       "/calendar/v3/colors") }}
+
+        {{ section("Settings") }}
+        {{ endpoint("GET", "/calendar/v3/users/me/settings",            "List settings",  "/calendar/v3/users/me/settings") }}
+        {{ endpoint("GET", "/calendar/v3/users/me/settings/{setting}",  "Get setting",    None) }}
+
+        {{ section("Profile") }}
+        {{ endpoint("GET", "/calendar/v3/users/" ~ user_id ~ "/profile", "Get profile", "/calendar/v3/users/" ~ user_id ~ "/profile") }}
+
+        {{ section("Admin") }}
+        {{ endpoint("GET",  "/health",             "Health check",   "/health") }}
+        {{ endpoint("GET",  "/_admin/state",       "State dump",     "/_admin/state") }}
+        {{ endpoint("GET",  "/_admin/diff",        "State diff",     "/_admin/diff") }}
+        {{ endpoint("GET",  "/_admin/action_log",  "Action log",     "/_admin/action_log") }}
+        {{ endpoint("POST", "/_admin/reset",       "Reset to seed",  None) }}
+    </div>
+</div>
+
+<script>
+async function tryIt(method, url, btn) {
+    const container = btn.closest('div[id^="form-"], div.hidden, div');
+    const pre = container ? container.querySelector('.response-box') : null;
+    if (!pre) return;
+    pre.classList.remove('hidden');
+    pre.textContent = 'Loading...';
+    try {
+        const resp = await fetch(url, { method });
+        const data = await resp.text();
+        try {
+            pre.textContent = JSON.stringify(JSON.parse(data), null, 2);
+        } catch {
+            pre.textContent = data;
+        }
+    } catch (e) {
+        pre.textContent = 'Error: ' + e;
+    }
+}
+
+function _getResponseBox(btn) {
+    return btn.parentElement.querySelector('.response-box');
+}
+
+async function _fetchAndShow(btn, method, url, body) {
+    const pre = _getResponseBox(btn);
+    if (!pre) return;
+    pre.classList.remove('hidden');
+    pre.textContent = 'Loading...';
+    try {
+        const opts = { method, headers: {'Content-Type': 'application/json'} };
+        if (body !== undefined) opts.body = JSON.stringify(body);
+        const resp = await fetch(url, opts);
+        const data = await resp.text();
+        try { pre.textContent = JSON.stringify(JSON.parse(data), null, 2); }
+        catch { pre.textContent = data || ('Status: ' + resp.status); }
+    } catch(e) { pre.textContent = 'Error: ' + e; }
+}
+
+async function tryFreeBusy(btn) {
+    const tMin = document.getElementById('fb-time-min').value;
+    const tMax = document.getElementById('fb-time-max').value;
+    const ids = document.getElementById('fb-cal-ids').value
+        .split('\n').map(s => s.trim()).filter(Boolean).map(id => ({id}));
+    const body = {
+        timeMin: tMin ? new Date(tMin).toISOString() : new Date().toISOString(),
+        timeMax: tMax ? new Date(tMax).toISOString() : new Date(Date.now() + 86400000).toISOString(),
+        items: ids.length ? ids : [{ id: '{{ sample_cal_id }}' }],
+    };
+    await _fetchAndShow(btn, 'POST', '/calendar/v3/freeBusy', body);
+}
+
+async function tryAclInsert(btn) {
+    const calId = document.getElementById('acl-ins-cal-id').value.trim();
+    const body = {
+        role: document.getElementById('acl-ins-role').value,
+        scope: {
+            type: document.getElementById('acl-ins-scope-type').value,
+            value: document.getElementById('acl-ins-scope-value').value.trim(),
+        },
+    };
+    await _fetchAndShow(btn, 'POST', '/calendar/v3/calendars/' + encodeURIComponent(calId) + '/acl', body);
+}
+
+async function tryAclPatch(btn) {
+    const calId = document.getElementById('acl-patch-cal-id').value.trim();
+    const ruleId = document.getElementById('acl-patch-rule-id').value.trim();
+    const body = { role: document.getElementById('acl-patch-role').value };
+    await _fetchAndShow(btn, 'PATCH', '/calendar/v3/calendars/' + encodeURIComponent(calId) + '/acl/' + encodeURIComponent(ruleId), body);
+}
+
+async function tryAclDelete(btn) {
+    const calId = document.getElementById('acl-del-cal-id').value.trim();
+    const ruleId = document.getElementById('acl-del-rule-id').value.trim();
+    await _fetchAndShow(btn, 'DELETE', '/calendar/v3/calendars/' + encodeURIComponent(calId) + '/acl/' + encodeURIComponent(ruleId));
+}
+</script>
+{% endblock %}

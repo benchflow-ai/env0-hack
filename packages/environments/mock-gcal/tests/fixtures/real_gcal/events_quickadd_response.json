@@ -1,0 +1,33 @@
+{
+  "created": "2026-03-27T21:09:17.000Z",
+  "creator": {
+    "email": "mediar.acc1@gmail.com"
+  },
+  "end": {
+    "dateTime": "2026-03-28T13:00:00Z",
+    "timeZone": "UTC"
+  },
+  "etag": "\"3549291514619742\"",
+  "eventType": "default",
+  "htmlLink": "https://www.google.com/calendar/event?eid=ZXMwbm9sanFzYjJrYWFxdHI3MGhhMTA4bzQgYmQ0OGZiMjY2YzJkYzZiNmE3ZDA0YjdiZGFlZjlkNjc3YTFkNzU0NTBiNDQ2ZTk0YTIwODlkNTNkYTg2ZWYzNkBn",
+  "iCalUID": "es0noljqsb2kaaqtr70ha108o4@google.com",
+  "id": "es0noljqsb2kaaqtr70ha108o4",
+  "kind": "calendar#event",
+  "organizer": {
+    "displayName": "Updated 172946",
+    "email": "bd48fb266c2dc6b6a7d04b7bdaef9d677a1d75450b446e94a2089d53da86ef36@group.calendar.google.com",
+    "self": true
+  },
+  "reminders": {
+    "useDefault": true
+  },
+  "sequence": 0,
+  "start": {
+    "dateTime": "2026-03-28T12:00:00Z",
+    "timeZone": "UTC"
+  },
+  "status": "confirmed",
+  "summary": "Lunch",
+  "updated": "2026-03-27T21:09:17.309Z",
+  "_captured_at": "2026-03-27T21:09:17.391799+00:00"
+}

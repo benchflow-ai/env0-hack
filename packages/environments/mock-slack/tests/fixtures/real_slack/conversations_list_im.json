@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "channels": [
+    {
+      "id": "D0AMCPY5N7L",
+      "created": 1773841684,
+      "is_org_shared": true,
+      "is_im": true,
+      "is_archived": false,
+      "context_team_id": "E0AMAHCGFL6",
+      "updated": 1773841684712,
+      "is_shared": true,
+      "user": "USLACKBOT",
+      "is_user_deleted": false,
+      "priority": 0
+    }
+  ],
+  "response_metadata": {
+    "next_cursor": ""
+  },
+  "_captured_at": "2026-03-27T20:39:34.919868+00:00"
+}

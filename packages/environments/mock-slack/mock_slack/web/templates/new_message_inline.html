@@ -1,0 +1,79 @@
+{% from "_composer_macros.html" import render_slack_composer %}
+<div class="flex h-full min-h-0 flex-col overflow-hidden bg-white">
+  <div class="h-14 flex items-center border-b border-gray-200 px-4">
+    <h2 class="font-bold text-[18px] text-gray-900">New message</h2>
+  </div>
+
+  <form
+    id="new-message-inline-form"
+    hx-post="/new/inline"
+    hx-target="#chat-right-panel"
+    hx-swap="innerHTML"
+    class="flex flex-1 min-h-0 flex-col"
+  >
+    <div class="border-b border-gray-200 px-4 py-3">
+      <div class="flex items-start gap-3">
+        <label for="new-message-inline-target" class="pt-2 text-[15px] font-medium text-gray-700">To</label>
+        <div class="min-w-0 flex-1">
+          <input
+            id="new-message-inline-target"
+            type="text"
+            name="target"
+            list="inline-targets"
+            placeholder="#channel, @person, or email"
+            class="w-full border-0 bg-transparent px-0 py-1 text-[15px] text-gray-900 outline-none placeholder-gray-400 focus:ring-0"
+            value="{{ compose_target or '' }}"
+            required
+            autofocus
+          />
+          <datalist id="inline-targets">
+            {% for ch in channels %}
+            {% if not ch.is_im and not ch.is_mpim %}
+            <option value="#{{ ch.name }}"></option>
+            {% endif %}
+            {% endfor %}
+            {% for u in users %}
+            <option value="@{{ u.name }}"></option>
+            {% if u.email %}
+            <option value="{{ u.email }}"></option>
+            {% endif %}
+            {% endfor %}
+          </datalist>
+        </div>
+      </div>
+      {% if compose_error %}
+      <div class="mt-2 rounded-lg border border-red-100 bg-red-50 px-3 py-2 text-[13px] text-red-700">
+        {{ compose_error }}
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="flex-1 overflow-y-auto custom-scroll px-6 py-8">
+      <div class="flex h-full flex-col">
+        <div class="flex-1"></div>
+        <div class="pb-10 text-center text-[15px] text-gray-500">
+          Pick a channel or teammate, then start the conversation below.
+        </div>
+      </div>
+    </div>
+
+    <div class="shrink-0 bg-white px-4 pb-4 pt-2">
+      {{ render_slack_composer(
+        textarea_id='new-message-inline-text',
+        textarea_value=compose_text or '',
+        placeholder='Message ' ~ compose_target if compose_target else 'Choose a conversation to start typing',
+        placeholder_base='Choose a conversation to start typing',
+        target_input_id='new-message-inline-target',
+        toolbar_id='new-message-inline-toolbar',
+        actions_id='new-message-inline-actions'
+      ) }}
+    </div>
+  </form>
+</div>
+
+<script>
+  (function() {
+    var target = document.getElementById('new-message-inline-target');
+    if (target) target.focus();
+  })();
+</script>

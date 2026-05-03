@@ -1,0 +1,2662 @@
+{% extends "base.html" %}
+
+{% block title %}{{ month_heading }} - Google Calendar (Mock){% endblock %}
+
+{% block head_extra %}
+<style>
+    :root {
+        --gcal-sidebar-width: 256px;
+        --gcal-header-height: 64px;
+        --gcal-hour-height: {{ hour_px }}px;
+        --gcal-time-gutter: 56px;
+        --gcal-apps-rail-width: 42px;
+    }
+
+    body,
+    .gcal-app,
+    .gcal-main,
+    .gcal-sidebar {
+        background: #ffffff;
+    }
+
+    .gcal-header {
+        grid-template-columns: minmax(0, 1fr) 36px auto;
+        align-items: center;
+        gap: 8px;
+        min-height: var(--gcal-header-height);
+        padding: 8px 12px 6px;
+        border-bottom: 1px solid #dadce0;
+        background: #ffffff;
+    }
+
+    .gcal-app.is-editor-mode .gcal-header {
+        background: transparent;
+        z-index: 110;
+        pointer-events: none;
+    }
+
+    .gcal-app.is-editor-mode .gcal-header-right,
+    .gcal-app.is-editor-mode .gcal-header-right * {
+        pointer-events: auto;
+    }
+
+    .gcal-app.is-editor-mode .gcal-header-left,
+    .gcal-app.is-editor-mode .gcal-search-shell,
+    .gcal-app.is-editor-mode .gcal-view-button,
+    .gcal-app.is-editor-mode .gcal-header-toggle,
+    .gcal-app.is-editor-mode .gcal-sidebar,
+    .gcal-app.is-editor-mode .gcal-calendar-view,
+    .gcal-app.is-editor-mode .gcal-devtools {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .gcal-app.is-editor-mode .gcal-header-right .gcal-icon-button[title="Settings"] {
+        display: none;
+    }
+
+    .gcal-header-left {
+        gap: 12px;
+    }
+
+    .gcal-brand {
+        gap: 10px;
+        padding-right: 0;
+    }
+
+    .gcal-brand-copy {
+        line-height: 1;
+    }
+
+    .gcal-brand-label {
+        font-size: 1.48rem;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        color: #202124;
+    }
+
+    .gcal-brand-badge {
+        display: none;
+    }
+
+    .gcal-range-controls {
+        gap: 4px;
+    }
+
+    .gcal-today-button {
+        min-height: 36px;
+        padding: 0 16px;
+        border-radius: 18px;
+        border-color: #dadce0;
+        background: #ffffff;
+        font-size: 0.81rem;
+        font-weight: 500;
+        color: #202124;
+    }
+
+    .gcal-nav-arrow {
+        width: 32px;
+        height: 32px;
+        color: #5f6368;
+    }
+
+    .gcal-range-label {
+        margin-left: 12px;
+        font-size: 1.375rem;
+        font-weight: 400;
+        letter-spacing: -0.02em;
+        color: #3c4043;
+    }
+
+    .gcal-search-shell {
+        justify-self: end;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: #5f6368;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .gcal-search-shell:hover,
+    .gcal-search-shell:focus-visible {
+        background: #e8eaed;
+        box-shadow: none;
+    }
+
+    .gcal-search-text {
+        display: none;
+    }
+
+    .gcal-header-right {
+        gap: 2px;
+    }
+
+    .gcal-view-button {
+        min-height: 36px;
+        padding: 0 14px;
+        border-radius: 18px;
+        border-color: #dadce0;
+        background: #ffffff;
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: #202124;
+    }
+
+    .gcal-header-toggle {
+        display: inline-flex;
+        align-items: stretch;
+        height: 36px;
+        border: 1px solid #dadce0;
+        border-radius: 18px;
+        overflow: hidden;
+        background: #ffffff;
+        margin: 0 6px 0 4px;
+    }
+
+    .gcal-header-toggle-segment {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        border: 0;
+        background: transparent;
+        color: #5f6368;
+    }
+
+    .gcal-header-toggle-segment.is-active {
+        background: #d7ecff;
+        color: #174ea6;
+    }
+
+    .gcal-header-right .gcal-icon-button {
+        width: 32px;
+        height: 32px;
+        color: #5f6368;
+    }
+
+    .gcal-avatar-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        margin-left: 4px;
+        cursor: pointer;
+    }
+
+    .gcal-avatar-circle {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #fef7d7, #ffe6bf);
+        color: #9b5d00;
+        font-size: 0.8rem;
+        font-weight: 700;
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+    }
+
+    .gcal-shell {
+        grid-template-columns: var(--gcal-sidebar-width) minmax(0, 1fr);
+        background: #ffffff;
+    }
+
+    .gcal-sidebar {
+        padding: 12px 0 24px;
+        border-right: 1px solid #dadce0;
+        overflow-y: auto;
+    }
+
+    .gcal-main {
+        min-height: 0;
+        padding-right: calc(var(--gcal-apps-rail-width) + 10px);
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .gcal-mini-card,
+    .gcal-sidebar-section {
+        margin: 0 12px 14px 12px;
+    }
+
+    .gcal-create-button {
+        min-height: 56px;
+        margin: 4px 14px 16px 14px;
+        padding: 0 20px;
+        border-radius: 16px;
+        border-color: #dadce0;
+        box-shadow: 0 1px 2px rgba(60, 64, 67, 0.18), 0 1px 3px rgba(60, 64, 67, 0.12);
+        font-size: 0.92rem;
+        font-weight: 500;
+        color: #202124;
+    }
+
+    .gcal-create-button svg:first-child {
+        width: 22px;
+        height: 22px;
+        color: #202124;
+    }
+
+    .gcal-mini-title,
+    .gcal-section-title {
+        font-size: 0.83rem;
+        font-weight: 600;
+        color: #202124;
+    }
+
+    .gcal-mini-weekdays {
+        margin: 8px 0 2px;
+    }
+
+    .gcal-mini-weekday {
+        font-size: 0.62rem;
+        font-weight: 500;
+        color: #5f6368;
+        line-height: 22px;
+    }
+
+    .gcal-mini-week {
+        gap: 0;
+    }
+
+    .gcal-mini-day {
+        width: 24px;
+        height: 24px;
+        font-size: 0.72rem;
+        border-radius: 999px;
+    }
+
+    .gcal-mini-day.is-week {
+        background: transparent;
+        font-weight: 500;
+    }
+
+    .gcal-mini-day.is-today {
+        background: #1a73e8;
+        color: #ffffff;
+        font-weight: 700;
+    }
+
+    .gcal-sidebar-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .gcal-people-search {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 36px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 8px;
+        background: #f1f3f4;
+        color: #5f6368;
+        font-size: 0.82rem;
+    }
+
+    .gcal-booking-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 28px;
+        color: #3c4043;
+        font-size: 0.78rem;
+    }
+
+    .gcal-booking-row svg {
+        color: #5f6368;
+        flex-shrink: 0;
+    }
+
+    .gcal-booking-copy {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .gcal-new-pill {
+        margin-left: auto;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: #1a73e8;
+        color: #ffffff;
+        font-size: 0.64rem;
+        font-weight: 600;
+    }
+
+    .gcal-calendar-list {
+        gap: 2px;
+        margin-top: 8px;
+    }
+
+    .gcal-calendar-row {
+        min-height: 28px;
+        padding: 0;
+        border-radius: 8px;
+    }
+
+    .gcal-calendar-label {
+        gap: 8px;
+    }
+
+    .gcal-calendar-check {
+        width: 14px;
+        height: 14px;
+        border-width: 1px;
+        border-radius: 4px;
+    }
+
+    .gcal-calendar-name {
+        font-size: 0.78rem;
+        color: #202124;
+    }
+
+    .gcal-row-menu {
+        display: none;
+    }
+
+    .gcal-devtools {
+        display: none;
+    }
+
+    .gcal-apps-rail {
+        position: fixed;
+        top: calc(var(--gcal-header-height) + 16px);
+        right: 0;
+        bottom: 0;
+        width: var(--gcal-apps-rail-width);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 4px 0;
+        z-index: 90;
+        border-left: 1px solid #dadce0;
+        background: #ffffff;
+    }
+
+    .gcal-apps-rail-button,
+    .gcal-apps-rail-add,
+    .gcal-apps-rail-chevron {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+    }
+
+    .gcal-apps-rail-button.is-amber {
+        color: #fbbc04;
+    }
+
+    .gcal-apps-rail-button.is-blue {
+        color: #1a73e8;
+    }
+
+    .gcal-apps-rail-button.is-map {
+        color: #34a853;
+    }
+
+    .gcal-apps-rail-divider {
+        width: 20px;
+        height: 1px;
+        background: #d9dee3;
+        margin-top: 6px;
+    }
+
+    .gcal-apps-rail-add {
+        margin-top: 2px;
+        color: #202124;
+    }
+
+    .gcal-apps-rail-chevron {
+        margin-top: auto;
+        color: #5f6368;
+    }
+
+    .gcal-calendar-view {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        min-height: 0;
+        min-width: 0;
+        padding: 0;
+        background: #ffffff;
+    }
+
+    .gcal-calendar-surface {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        background: #ffffff;
+        border-radius: 0;
+        overflow: hidden;
+        box-shadow: none;
+    }
+
+    .gcal-week-header {
+        display: grid;
+        grid-template-columns: var(--gcal-time-gutter) repeat(7, minmax(0, 1fr));
+        min-height: 72px;
+        border-bottom: 1px solid #dadce0;
+        background: #ffffff;
+        position: relative;
+        z-index: 2;
+    }
+
+    .gcal-week-header-corner {
+        border-right: 0;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding-top: 6px;
+        font-size: 0.625rem;
+        color: #70757a;
+    }
+
+    .gcal-day-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        min-height: 72px;
+        border-right: 0;
+        color: #70757a;
+    }
+
+    .gcal-day-header.is-today {
+        color: #1a73e8;
+    }
+
+    .gcal-day-header-label {
+        font-size: 0.6875rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        color: inherit;
+        text-transform: uppercase;
+    }
+
+    .gcal-day-header-date {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border-radius: 999px;
+        font-size: 1.625rem;
+        font-weight: 400;
+        letter-spacing: -0.02em;
+        color: #3c4043;
+    }
+
+    .gcal-day-header.is-today .gcal-day-header-date {
+        background: #1a73e8;
+        color: #ffffff;
+    }
+
+    .gcal-all-day {
+        display: grid;
+        grid-template-columns: var(--gcal-time-gutter) repeat(7, minmax(0, 1fr));
+        min-height: 28px;
+        border-bottom: 1px solid #dadce0;
+        background: #ffffff;
+    }
+
+    .gcal-all-day-label {
+        display: flex;
+        align-items: flex-end;
+        padding: 0 6px 4px 8px;
+        font-size: 0.625rem;
+        color: #70757a;
+        border-right: 1px solid #dadce0;
+    }
+
+    .gcal-all-day-cell {
+        min-height: 28px;
+        padding: 2px 3px 4px 0;
+        border-right: 1px solid #dadce0;
+        overflow: hidden;
+    }
+
+    .gcal-all-day-cell:last-child {
+        border-right: 0;
+    }
+
+    .gcal-all-day-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .gcal-all-day-chip,
+    .gcal-event-card {
+        --gcal-event-color: #5484ed;
+        --gcal-event-text: #1f1f1f;
+        --gcal-event-outline: color-mix(in srgb, var(--gcal-event-color) 58%, #8b949e);
+    }
+
+    .gcal-all-day-chip {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        width: 100%;
+        min-height: 20px;
+        padding: 1px 8px;
+        border: 0;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1;
+        text-align: left;
+        cursor: pointer;
+        background: var(--gcal-event-color);
+        color: var(--gcal-event-text);
+        box-shadow: none;
+        transition: background 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+    }
+
+    .gcal-all-day-chip:hover {
+        filter: brightness(0.985);
+    }
+
+    .gcal-all-day-chip-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.96);
+        flex-shrink: 0;
+    }
+
+    .gcal-all-day-chip.is-state-needs-action,
+    .gcal-event-card.is-state-needs-action {
+        background: color-mix(in srgb, var(--gcal-event-color) 22%, white);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gcal-event-color) 42%, white);
+        color: #355f9d;
+    }
+
+    .gcal-all-day-chip.is-state-tentative,
+    .gcal-event-card.is-state-tentative {
+        background: color-mix(in srgb, var(--gcal-event-color) 24%, white);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gcal-event-color) 52%, white);
+        color: color-mix(in srgb, var(--gcal-event-color) 76%, #3c4043);
+    }
+
+    .gcal-all-day-chip.is-state-declined,
+    .gcal-event-card.is-state-declined {
+        background: color-mix(in srgb, var(--gcal-event-color) 14%, white);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gcal-event-color) 42%, white);
+        color: #5f6368;
+        opacity: 0.82;
+    }
+
+    .gcal-all-day-chip.is-state-cancelled,
+    .gcal-event-card.is-state-cancelled {
+        background: color-mix(in srgb, var(--gcal-event-color) 6%, white);
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gcal-event-color) 58%, #c4c7c5);
+        color: color-mix(in srgb, var(--gcal-event-color) 24%, #5f6368);
+    }
+
+    .gcal-all-day-chip.is-state-cancelled .gcal-all-day-chip-dot {
+        background: transparent;
+        border-color: currentColor;
+    }
+
+    .gcal-all-day-chip.is-state-cancelled .truncate {
+        text-decoration: line-through;
+        text-decoration-thickness: 1.2px;
+    }
+
+    .gcal-time-scroll {
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        background: #ffffff;
+    }
+
+    .gcal-time-grid {
+        display: grid;
+        grid-template-columns: var(--gcal-time-gutter) repeat(7, minmax(0, 1fr));
+        min-height: 100%;
+        background: #ffffff;
+    }
+
+    .gcal-time-gutter {
+        position: relative;
+        border-right: 1px solid #dadce0;
+        background: #ffffff;
+    }
+
+    .gcal-timezone-label {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        padding: 2px 4px;
+        font-size: 0.625rem;
+        font-weight: 400;
+        color: #70757a;
+        text-align: right;
+    }
+
+    .gcal-time-label {
+        position: absolute;
+        right: 8px;
+        transform: translateY(-0.38rem);
+        font-size: 0.625rem;
+        color: #70757a;
+        white-space: nowrap;
+    }
+
+    .gcal-day-column {
+        position: relative;
+        border-right: 1px solid #dadce0;
+        background: #ffffff;
+        cursor: cell;
+    }
+
+    .gcal-day-column:last-child {
+        border-right: 0;
+    }
+
+    .gcal-day-column:hover {
+        background: #ffffff;
+    }
+
+    .gcal-hour-line,
+    .gcal-half-line {
+        position: absolute;
+        left: 0;
+        right: 0;
+        pointer-events: none;
+    }
+
+    .gcal-hour-line {
+        border-top: 1px solid #dadce0;
+    }
+
+    .gcal-half-line {
+        border-top: 1px dashed #e8eaed;
+    }
+
+    .gcal-event-card {
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 1px;
+        padding: 4px 6px;
+        border: 0;
+        border-radius: 4px;
+        box-shadow: none;
+        overflow: hidden;
+        text-align: left;
+        cursor: pointer;
+        background: var(--gcal-event-color);
+        color: var(--gcal-event-text);
+        transition: background 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+    }
+
+    .gcal-event-card:hover {
+        box-shadow: none;
+        filter: brightness(0.985);
+    }
+
+    .gcal-event-card.is-continuation::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: rgba(255, 255, 255, 0.65);
+    }
+
+    .gcal-event-card.is-compact {
+        padding-top: 2px;
+        padding-bottom: 2px;
+    }
+
+    .gcal-event-title {
+        width: 100%;
+        font-size: 0.75rem;
+        font-weight: 500;
+        line-height: 1.25;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .gcal-event-subtitle {
+        width: 100%;
+        font-size: 0.69rem;
+        line-height: 1.2;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        opacity: 0.95;
+    }
+
+    .gcal-event-card.is-state-cancelled .gcal-event-title,
+    .gcal-event-card.is-state-cancelled .gcal-event-subtitle {
+        text-decoration: line-through;
+        text-decoration-thickness: 1.2px;
+    }
+
+    .gcal-now-line {
+        position: absolute;
+        left: 0;
+        right: 0;
+        display: none;
+        align-items: center;
+        pointer-events: none;
+        z-index: 12;
+    }
+
+    .gcal-now-dot {
+        width: 10px;
+        height: 10px;
+        margin-left: -5px;
+        border-radius: 999px;
+        background: #d93025;
+        box-shadow: none;
+        flex-shrink: 0;
+    }
+
+    .gcal-now-stroke {
+        flex: 1;
+        height: 2px;
+        background: #d93025;
+    }
+
+    .gcal-popover {
+        border-radius: 8px;
+        border: 1px solid #dadce0;
+        box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
+        background: #ffffff;
+        padding: 10px 12px 12px;
+    }
+
+    .gcal-quick-create-card {
+        width: 458px;
+        background: #ffffff;
+        padding: 10px 12px 12px;
+    }
+
+    .gcal-quick-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 6px;
+    }
+
+    .gcal-quick-header-left {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .gcal-quick-create-card .gcal-icon-button {
+        width: 24px;
+        height: 24px;
+    }
+
+    .gcal-quick-title {
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid #d2d7dc;
+        padding: 6px 0 8px;
+        font-size: 1rem;
+        background: transparent;
+        color: #202124;
+        font-weight: 400;
+    }
+
+    .gcal-quick-title:focus {
+        outline: none;
+        border-color: #1a73e8;
+    }
+
+    .gcal-quick-type-tabs {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 10px 0 12px 32px;
+    }
+
+    .gcal-quick-type-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 24px;
+        padding: 0 10px;
+        border-radius: 8px;
+        border: 0;
+        background: transparent;
+        color: #5f6368;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    .gcal-quick-type-pill.is-active {
+        background: #d2e3fc;
+        color: #174ea6;
+    }
+
+    .gcal-quick-row {
+        display: grid;
+        grid-template-columns: 20px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: start;
+        margin-bottom: 12px;
+        color: #3c4043;
+    }
+
+    .gcal-quick-row svg {
+        color: #5f6368;
+        margin-top: 2px;
+    }
+
+    .gcal-quick-slot {
+        font-size: 0.72rem;
+        color: #3c4043;
+        line-height: 1.35;
+    }
+
+    .gcal-quick-slot-meta {
+        font-size: 0.64rem;
+        color: #80868b;
+        line-height: 1.35;
+    }
+
+    .gcal-quick-inline-input,
+    .gcal-quick-inline-select {
+        width: 100%;
+        min-height: 24px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: #3c4043;
+        font-size: 0.72rem;
+    }
+
+    .gcal-quick-inline-input::placeholder {
+        color: #5f6368;
+    }
+
+    .gcal-quick-inline-input:focus,
+    .gcal-quick-inline-select:focus {
+        outline: none;
+    }
+
+    .gcal-quick-inline-select {
+        appearance: none;
+        padding-right: 14px;
+        background-image: linear-gradient(45deg, transparent 50%, #5f6368 50%), linear-gradient(135deg, #5f6368 50%, transparent 50%);
+        background-position: calc(100% - 10px) 9px, calc(100% - 6px) 9px;
+        background-size: 4px 4px, 4px 4px;
+        background-repeat: no-repeat;
+    }
+
+    .gcal-quick-muted-link {
+        color: #1a73e8;
+        font-size: 0.68rem;
+        font-weight: 500;
+    }
+
+    .gcal-quick-conference-state {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 24px;
+        color: #5f6368;
+        font-size: 0.66rem;
+    }
+
+    .gcal-quick-spinner {
+        width: 12px;
+        height: 12px;
+        border: 2px solid #d2e3fc;
+        border-top-color: #5f8ef6;
+        border-radius: 999px;
+        animation: gcal-spin 900ms linear infinite;
+    }
+
+    .gcal-quick-calendar-meta {
+        margin-top: 1px;
+        font-size: 0.62rem;
+        color: #80868b;
+        line-height: 1.3;
+    }
+
+    .gcal-quick-footer {
+        margin-top: 4px;
+    }
+
+    .gcal-quick-footer .gcal-button-link {
+        font-size: 0.72rem;
+    }
+
+    .gcal-quick-footer .gcal-button {
+        min-height: 28px;
+        padding: 0 14px;
+        font-size: 0.72rem;
+    }
+
+    .gcal-event-detail-card {
+        width: 320px;
+        min-height: 0;
+        padding: 9px 11px 10px;
+    }
+
+    .gcal-event-detail-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+        margin-bottom: 6px;
+    }
+
+    .gcal-event-detail-card .gcal-icon-button {
+        width: 22px;
+        height: 22px;
+    }
+
+    .gcal-event-detail-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .gcal-popover-color {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        flex-shrink: 0;
+        margin-top: 6px;
+    }
+
+    .gcal-popover-title {
+        font-size: 1.02rem;
+        font-weight: 500;
+        line-height: 1.35;
+        color: #3c4043;
+    }
+
+    .gcal-event-detail-title {
+        font-size: 0.68rem;
+        line-height: 1.4;
+        color: #5f6368;
+        margin-top: 2px;
+    }
+
+    .gcal-popover-summary {
+        font-size: 0.94rem;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        color: #202124;
+    }
+
+    .gcal-event-detail-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        color: #3c4043;
+        font-size: 0.72rem;
+    }
+
+    .gcal-meet-row,
+    .gcal-event-detail-row {
+        display: grid;
+        grid-template-columns: 20px minmax(0, 1fr) auto;
+        gap: 6px;
+        align-items: start;
+    }
+
+    .gcal-meet-icon,
+    .gcal-event-detail-row svg {
+        color: #5f6368;
+        margin-top: 2px;
+        flex-shrink: 0;
+    }
+
+    .gcal-meet-join {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 26px;
+        padding: 0 12px;
+        border: 0;
+        border-radius: 999px;
+        background: #1967d2;
+        color: #ffffff;
+        font-size: 0.66rem;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .gcal-meet-link-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        color: #5f6368;
+        font-size: 0.64rem;
+    }
+
+    .gcal-link-blue,
+    .gcal-button-link.gcal-link-blue {
+        color: #1a73e8;
+        background: transparent;
+        padding: 0;
+        min-height: 0;
+        font-size: 0.66rem;
+    }
+
+    .gcal-popover-caption {
+        font-size: 0.58rem;
+        color: #5f6368;
+        line-height: 1.4;
+    }
+
+    @keyframes gcal-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .gcal-event-description-text {
+        color: #3c4043;
+        white-space: pre-wrap;
+        font-size: 0.7rem;
+        line-height: 1.45;
+    }
+
+    .gcal-editor-overlay {
+        position: fixed;
+        inset: 0 calc(var(--gcal-apps-rail-width) + 12px) 0 0;
+        z-index: 80;
+        background: rgba(255, 255, 255, 0.985);
+        overflow: auto;
+    }
+
+    .gcal-editor-shell {
+        min-height: 100%;
+        max-width: 980px;
+        padding: 14px 0 28px 48px;
+    }
+
+    .gcal-editor-shell.is-all-day .gcal-editor-pill-input.is-time,
+    .gcal-editor-shell.is-all-day .gcal-editor-time-separator {
+        display: none;
+    }
+
+    .gcal-editor-topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 428px) auto 1fr;
+        align-items: start;
+        gap: 18px;
+        max-width: 760px;
+        min-height: 40px;
+    }
+
+    .gcal-editor-topbar-left {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .gcal-editor-topbar-left .gcal-icon-button {
+        width: 28px;
+        height: 28px;
+        margin-top: 2px;
+    }
+
+    .gcal-editor-title-input {
+        width: 100%;
+        min-width: 0;
+        max-width: 430px;
+        border: 0;
+        border-bottom: 2px solid #1a73e8;
+        border-radius: 0;
+        background: transparent;
+        padding: 4px 0 8px;
+        font-size: 1.08rem;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        color: #3c4043;
+    }
+
+    .gcal-editor-title-input::placeholder {
+        color: #5f6368;
+    }
+
+    .gcal-editor-title-input:focus {
+        outline: none;
+    }
+
+    .gcal-editor-topbar-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding-top: 1px;
+        justify-self: start;
+    }
+
+    .gcal-editor-topbar-actions .gcal-button {
+        min-height: 32px;
+        min-width: 66px;
+        padding: 0 20px;
+        font-size: 0.8rem;
+        box-shadow: none;
+    }
+
+    .gcal-editor-topbar-actions .gcal-button-link {
+        display: none;
+    }
+
+    .gcal-editor-divider {
+        display: none;
+    }
+
+    .gcal-editor-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-left: 42px;
+        margin-top: 14px;
+        margin-bottom: 6px;
+        max-width: 760px;
+        color: #3c4043;
+        font-size: 0.8rem;
+    }
+
+    .gcal-editor-pill-input,
+    .gcal-editor-pill-select {
+        min-height: 30px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 4px;
+        background: #f1f3f4;
+        color: #3c4043;
+        font-size: 0.8rem;
+    }
+
+    .gcal-editor-pill-input {
+        min-width: 108px;
+    }
+
+    .gcal-editor-pill-input.is-time {
+        min-width: 76px;
+    }
+
+    .gcal-editor-pill-select {
+        appearance: none;
+        padding-right: 30px;
+        background-image: linear-gradient(45deg, transparent 50%, #5f6368 50%), linear-gradient(135deg, #5f6368 50%, transparent 50%);
+        background-position: calc(100% - 17px) 16px, calc(100% - 12px) 16px;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+    }
+
+    .gcal-editor-pill-input:focus,
+    .gcal-editor-pill-select:focus {
+        outline: 2px solid #d2e3fc;
+        outline-offset: 2px;
+    }
+
+    .gcal-editor-text-link {
+        color: #1a73e8;
+        font-size: 0.79rem;
+        font-weight: 500;
+    }
+
+    .gcal-editor-timezone-copy {
+        display: none;
+        color: #5f6368;
+        font-size: 0.79rem;
+    }
+
+    .gcal-editor-timezone-copy.is-open {
+        display: inline;
+    }
+
+    .gcal-editor-repeat-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: 42px;
+        margin-bottom: 18px;
+        max-width: 760px;
+        color: #3c4043;
+        font-size: 0.8rem;
+    }
+
+    .gcal-editor-checkbox {
+        width: 15px;
+        height: 15px;
+        margin: 0;
+        accent-color: #1a73e8;
+    }
+
+    .gcal-editor-columns {
+        display: grid;
+        grid-template-columns: minmax(0, 472px) 220px;
+        gap: 26px;
+        align-items: start;
+    }
+
+    .gcal-editor-main-card {
+        background: #ffffff;
+        border-radius: 22px;
+        padding: 0 12px 12px;
+        box-shadow: inset 0 0 0 1px #edf0f2;
+    }
+
+    .gcal-editor-tabs,
+    .gcal-editor-side-tabs {
+        display: flex;
+        align-items: flex-end;
+        gap: 16px;
+        border-bottom: 1px solid #dfe3e7;
+        margin-bottom: 10px;
+    }
+
+    .gcal-editor-tab,
+    .gcal-editor-side-tab {
+        position: relative;
+        padding: 13px 4px 9px;
+        border: 0;
+        background: transparent;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: #5f6368;
+        cursor: pointer;
+    }
+
+    .gcal-editor-tab:hover,
+    .gcal-editor-side-tab:hover {
+        color: #3c4043;
+    }
+
+    .gcal-editor-tab.is-active,
+    .gcal-editor-side-tab.is-active {
+        color: #1a73e8;
+    }
+
+    .gcal-editor-tab.is-active::after,
+    .gcal-editor-side-tab.is-active::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1px;
+        height: 3px;
+        border-radius: 999px 999px 0 0;
+        background: #1a73e8;
+    }
+
+    .gcal-editor-tab-panel,
+    .gcal-editor-side-panel {
+        display: none;
+    }
+
+    .gcal-editor-tab-panel.is-active,
+    .gcal-editor-side-panel.is-active {
+        display: block;
+    }
+
+    .gcal-editor-detail-row {
+        position: relative;
+        display: grid;
+        grid-template-columns: 20px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: start;
+        margin-bottom: 10px;
+    }
+
+    .gcal-editor-detail-row svg {
+        color: #5f6368;
+        margin-top: 8px;
+    }
+
+    .gcal-editor-meet-title {
+        font-size: 0.78rem;
+        font-weight: 500;
+        color: #1a73e8;
+    }
+
+    .gcal-editor-input,
+    .gcal-editor-select,
+    .gcal-editor-textarea,
+    .gcal-editor-guest-input {
+        width: 100%;
+        min-height: 30px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 4px;
+        background: #f1f3f4;
+        color: #3c4043;
+        font-size: 0.8rem;
+    }
+
+    .gcal-editor-select {
+        appearance: none;
+        padding-right: 30px;
+        background-image: linear-gradient(45deg, transparent 50%, #5f6368 50%), linear-gradient(135deg, #5f6368 50%, transparent 50%);
+        background-position: calc(100% - 17px) 17px, calc(100% - 12px) 17px;
+        background-size: 5px 5px, 5px 5px;
+        background-repeat: no-repeat;
+    }
+
+    .gcal-editor-textarea {
+        min-height: 148px;
+        padding: 10px 12px 8px;
+        resize: vertical;
+    }
+
+    .gcal-editor-input:focus,
+    .gcal-editor-select:focus,
+    .gcal-editor-textarea:focus,
+    .gcal-editor-guest-input:focus {
+        outline: 2px solid #d2e3fc;
+        outline-offset: 2px;
+    }
+
+    .gcal-editor-inline,
+    .gcal-editor-select-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .gcal-editor-meet-tools {
+        gap: 0;
+    }
+
+    .gcal-editor-meet-tools .gcal-icon-button,
+    .gcal-editor-help-button {
+        width: 24px;
+        height: 24px;
+    }
+
+    .gcal-editor-color-picker {
+        position: relative;
+        display: inline-flex;
+    }
+
+    .gcal-editor-color-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 30px;
+        padding: 0 10px;
+        border: 0;
+        border-radius: 4px;
+        background: #f1f3f4;
+        cursor: pointer;
+    }
+
+    .gcal-editor-color-pill:hover {
+        background: #e7eaee;
+    }
+
+    .gcal-editor-color-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        background: #1d9bf0;
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+    }
+
+    .gcal-editor-color-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        z-index: 12;
+        display: grid;
+        grid-template-columns: repeat(6, 20px);
+        gap: 8px;
+        padding: 10px;
+        border: 1px solid #dfe3e7;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 10px 24px rgba(60, 64, 67, 0.2), 0 2px 6px rgba(60, 64, 67, 0.1);
+    }
+
+    .gcal-editor-color-swatch {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        cursor: pointer;
+    }
+
+    .gcal-editor-color-swatch.is-selected {
+        box-shadow: 0 0 0 2px #1a73e8;
+    }
+
+    .gcal-editor-color-swatch-dot {
+        width: 14px;
+        height: 14px;
+        border-radius: 999px;
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+    }
+
+    .gcal-editor-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px 0;
+        background: #f1f3f4;
+        border-radius: 4px 4px 0 0;
+        color: #5f6368;
+        flex-wrap: wrap;
+        font-size: 0.86rem;
+    }
+
+    .gcal-editor-toolbar-divider {
+        width: 1px;
+        height: 18px;
+        background: #cad1d8;
+    }
+
+    .gcal-editor-notes-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 28px;
+        padding: 0 10px;
+        border: 1px dashed #a8b2bd;
+        border-radius: 999px;
+        background: #f8fafd;
+        color: #3c4043;
+        font-size: 0.76rem;
+    }
+
+    .gcal-editor-notes-button:hover {
+        background: #ffffff;
+        border-color: #9da8b5;
+    }
+
+    .gcal-editor-notes-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px 0;
+        background: #f1f3f4;
+    }
+
+    .gcal-editor-notification-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .gcal-editor-notification-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        min-height: 30px;
+    }
+
+    .gcal-editor-inline-label {
+        font-size: 0.76rem;
+        color: #5f6368;
+    }
+
+    .gcal-editor-side {
+        padding-top: 2px;
+    }
+
+    .gcal-editor-guest-input {
+        margin: 8px 0 12px;
+    }
+
+    .gcal-editor-guest-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin: 0 0 14px;
+    }
+
+    .gcal-editor-guest-chip {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 32px;
+    }
+
+    .gcal-editor-guest-avatar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        background: #d2e3fc;
+        color: #174ea6;
+        font-size: 0.72rem;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .gcal-editor-guest-copy {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .gcal-editor-guest-name,
+    .gcal-editor-guest-email {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .gcal-editor-guest-name {
+        font-size: 0.78rem;
+        color: #202124;
+    }
+
+    .gcal-editor-guest-email,
+    .gcal-editor-guest-status,
+    .gcal-editor-side-empty {
+        font-size: 0.68rem;
+        color: #5f6368;
+    }
+
+    .gcal-editor-guest-status {
+        text-transform: capitalize;
+    }
+
+    .gcal-editor-side-empty {
+        margin: 2px 0 14px;
+        color: #80868b;
+    }
+
+    .gcal-editor-side-title {
+        font-size: 0.76rem;
+        color: #3c4043;
+        margin: 0 0 10px;
+    }
+
+    .gcal-editor-check-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 28px;
+        font-size: 0.78rem;
+        color: #3c4043;
+    }
+
+    .gcal-editor-find-time-view,
+    .gcal-editor-side-suggestions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 6px 2px 2px;
+        color: #5f6368;
+        font-size: 0.76rem;
+    }
+
+    .gcal-editor-find-time-card {
+        padding: 12px;
+        border-radius: 16px;
+        background: #f1f3f4;
+    }
+
+    .gcal-editor-find-time-rail {
+        height: 6px;
+        margin-top: 8px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #9fe1e7 0 38%, #ffad46 38% 58%, #7bd148 58% 100%);
+    }
+
+    .gcal-editor-suggested-slot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-height: 32px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: #f1f3f4;
+        color: #3c4043;
+    }
+
+    /* ── Responsive: editor columns collapse ── */
+    @media (max-width: 1120px) {
+        .gcal-editor-columns {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
+        .gcal-editor-shell {
+            max-width: none;
+            padding: 14px 18px 28px 18px;
+        }
+
+        .gcal-editor-topbar {
+            grid-template-columns: minmax(0, 1fr) auto;
+            max-width: none;
+        }
+
+        .gcal-editor-meta-row,
+        .gcal-editor-repeat-row {
+            margin-left: 38px;
+        }
+    }
+
+    /* ── Responsive: narrow sidebar on medium screens ── */
+    @media (max-width: 1200px) {
+        :root {
+            --gcal-sidebar-width: 208px;
+        }
+
+        .gcal-create-button {
+            margin-left: 8px;
+            margin-right: 8px;
+        }
+
+        .gcal-mini-card,
+        .gcal-sidebar-section {
+            margin-left: 8px;
+            margin-right: 8px;
+        }
+    }
+
+    /* ── Responsive: hide sidebar, adjust layout ── */
+    @media (max-width: 980px) {
+        .gcal-shell {
+            grid-template-columns: 1fr;
+        }
+
+        .gcal-sidebar {
+            display: none;
+        }
+
+        .gcal-main {
+            padding-right: 0;
+        }
+
+        .gcal-apps-rail {
+            display: none;
+        }
+
+        .gcal-editor-overlay {
+            inset: 0;
+        }
+
+        .gcal-header {
+            grid-template-columns: minmax(0, 1fr) auto;
+            padding: 8px 10px 6px;
+        }
+
+        .gcal-range-label {
+            font-size: 1.125rem;
+        }
+
+        .gcal-brand-label {
+            font-size: 1.2rem;
+        }
+
+        .gcal-avatar-button {
+            display: none;
+        }
+
+        .gcal-view-button {
+            display: none;
+        }
+
+        .gcal-header-toggle {
+            display: none;
+        }
+    }
+
+    /* ── Responsive: compact header on small screens ── */
+    @media (max-width: 680px) {
+        .gcal-header {
+            grid-template-columns: 1fr;
+            gap: 4px;
+            min-height: auto;
+            padding: 6px 8px;
+        }
+
+        .gcal-header-left {
+            gap: 6px;
+        }
+
+        .gcal-header-right {
+            justify-content: flex-end;
+        }
+
+        .gcal-brand-copy {
+            display: none;
+        }
+
+        .gcal-range-label {
+            font-size: 1rem;
+        }
+
+        .gcal-today-button {
+            min-height: 32px;
+            padding: 0 12px;
+            font-size: 0.75rem;
+        }
+
+        .gcal-nav-arrow {
+            width: 28px;
+            height: 28px;
+        }
+
+        .gcal-day-header {
+            min-height: 56px;
+            gap: 1px;
+        }
+
+        .gcal-day-header-label {
+            font-size: 0.5625rem;
+        }
+
+        .gcal-day-header-date {
+            width: 36px;
+            height: 36px;
+            font-size: 1.25rem;
+        }
+
+        .gcal-event-title {
+            font-size: 0.625rem;
+        }
+
+        .gcal-event-subtitle {
+            font-size: 0.5625rem;
+        }
+
+        .gcal-all-day-chip {
+            font-size: 0.625rem;
+            min-height: 18px;
+            padding: 0 4px;
+        }
+
+        .gcal-time-label {
+            font-size: 0.5625rem;
+        }
+
+        .gcal-popover,
+        .gcal-quick-create-card {
+            position: fixed;
+            left: 8px !important;
+            right: 8px !important;
+            width: auto !important;
+            min-width: 0;
+            max-width: none;
+        }
+
+        .gcal-event-detail-card {
+            width: auto;
+        }
+    }
+
+    /* ── Responsive: very small screens ── */
+    @media (max-width: 480px) {
+        :root {
+            --gcal-time-gutter: 40px;
+        }
+
+        .gcal-header-left {
+            flex-wrap: wrap;
+        }
+
+        .gcal-range-controls {
+            gap: 2px;
+        }
+
+        .gcal-range-label {
+            font-size: 0.875rem;
+            margin-left: 4px;
+        }
+
+        .gcal-day-header-label {
+            font-size: 0.5rem;
+            letter-spacing: 0;
+        }
+
+        .gcal-day-header-date {
+            width: 28px;
+            height: 28px;
+            font-size: 0.9375rem;
+        }
+
+        .gcal-day-header {
+            min-height: 48px;
+        }
+
+        .gcal-event-card {
+            padding: 2px 3px;
+        }
+
+        .gcal-event-title {
+            font-size: 0.5625rem;
+        }
+
+        .gcal-event-subtitle {
+            display: none;
+        }
+
+        .gcal-time-label {
+            font-size: 0.5rem;
+            right: 4px;
+        }
+
+        .gcal-header-right .gcal-icon-button[title="Support"],
+        .gcal-header-right .gcal-icon-button[title="Settings"],
+        .gcal-header-right .gcal-icon-button[title="Google apps"] {
+            display: none;
+        }
+    }
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var BASE_HOUR_PX = {{ hour_px }};
+    var grid = document.getElementById('time-grid');
+    if (!grid) return;
+
+    var gridRect = grid.getBoundingClientRect();
+    var availableHeight = window.innerHeight - gridRect.top;
+    var idealHourPx = Math.max(BASE_HOUR_PX, Math.floor(availableHeight / 24));
+
+    if (idealHourPx <= BASE_HOUR_PX) return;
+
+    var scale = idealHourPx / BASE_HOUR_PX;
+    var totalHeight = 24 * idealHourPx;
+
+    document.documentElement.style.setProperty('--gcal-hour-height', idealHourPx + 'px');
+
+    var innerGrid = grid.querySelector('.gcal-time-grid');
+    if (innerGrid) innerGrid.style.height = totalHeight + 'px';
+
+    var gutter = grid.querySelector('.gcal-time-gutter');
+    if (gutter) gutter.style.height = totalHeight + 'px';
+
+    grid.querySelectorAll('.gcal-day-column').forEach(function (col) {
+        col.style.height = totalHeight + 'px';
+    });
+
+    grid.querySelectorAll('.gcal-time-label').forEach(function (el) {
+        el.style.top = (parseFloat(el.style.top) * scale) + 'px';
+    });
+
+    grid.querySelectorAll('.gcal-hour-line, .gcal-half-line').forEach(function (el) {
+        el.style.top = (parseFloat(el.style.top) * scale) + 'px';
+    });
+
+    grid.querySelectorAll('.gcal-event-card').forEach(function (el) {
+        el.style.top = (parseFloat(el.style.top) * scale) + 'px';
+        el.style.height = Math.max(parseFloat(el.style.height) * scale, 18) + 'px';
+    });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+{% set HOUR_PX = hour_px %}
+{% set DAY_ABBR = ["SUN","MON","TUE","WED","THU","FRI","SAT"] %}
+<div class="gcal-calendar-view">
+    <section class="gcal-calendar-surface">
+        <section class="gcal-week-header">
+            <div class="gcal-week-header-corner">{{ tz_abbr }}</div>
+            {% for d in week_dates %}
+            <div class="gcal-day-header{% if d == today %} is-today{% endif %}">
+                <div class="gcal-day-header-label">{{ DAY_ABBR[loop.index0] }}</div>
+                <div class="gcal-day-header-date">{{ d.day }}</div>
+            </div>
+            {% endfor %}
+        </section>
+
+        <section class="gcal-all-day">
+            <div class="gcal-all-day-label">{{ tz_abbr }}</div>
+            {% for d in week_dates %}
+            <div class="gcal-all-day-cell">
+                <div class="gcal-all-day-stack">
+                    {% for ev in allday_by_date[d.isoformat()] %}
+                    <button class="gcal-all-day-chip is-state-{{ ev.visual_state }}"
+                            type="button"
+                            data-cal-id="{{ ev.calendar_id }}"
+                            data-ev-id="{{ ev.id }}"
+                            data-ev-summary="{{ ev.summary | e }}"
+                            data-ev-location="{{ ev.location | e }}"
+                            data-ev-calendar="{{ ev.calendar_name | e }}"
+                            data-ev-attendees="{{ ev.attendees | length }}"
+                            data-ev-attendees-json="{{ ev.attendees_json | e }}"
+                            data-ev-color="{{ ev.color }}"
+                            data-ev-description="{{ ev.description | e }}"
+                            data-ev-start-iso="{{ ev.start_iso }}"
+                            data-ev-end-iso="{{ ev.end_iso }}"
+                            data-ev-all-day="true"
+                            data-ev-visual-state="{{ ev.visual_state }}"
+                            style="--gcal-event-color: {{ ev.color }}; --gcal-event-text: {{ cal_text_color(ev.color) }};"
+                            onclick="showEventPopover(event, this)">
+                        <span class="gcal-all-day-chip-dot"></span>
+                        <span class="truncate">{{ ev.summary }}</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+
+        <section id="time-grid" class="gcal-time-scroll">
+            <div class="gcal-time-grid" style="height: {{ 24 * HOUR_PX }}px;">
+                <div class="gcal-time-gutter" style="height: {{ 24 * HOUR_PX }}px;">
+                    {% for hour in range(24) %}
+                    <div class="gcal-time-label" style="top: {{ hour * HOUR_PX }}px;">
+                        {% if hour == 0 %}{% elif hour < 12 %}{{ hour }} AM{% elif hour == 12 %}12 PM{% else %}{{ hour - 12 }} PM{% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% for d in week_dates %}
+                <div class="gcal-day-column"
+                     data-date="{{ d.isoformat() }}"
+                     style="height: {{ 24 * HOUR_PX }}px;"
+                     onclick="openQuickCreatePopover(event, '{{ d.isoformat() }}')">
+                    {% for hour in range(24) %}
+                    <div class="gcal-hour-line" style="top: {{ hour * HOUR_PX }}px;"></div>
+                    <div class="gcal-half-line" style="top: {{ hour * HOUR_PX + HOUR_PX // 2 }}px;"></div>
+                    {% endfor %}
+
+                    {% for ev in timed_by_date[d.isoformat()] %}
+                    <button class="gcal-event-card{% if ev.height_px < 42 %} is-compact{% endif %}{% if ev.is_continuation %} is-continuation{% endif %} is-state-{{ ev.visual_state }}"
+                            type="button"
+                            data-cal-id="{{ ev.calendar_id }}"
+                            data-ev-id="{{ ev.id }}"
+                            data-ev-summary="{{ ev.summary | e }}"
+                            data-ev-location="{{ ev.location | e }}"
+                            data-ev-calendar="{{ ev.calendar_name | e }}"
+                            data-ev-attendees="{{ ev.attendees | length }}"
+                            data-ev-attendees-json="{{ ev.attendees_json | e }}"
+                            data-ev-color="{{ ev.color }}"
+                            data-ev-description="{{ ev.description | e }}"
+                            data-ev-start-iso="{{ ev.start_iso }}"
+                            data-ev-end-iso="{{ ev.end_iso }}"
+                            data-ev-all-day="false"
+                            data-ev-visual-state="{{ ev.visual_state }}"
+                            style="top: {{ ev.top_px }}px; height: {{ ev.height_px }}px; left: calc({{ ev.left_pct }}% + 3px); width: calc({{ ev.width_pct }}% - 6px); --gcal-event-color: {{ ev.color }}; --gcal-event-text: {{ cal_text_color(ev.color) }};"
+                            onclick="showEventPopover(event, this)">
+                        <span class="gcal-event-title">{{ ev.summary }}</span>
+                        {% if ev.height_px >= 44 %}
+                        <span class="gcal-event-subtitle">{{ ev.card_time }}</span>
+                        {% endif %}
+                    </button>
+                    {% endfor %}
+
+                    {% if d == today %}
+                    <div id="now-line" class="gcal-now-line" style="top: 0;">
+                        <div class="gcal-now-dot"></div>
+                        <div class="gcal-now-stroke"></div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </section>
+</div>
+
+<div id="quick-create-popover" class="gcal-popover gcal-quick-create-card is-hidden" onclick="event.stopPropagation()">
+    <div class="gcal-quick-header">
+        <div class="gcal-quick-header-left">
+            <button class="gcal-icon-button" type="button" title="More event options" onclick="openFullCreateFromQuickCreate()">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M4 7h10v2H4zm0 4h16v2H4zm0 4h12v2H4z"/>
+                </svg>
+            </button>
+        </div>
+        <button class="gcal-icon-button" type="button" title="Close" onclick="closeQuickCreatePopover()">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="gcal-quick-row">
+        <div></div>
+        <input id="quick-create-title" class="gcal-quick-title" type="text" placeholder="Add title">
+        <div></div>
+    </div>
+
+    <div class="gcal-quick-type-tabs">
+        <button class="gcal-quick-type-pill is-active" type="button" onclick="setQuickCreateType(this, 'event')">Event</button>
+        <button class="gcal-quick-type-pill" type="button" onclick="setQuickCreateType(this, 'task')">Task</button>
+        <button class="gcal-quick-type-pill" type="button" onclick="setQuickCreateType(this, 'out-of-office')">Out of office</button>
+        <button class="gcal-quick-type-pill" type="button" onclick="setQuickCreateType(this, 'focus-time')">Focus time</button>
+        <button class="gcal-quick-type-pill" type="button" onclick="setQuickCreateType(this, 'working-location')">Working location</button>
+        <button class="gcal-quick-type-pill" type="button" onclick="setQuickCreateType(this, 'appointment-schedule')">Appointment schedule</button>
+    </div>
+
+    <div class="gcal-quick-row">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 1a11 11 0 1 0 11 11A11 11 0 0 0 12 1m1 11.41V6h-2v7h6v-2z"/>
+        </svg>
+        <div>
+            <div id="quick-create-slot" class="gcal-quick-slot"></div>
+            <div class="gcal-quick-slot-meta">Time zone · Does not repeat</div>
+        </div>
+        <div></div>
+    </div>
+
+    <div class="gcal-quick-row">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M16 11c1.66 0 2.99-1.79 2.99-4S17.66 3 16 3s-3 1.79-3 4 1.34 4 3 4m-8 0c1.66 0 2.99-1.79 2.99-4S9.66 3 8 3 5 4.79 5 7s1.34 4 3 4m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13m8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.98 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5"/>
+        </svg>
+        <input class="gcal-quick-inline-input" type="text" placeholder="Add guests">
+        <div></div>
+    </div>
+
+    <div class="gcal-quick-row">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="#34a853">
+            <path d="M21 7.5v9a1.5 1.5 0 0 1-2.56 1.06L15 14.12V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.88l3.44-3.44A1.5 1.5 0 0 1 21 7.5"/>
+        </svg>
+        <div class="gcal-quick-conference-state">
+            <span class="gcal-quick-spinner" aria-hidden="true"></span>
+            <span>Adding conferencing details</span>
+        </div>
+        <button class="gcal-icon-button" type="button" title="Remove conferencing details" onclick="showToast('Removing conferencing details is not available in the mock yet.')">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="gcal-quick-row">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5"/>
+        </svg>
+        <input class="gcal-quick-inline-input" type="text" placeholder="Add location">
+        <div></div>
+    </div>
+
+    <div class="gcal-quick-row">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M4 7h16v2H4zm0 4h16v2H4zm0 4h10v2H4z"/>
+        </svg>
+        <input class="gcal-quick-inline-input" type="text" placeholder="Add description or a Google Drive attachment">
+        <div></div>
+    </div>
+
+    <div class="gcal-quick-row">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a3 3 0 0 0 3 3h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 15H6a1 1 0 0 1-1-1V9h14z"/>
+        </svg>
+        <div>
+            <select id="quick-create-calendar" class="gcal-quick-inline-select">
+                {% for c in calendars if not c.hidden %}
+                <option value="{{ c.id }}" data-color="{{ cal_color(c.color_id) }}">{{ c.summary_override or c.summary }}</option>
+                {% endfor %}
+            </select>
+            <div class="gcal-quick-calendar-meta">Busy · Default visibility · Do not notify</div>
+        </div>
+        <div></div>
+    </div>
+
+    <div class="gcal-popover-footer gcal-quick-footer">
+        <button class="gcal-button-link" type="button" onclick="openFullCreateFromQuickCreate()">More options</button>
+        <button class="gcal-button" type="button" onclick="submitQuickCreateEvent()">Save</button>
+    </div>
+</div>
+
+<div id="event-popover" class="gcal-popover gcal-event-detail-card is-hidden" onclick="event.stopPropagation()">
+    <div class="gcal-event-detail-toolbar">
+        <button class="gcal-icon-button" type="button" title="Edit event" onclick="openEditModal()">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3 17.25V21h3.75l11-11.03-3.75-3.75zm17.71-10.04a1 1 0 0 0 0-1.41l-2.5-2.5a1 1 0 0 0-1.41 0l-1.96 1.96 3.75 3.75z"/>
+            </svg>
+        </button>
+        <button class="gcal-icon-button" type="button" title="Delete event" onclick="deleteEvent()">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 7h12l-1 14H7zm3-3h6l1 2H8z"/>
+            </svg>
+        </button>
+        <button class="gcal-icon-button" type="button" title="Email guests" onclick="showToast('Guest email is not available in the mock yet.')">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 4H4a2 2 0 0 0-2 2v12a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V6a2 2 0 0 0-2-2m0 4.24-8 5-8-5V6l8 5 8-5z"/>
+            </svg>
+        </button>
+        <button class="gcal-icon-button" type="button" title="More actions" onclick="showToast('More actions are not available in the mock yet.')">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4m0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4m0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/>
+            </svg>
+        </button>
+        <button class="gcal-icon-button" type="button" title="Close" onclick="closeEventPopover()">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+        </button>
+    </div>
+
+    <div class="gcal-event-detail-heading">
+        <div id="pop-color" class="gcal-popover-color"></div>
+        <div class="min-w-0">
+            <div id="pop-summary" class="gcal-popover-summary"></div>
+            <div id="pop-time-text" class="gcal-event-detail-title"></div>
+        </div>
+    </div>
+
+    <div class="gcal-event-detail-stack">
+        <div class="gcal-meet-row">
+            <svg class="gcal-meet-icon w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21 7.5v9a1.5 1.5 0 0 1-2.56 1.06L15 14.12V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.88l3.44-3.44A1.5 1.5 0 0 1 21 7.5" fill="#34a853"/>
+            </svg>
+            <div class="min-w-0">
+                <button class="gcal-meet-join" type="button" onclick="showToast('Joining Meet is not available in the mock yet.')">Join with Google Meet</button>
+                <div class="gcal-meet-link-row">
+                    <span id="pop-meet-link">meet.google.com/vvk-ihek-pwq</span>
+                    <button class="gcal-icon-button" type="button" title="Copy meeting link" onclick="copyMeetLink()">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12zm4 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H8V7h12z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div></div>
+        </div>
+
+        <div class="gcal-event-detail-row">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6.62 10.79a15.5 15.5 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1-.24 11.4 11.4 0 0 0 3.59.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .57 3.59 1 1 0 0 1-.24 1z"/>
+            </svg>
+            <div class="min-w-0">
+                <button class="gcal-button-link gcal-link-blue" type="button" onclick="showToast('Calling guests is not available in the mock yet.')">Join by phone</button>
+                <div class="gcal-popover-caption">(US) +1 414-909-7684 PIN: 269 158 469#</div>
+            </div>
+            <div></div>
+        </div>
+
+        <div class="gcal-event-detail-row">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M4 4h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/>
+            </svg>
+            <button class="gcal-button-link gcal-link-blue" type="button" onclick="showToast('Phone number details are not available in the mock yet.')">More phone numbers</button>
+            <div></div>
+        </div>
+
+        <div class="gcal-event-detail-row">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 2h9l5 5v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2m8 1.5V8h4.5M7 13h10v1.5H7zm0 4h10V18H7z"/>
+            </svg>
+            <div class="min-w-0">
+                <button class="gcal-button-link gcal-link-blue" type="button" onclick="showToast('Meeting notes are not available in the mock yet.')">Take meeting notes</button>
+                <div class="gcal-popover-caption">Start a new document to capture notes</div>
+            </div>
+            <button class="gcal-icon-button" type="button" title="Note options" onclick="showToast('Note options are not available in the mock yet.')">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4m0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4m0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/>
+                </svg>
+            </button>
+        </div>
+
+        <div id="pop-description-row" class="gcal-event-detail-row">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h10v2H4z"/>
+            </svg>
+            <div id="pop-description-text" class="gcal-event-description-text"></div>
+            <div></div>
+        </div>
+
+        <div id="pop-location-row" class="gcal-event-detail-row is-hidden">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5"/>
+            </svg>
+            <div id="pop-location-text"></div>
+            <div></div>
+        </div>
+
+        <div class="gcal-event-detail-row">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a3 3 0 0 0 3 3h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 15H6a1 1 0 0 1-1-1V9h14z"/>
+            </svg>
+            <div id="pop-calendar-text"></div>
+            <div></div>
+        </div>
+    </div>
+</div>
+
+<div id="create-ev-modal" class="gcal-editor-overlay is-hidden" data-editor-prefix="create">
+    <section id="create-ev-shell" class="gcal-editor-shell" data-editor-prefix="create">
+        <div class="gcal-editor-topbar">
+            <div class="gcal-editor-topbar-left">
+                <button class="gcal-icon-button" type="button" onclick="closeCreateModal()">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+                <input id="create-ev-summary" class="gcal-editor-title-input" type="text" placeholder="Add title">
+            </div>
+            <div class="gcal-editor-topbar-actions">
+                <button class="gcal-button" type="button" onclick="submitCreateEvent()">Save</button>
+            </div>
+        </div>
+        <div class="gcal-editor-divider"></div>
+
+        <div class="gcal-editor-meta-row">
+            <input id="create-ev-start-date" class="gcal-editor-pill-input" type="text" value="Mar 22, 2026">
+            <input id="create-ev-start-time" class="gcal-editor-pill-input is-time" type="text" value="2:00pm">
+            <span class="gcal-editor-time-separator">to</span>
+            <input id="create-ev-end-time" class="gcal-editor-pill-input is-time" type="text" value="3:00pm">
+            <input id="create-ev-end-date" class="gcal-editor-pill-input" type="text" value="Mar 22, 2026">
+            <span id="create-ev-timezone-copy" class="gcal-editor-timezone-copy">({{ tz_editor_offset_label }}) {{ tz_editor_city_label }}</span>
+            <button id="create-ev-timezone-toggle" class="gcal-button-link gcal-editor-text-link" type="button" onclick="toggleEditorTimezone('create')">Time zone</button>
+        </div>
+
+        <div class="gcal-editor-repeat-row">
+            <input id="create-ev-all-day" class="gcal-editor-checkbox" type="checkbox" onchange="toggleEditorAllDay('create')">
+            <label for="create-ev-all-day">All day</label>
+            <select id="create-ev-repeat" class="gcal-editor-pill-select">
+                <option>Does not repeat</option>
+            </select>
+        </div>
+
+        <div class="gcal-editor-columns">
+            <section class="gcal-editor-main-card">
+                <div class="gcal-editor-tabs">
+                    <button id="create-ev-tab-details" class="gcal-editor-tab is-active" type="button" onclick="switchEditorTab('create', 'details')">Event details</button>
+                    <button id="create-ev-tab-find-time" class="gcal-editor-tab" type="button" onclick="switchEditorTab('create', 'find-time')">Find a time</button>
+                </div>
+
+                <div id="create-ev-panel-details" class="gcal-editor-tab-panel is-active">
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M21 7.5v9a1.5 1.5 0 0 1-2.56 1.06L15 14.12V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.88l3.44-3.44A1.5 1.5 0 0 1 21 7.5" fill="#34a853"/>
+                        </svg>
+                        <div>
+                            <div class="gcal-editor-meet-title">Join with Google Meet</div>
+                            <div class="gcal-popover-caption">meet.google.com/vvk-ihek-pwq</div>
+                        </div>
+                        <div class="gcal-editor-inline gcal-editor-meet-tools">
+                            <button class="gcal-icon-button" type="button" title="Copy conferencing details" onclick="copyMeetLink()"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12zm4 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H8V7h12z"/></svg></button>
+                            <button class="gcal-icon-button" type="button" title="Conference settings" onclick="showToast('Conference settings are not available in the mock yet.')"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="m19.14 12.94.04-.94-.04-.94 2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.95L14.5 2.5a.5.5 0 0 0-.49-.4h-4.02a.5.5 0 0 0-.49.4L9.08 5.3c-.58.23-1.12.55-1.63.95l-2.39-.96a.5.5 0 0 0-.6.22L2.54 8.83a.5.5 0 0 0 .12.64l2.03 1.58-.04.95.04.94-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.51.4 1.05.72 1.63.95l.42 2.8a.5.5 0 0 0 .49.4h4.02a.5.5 0 0 0 .49-.4l.42-2.8c.58-.23 1.12-.55 1.63-.95l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5"/></svg></button>
+                            <button class="gcal-icon-button" type="button" title="More conferencing options" onclick="showToast('More conferencing options are not available in the mock yet.')"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5z"/></svg></button>
+                            <button class="gcal-icon-button" type="button" title="Remove conferencing" onclick="showToast('Removing conferencing is not available in the mock yet.')"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+                        </div>
+                    </div>
+
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5"/>
+                        </svg>
+                        <input id="create-ev-location" class="gcal-editor-input" type="text" placeholder="Add location">
+                        <div></div>
+                    </div>
+
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2m6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1z"/>
+                        </svg>
+                        <div>
+                            <button class="gcal-button-link gcal-editor-text-link" type="button" onclick="addEditorNotification('create')">Add notification</button>
+                            <div id="create-ev-notification-list" class="gcal-editor-notification-list is-hidden"></div>
+                        </div>
+                        <div></div>
+                    </div>
+
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a3 3 0 0 0 3 3h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 15H6a1 1 0 0 1-1-1V9h14z"/>
+                        </svg>
+                        <div class="gcal-editor-select-wrap">
+                            <select id="create-ev-cal" class="gcal-editor-select" onchange="syncEditorCalendarColor('create')">
+                                {% for c in calendars if not c.hidden %}
+                                <option value="{{ c.id }}" data-color="{{ cal_color(c.color_id) }}">{{ c.summary_override or c.summary }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="gcal-editor-color-picker">
+                                <button id="create-ev-color-pill" class="gcal-editor-color-pill" type="button" onclick="toggleEditorColorMenu('create')">
+                                    <span id="create-ev-color-dot" class="gcal-editor-color-dot"></span>
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="m7 10 5 5 5-5z"/>
+                                    </svg>
+                                </button>
+                                <div id="create-ev-color-menu" class="gcal-editor-color-menu is-hidden">
+                                    {% for c in calendars if not c.hidden %}
+                                    <button class="gcal-editor-color-swatch" type="button" title="{{ c.summary_override or c.summary }}" data-calendar-id="{{ c.id }}" onclick="selectEditorColor('create', this.dataset.calendarId)">
+                                        <span class="gcal-editor-color-swatch-dot" style="background-color: {{ cal_color(c.color_id) }};"></span>
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div></div>
+                    </div>
+
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M4 4h16v16H4z" fill="none"/><path d="M12 7a5 5 0 0 0 0 10c2.76 0 5-2.24 5-5h-5z"/>
+                        </svg>
+                        <div class="gcal-editor-inline">
+                            <select class="gcal-editor-select"><option>Busy</option></select>
+                            <select class="gcal-editor-select"><option>Default visibility</option></select>
+                        </div>
+                        <button class="gcal-icon-button gcal-editor-help-button" type="button" onclick="showToast('Availability and visibility details are not editable in the mock yet.')">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M11 18h2v-2h-2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m0-14a4 4 0 0 0-4 4h2a2 2 0 1 1 2 2c-1.1 0-2 .9-2 2v1h2v-1c0-.55.45-1 1-1a4 4 0 0 0 0-8"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M4 7h16v2H4zm0 4h16v2H4zm0 4h10v2H4z"/>
+                        </svg>
+                        <div>
+                            <div class="gcal-editor-toolbar">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h10v2H7zm0 6h10v2H7zm0 6h10v2H7z"/></svg>
+                                <div class="gcal-editor-toolbar-divider"></div>
+                                <strong>B</strong>
+                                <em>I</em>
+                                <span style="text-decoration: underline;">U</span>
+                                <div class="gcal-editor-toolbar-divider"></div>
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 7h10v2H4zm0 4h16v2H4zm0 4h12v2H4z"/></svg>
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.9 12a5 5 0 0 1 5-5h3v2h-3a3 3 0 0 0 0 6h3v2h-3a5 5 0 0 1-5-5m6-1h4v2h-4zm5.2-4h-3v2h3a3 3 0 1 1 0 6h-3v2h3a5 5 0 0 0 0-10"/></svg>
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="m7 6 10 10M17 6 7 16"/><path d="M4 4h16v2H4z" fill="currentColor"/></svg>
+                            </div>
+                            <div class="gcal-editor-notes-row">
+                                <button class="gcal-editor-notes-button" type="button" onclick="insertMeetingNotesTemplate('create')">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h12a2 2 0 0 1 2 2v12H4V6a2 2 0 0 1 2-2m2 4v2h8V8zm0 4v2h6v-2z"/></svg>
+                                    <span>Create meeting notes</span>
+                                </button>
+                            </div>
+                            <textarea id="create-ev-description" class="gcal-editor-textarea" rows="8" placeholder="Add description"></textarea>
+                        </div>
+                        <div></div>
+                    </div>
+                </div>
+
+                <div id="create-ev-panel-find-time" class="gcal-editor-tab-panel">
+                    <div class="gcal-editor-find-time-view">
+                        <div class="gcal-editor-find-time-card">
+                            <div>Availability will line up here after you add guests.</div>
+                            <div class="gcal-editor-find-time-rail"></div>
+                        </div>
+                        <div class="gcal-editor-find-time-card">
+                            <div>Morning slots are currently the easiest overlap.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="gcal-editor-side">
+                <div class="gcal-editor-side-tabs">
+                    <button id="create-ev-side-tab-guests" class="gcal-editor-side-tab is-active" type="button" onclick="switchEditorSidebar('create', 'guests')">Guests</button>
+                    <button id="create-ev-side-tab-suggested-times" class="gcal-editor-side-tab" type="button" onclick="switchEditorSidebar('create', 'suggested-times')">Suggested times</button>
+                </div>
+                <div id="create-ev-side-panel-guests" class="gcal-editor-side-panel is-active">
+                    <input id="create-ev-guests" class="gcal-editor-guest-input" type="text" placeholder="Add guests">
+                    <div id="create-ev-side-empty" class="gcal-editor-side-empty">No guests yet</div>
+                    <div id="create-ev-guest-list" class="gcal-editor-guest-list is-hidden"></div>
+                    <div class="gcal-editor-side-title">Guest permissions</div>
+                    <div class="gcal-editor-check-row">
+                        <input class="gcal-editor-checkbox" type="checkbox">
+                        <span>Modify event</span>
+                    </div>
+                    <div class="gcal-editor-check-row">
+                        <input class="gcal-editor-checkbox" type="checkbox" checked>
+                        <span>Invite others</span>
+                    </div>
+                    <div class="gcal-editor-check-row">
+                        <input class="gcal-editor-checkbox" type="checkbox" checked>
+                        <span>See guest list</span>
+                    </div>
+                </div>
+                <div id="create-ev-side-panel-suggested-times" class="gcal-editor-side-panel">
+                    <div class="gcal-editor-side-suggestions">
+                        <div class="gcal-editor-suggested-slot">
+                            <span>Tomorrow, 11:00am</span>
+                            <span>Best</span>
+                        </div>
+                        <div class="gcal-editor-suggested-slot">
+                            <span>Thursday, 2:30pm</span>
+                            <span>Good</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </section>
+</div>
+
+<div id="edit-ev-modal" class="gcal-editor-overlay is-hidden" data-ev-id="" data-cal-id="" data-editor-prefix="edit">
+    <section id="edit-ev-shell" class="gcal-editor-shell" data-editor-prefix="edit">
+        <div class="gcal-editor-topbar">
+            <div class="gcal-editor-topbar-left">
+                <button class="gcal-icon-button" type="button" onclick="closeEditModal()">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+                <input id="edit-ev-summary" class="gcal-editor-title-input" type="text" placeholder="Add title">
+            </div>
+            <div class="gcal-editor-topbar-actions">
+                <button class="gcal-button" type="button" onclick="submitEditEvent()">Save</button>
+            </div>
+        </div>
+        <div class="gcal-editor-divider"></div>
+
+        <div class="gcal-editor-meta-row">
+            <input id="edit-ev-start-date" class="gcal-editor-pill-input" type="text" value="Mar 22, 2026">
+            <input id="edit-ev-start-time" class="gcal-editor-pill-input is-time" type="text" value="2:00pm">
+            <span class="gcal-editor-time-separator">to</span>
+            <input id="edit-ev-end-time" class="gcal-editor-pill-input is-time" type="text" value="3:00pm">
+            <input id="edit-ev-end-date" class="gcal-editor-pill-input" type="text" value="Mar 22, 2026">
+            <span id="edit-ev-timezone-copy" class="gcal-editor-timezone-copy">({{ tz_editor_offset_label }}) {{ tz_editor_city_label }}</span>
+            <button id="edit-ev-timezone-toggle" class="gcal-button-link gcal-editor-text-link" type="button" onclick="toggleEditorTimezone('edit')">Time zone</button>
+        </div>
+
+        <div class="gcal-editor-repeat-row">
+            <input id="edit-ev-all-day" class="gcal-editor-checkbox" type="checkbox" onchange="toggleEditorAllDay('edit')">
+            <label for="edit-ev-all-day">All day</label>
+            <select id="edit-ev-repeat" class="gcal-editor-pill-select">
+                <option>Does not repeat</option>
+            </select>
+        </div>
+
+        <div class="gcal-editor-columns">
+            <section class="gcal-editor-main-card">
+                <div class="gcal-editor-tabs">
+                    <button id="edit-ev-tab-details" class="gcal-editor-tab is-active" type="button" onclick="switchEditorTab('edit', 'details')">Event details</button>
+                    <button id="edit-ev-tab-find-time" class="gcal-editor-tab" type="button" onclick="switchEditorTab('edit', 'find-time')">Find a time</button>
+                </div>
+
+                <div id="edit-ev-panel-details" class="gcal-editor-tab-panel is-active">
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M21 7.5v9a1.5 1.5 0 0 1-2.56 1.06L15 14.12V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.88l3.44-3.44A1.5 1.5 0 0 1 21 7.5" fill="#34a853"/>
+                        </svg>
+                        <div>
+                            <div class="gcal-editor-meet-title">Join with Google Meet</div>
+                            <div class="gcal-popover-caption">meet.google.com/vvk-ihek-pwq</div>
+                        </div>
+                        <div class="gcal-editor-inline gcal-editor-meet-tools">
+                            <button class="gcal-icon-button" type="button" title="Copy conferencing details" onclick="copyMeetLink()"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4a2 2 0 0 0-2 2v12h2V3h12zm4 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2m0 16H8V7h12z"/></svg></button>
+                            <button class="gcal-icon-button" type="button" title="Conference settings" onclick="showToast('Conference settings are not available in the mock yet.')"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="m19.14 12.94.04-.94-.04-.94 2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.63-.95L14.5 2.5a.5.5 0 0 0-.49-.4h-4.02a.5.5 0 0 0-.49.4L9.08 5.3c-.58.23-1.12.55-1.63.95l-2.39-.96a.5.5 0 0 0-.6.22L2.54 8.83a.5.5 0 0 0 .12.64l2.03 1.58-.04.95.04.94-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.51.4 1.05.72 1.63.95l.42 2.8a.5.5 0 0 0 .49.4h4.02a.5.5 0 0 0 .49-.4l.42-2.8c.58-.23 1.12-.55 1.63-.95l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5"/></svg></button>
+                            <button class="gcal-icon-button" type="button" title="More conferencing options" onclick="showToast('More conferencing options are not available in the mock yet.')"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="m7 10 5 5 5-5z"/></svg></button>
+                            <button class="gcal-icon-button" type="button" title="Remove conferencing" onclick="showToast('Removing conferencing is not available in the mock yet.')"><svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+                        </div>
+                    </div>
+
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5"/>
+                        </svg>
+                        <input id="edit-ev-location" class="gcal-editor-input" type="text" placeholder="Add location">
+                        <div></div>
+                    </div>
+
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2m6-6V11a6 6 0 1 0-12 0v5l-2 2v1h16v-1z"/>
+                        </svg>
+                        <div>
+                            <button class="gcal-button-link gcal-editor-text-link" type="button" onclick="addEditorNotification('edit')">Add notification</button>
+                            <div id="edit-ev-notification-list" class="gcal-editor-notification-list is-hidden"></div>
+                        </div>
+                        <div></div>
+                    </div>
+
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a3 3 0 0 0 3 3h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 15H6a1 1 0 0 1-1-1V9h14z"/>
+                        </svg>
+                        <div class="gcal-editor-select-wrap">
+                            <select id="edit-ev-cal" class="gcal-editor-select" onchange="syncEditorCalendarColor('edit')">
+                                {% for c in calendars if not c.hidden %}
+                                <option value="{{ c.id }}" data-color="{{ cal_color(c.color_id) }}">{{ c.summary_override or c.summary }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="gcal-editor-color-picker">
+                                <button id="edit-ev-color-pill" class="gcal-editor-color-pill" type="button" onclick="toggleEditorColorMenu('edit')">
+                                    <span id="edit-ev-color-dot" class="gcal-editor-color-dot"></span>
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="m7 10 5 5 5-5z"/>
+                                    </svg>
+                                </button>
+                                <div id="edit-ev-color-menu" class="gcal-editor-color-menu is-hidden">
+                                    {% for c in calendars if not c.hidden %}
+                                    <button class="gcal-editor-color-swatch" type="button" title="{{ c.summary_override or c.summary }}" data-calendar-id="{{ c.id }}" onclick="selectEditorColor('edit', this.dataset.calendarId)">
+                                        <span class="gcal-editor-color-swatch-dot" style="background-color: {{ cal_color(c.color_id) }};"></span>
+                                    </button>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <div></div>
+                    </div>
+
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M4 4h16v16H4z" fill="none"/><path d="M12 7a5 5 0 0 0 0 10c2.76 0 5-2.24 5-5h-5z"/>
+                        </svg>
+                        <div class="gcal-editor-inline">
+                            <select class="gcal-editor-select"><option>Busy</option></select>
+                            <select class="gcal-editor-select"><option>Default visibility</option></select>
+                        </div>
+                        <button class="gcal-icon-button gcal-editor-help-button" type="button" onclick="showToast('Availability and visibility details are not editable in the mock yet.')">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M11 18h2v-2h-2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8m0-14a4 4 0 0 0-4 4h2a2 2 0 1 1 2 2c-1.1 0-2 .9-2 2v1h2v-1c0-.55.45-1 1-1a4 4 0 0 0 0-8"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="gcal-editor-detail-row">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M4 7h16v2H4zm0 4h16v2H4zm0 4h10v2H4z"/>
+                        </svg>
+                        <div>
+                            <div class="gcal-editor-toolbar">
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h10v2H7zm0 6h10v2H7zm0 6h10v2H7z"/></svg>
+                                <div class="gcal-editor-toolbar-divider"></div>
+                                <strong>B</strong>
+                                <em>I</em>
+                                <span style="text-decoration: underline;">U</span>
+                                <div class="gcal-editor-toolbar-divider"></div>
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M4 7h10v2H4zm0 4h16v2H4zm0 4h12v2H4z"/></svg>
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M3.9 12a5 5 0 0 1 5-5h3v2h-3a3 3 0 0 0 0 6h3v2h-3a5 5 0 0 1-5-5m6-1h4v2h-4zm5.2-4h-3v2h3a3 3 0 1 1 0 6h-3v2h3a5 5 0 0 0 0-10"/></svg>
+                                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="m7 6 10 10M17 6 7 16"/><path d="M4 4h16v2H4z" fill="currentColor"/></svg>
+                            </div>
+                            <div class="gcal-editor-notes-row">
+                                <button class="gcal-editor-notes-button" type="button" onclick="insertMeetingNotesTemplate('edit')">
+                                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h12a2 2 0 0 1 2 2v12H4V6a2 2 0 0 1 2-2m2 4v2h8V8zm0 4v2h6v-2z"/></svg>
+                                    <span>Create meeting notes</span>
+                                </button>
+                            </div>
+                            <textarea id="edit-ev-description" class="gcal-editor-textarea" rows="8" placeholder="Add description"></textarea>
+                        </div>
+                        <div></div>
+                    </div>
+                </div>
+
+                <div id="edit-ev-panel-find-time" class="gcal-editor-tab-panel">
+                    <div class="gcal-editor-find-time-view">
+                        <div class="gcal-editor-find-time-card">
+                            <div>Suggested overlaps update after attendee responses arrive.</div>
+                            <div class="gcal-editor-find-time-rail"></div>
+                        </div>
+                        <div class="gcal-editor-find-time-card">
+                            <div>Late morning is currently the strongest match.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <aside class="gcal-editor-side">
+                <div class="gcal-editor-side-tabs">
+                    <button id="edit-ev-side-tab-guests" class="gcal-editor-side-tab is-active" type="button" onclick="switchEditorSidebar('edit', 'guests')">Guests</button>
+                    <button id="edit-ev-side-tab-suggested-times" class="gcal-editor-side-tab" type="button" onclick="switchEditorSidebar('edit', 'suggested-times')">Suggested times</button>
+                </div>
+                <div id="edit-ev-side-panel-guests" class="gcal-editor-side-panel is-active">
+                    <input id="edit-ev-guests" class="gcal-editor-guest-input" type="text" placeholder="Add guests">
+                    <div id="edit-ev-side-empty" class="gcal-editor-side-empty">Guests from the event will appear here.</div>
+                    <div id="edit-ev-guest-list" class="gcal-editor-guest-list is-hidden"></div>
+                    <div class="gcal-editor-side-title">Guest permissions</div>
+                    <div class="gcal-editor-check-row">
+                        <input class="gcal-editor-checkbox" type="checkbox">
+                        <span>Modify event</span>
+                    </div>
+                    <div class="gcal-editor-check-row">
+                        <input class="gcal-editor-checkbox" type="checkbox" checked>
+                        <span>Invite others</span>
+                    </div>
+                    <div class="gcal-editor-check-row">
+                        <input class="gcal-editor-checkbox" type="checkbox" checked>
+                        <span>See guest list</span>
+                    </div>
+                </div>
+                <div id="edit-ev-side-panel-suggested-times" class="gcal-editor-side-panel">
+                    <div class="gcal-editor-side-suggestions">
+                        <div class="gcal-editor-suggested-slot">
+                            <span>Tomorrow, 10:30am</span>
+                            <span>Best</span>
+                        </div>
+                        <div class="gcal-editor-suggested-slot">
+                            <span>Friday, 1:00pm</span>
+                            <span>Open</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </section>
+</div>
+{% endblock %}

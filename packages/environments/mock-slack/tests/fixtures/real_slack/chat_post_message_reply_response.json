@@ -1,0 +1,54 @@
+{
+  "ok": true,
+  "channel": "C0AM67S42PM",
+  "ts": "1774643982.730049",
+  "message": {
+    "user": "U0AMGBHA936",
+    "type": "message",
+    "ts": "1774643982.730049",
+    "bot_id": "B0AMAMY16CW",
+    "app_id": "A0AM9BMDG77",
+    "text": "This is a thread reply",
+    "team": "T0AN6SZBR3J",
+    "bot_profile": {
+      "id": "B0AMAMY16CW",
+      "app_id": "A0AM9BMDG77",
+      "user_id": "U0AMGBHA936",
+      "name": "Demo App",
+      "icons": {
+        "image_36": "https://a.slack-edge.com/80588/img/plugins/app/bot_36.png",
+        "image_48": "https://a.slack-edge.com/80588/img/plugins/app/bot_48.png",
+        "image_72": "https://a.slack-edge.com/80588/img/plugins/app/service_72.png"
+      },
+      "deleted": false,
+      "updated": 1773841683,
+      "team_id": "T0AN6SZBR3J"
+    },
+    "thread_ts": "1774643981.881149",
+    "parent_user_id": "U0AMGBHA936",
+    "blocks": [
+      {
+        "type": "rich_text",
+        "block_id": "Rlo4",
+        "elements": [
+          {
+            "type": "rich_text_section",
+            "elements": [
+              {
+                "type": "text",
+                "text": "This is a thread reply"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "warning": "missing_charset",
+  "response_metadata": {
+    "warnings": [
+      "missing_charset"
+    ]
+  },
+  "_captured_at": "2026-03-27T20:39:42.773556+00:00"
+}

@@ -1,0 +1,130 @@
+{
+  "kind": "drive#file",
+  "id": "1scesgFujogdSbWRHS-cpznuroVESxO5m",
+  "name": "test",
+  "mimeType": "application/vnd.google-apps.folder",
+  "starred": false,
+  "trashed": false,
+  "explicitlyTrashed": false,
+  "parents": [
+    "0AGCaAQu2_Nu3Uk9PVA"
+  ],
+  "spaces": [
+    "drive"
+  ],
+  "version": "2",
+  "webViewLink": "https://drive.google.com/drive/folders/1scesgFujogdSbWRHS-cpznuroVESxO5m",
+  "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/application/vnd.google-apps.folder",
+  "hasThumbnail": false,
+  "thumbnailVersion": "0",
+  "viewedByMe": true,
+  "viewedByMeTime": "2026-03-13T20:55:06.772Z",
+  "createdTime": "2026-03-13T20:55:03.557Z",
+  "modifiedTime": "2026-03-13T20:55:03.557Z",
+  "modifiedByMeTime": "2026-03-13T20:55:03.557Z",
+  "modifiedByMe": true,
+  "owners": [
+    {
+      "kind": "drive#user",
+      "displayName": "Wenbo",
+      "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocLlEIl0qLQ5F8E8W8G-aehYpYaUvr2n43vjT0Uowb4u0u3wRw=s64",
+      "me": true,
+      "permissionId": "07043784980306233729",
+      "emailAddress": "wenbo.chen.career@gmail.com"
+    }
+  ],
+  "lastModifyingUser": {
+    "kind": "drive#user",
+    "displayName": "Wenbo",
+    "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocLlEIl0qLQ5F8E8W8G-aehYpYaUvr2n43vjT0Uowb4u0u3wRw=s64",
+    "me": true,
+    "permissionId": "07043784980306233729",
+    "emailAddress": "wenbo.chen.career@gmail.com"
+  },
+  "shared": false,
+  "ownedByMe": true,
+  "downloadRestrictions": {
+    "itemDownloadRestriction": {
+      "restrictedForReaders": false,
+      "restrictedForWriters": false
+    },
+    "effectiveDownloadRestrictionWithContext": {
+      "restrictedForReaders": false,
+      "restrictedForWriters": false
+    }
+  },
+  "capabilities": {
+    "canAcceptOwnership": false,
+    "canAddChildren": true,
+    "canAddMyDriveParent": false,
+    "canChangeCopyRequiresWriterPermission": false,
+    "canChangeItemDownloadRestriction": false,
+    "canChangeSecurityUpdateEnabled": false,
+    "canChangeViewersCanCopyContent": false,
+    "canComment": true,
+    "canCopy": false,
+    "canDelete": true,
+    "canDisableInheritedPermissions": true,
+    "canDownload": true,
+    "canEdit": true,
+    "canEnableInheritedPermissions": true,
+    "canListChildren": true,
+    "canModifyContent": true,
+    "canModifyContentRestriction": false,
+    "canModifyEditorContentRestriction": false,
+    "canModifyOwnerContentRestriction": false,
+    "canModifyLabels": false,
+    "canMoveChildrenWithinDrive": true,
+    "canMoveItemIntoTeamDrive": true,
+    "canMoveItemOutOfDrive": true,
+    "canMoveItemWithinDrive": true,
+    "canReadLabels": false,
+    "canReadRevisions": false,
+    "canRemoveChildren": true,
+    "canRemoveContentRestriction": false,
+    "canRemoveMyDriveParent": true,
+    "canRename": true,
+    "canShare": true,
+    "canTrash": true,
+    "canUntrash": true
+  },
+  "viewersCanCopyContent": true,
+  "copyRequiresWriterPermission": false,
+  "writersCanShare": true,
+  "permissions": [
+    {
+      "kind": "drive#permission",
+      "id": "07043784980306233729",
+      "type": "user",
+      "emailAddress": "wenbo.chen.career@gmail.com",
+      "role": "owner",
+      "displayName": "Wenbo",
+      "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocLlEIl0qLQ5F8E8W8G-aehYpYaUvr2n43vjT0Uowb4u0u3wRw=s64",
+      "permissionDetails": [
+        {
+          "permissionType": "file",
+          "role": "writer",
+          "inherited": true
+        },
+        {
+          "permissionType": "file",
+          "role": "owner",
+          "inherited": false
+        }
+      ],
+      "deleted": false,
+      "pendingOwner": false
+    }
+  ],
+  "permissionIds": [
+    "07043784980306233729"
+  ],
+  "folderColorRgb": "#8f8f8f",
+  "quotaBytesUsed": "0",
+  "isAppAuthorized": false,
+  "linkShareMetadata": {
+    "securityUpdateEligible": false,
+    "securityUpdateEnabled": true
+  },
+  "inheritedPermissionsDisabled": false
+}

@@ -1,0 +1,73 @@
+# Stage 1: Install Python dependencies (discarded from final image)
+FROM python:3.12-slim AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends curl && \
+    rm -rf /var/lib/apt/lists/*
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.local/bin/uv /usr/local/bin/uv
+RUN uv pip install --system setuptools wheel
+{{MOCK_BUILDER}}
+
+# Stage 2: Final image (no repo checkout; installed runtime packages only)
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl build-essential procps jq && rm -rf /var/lib/apt/lists/*
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.local/bin/uv /usr/local/bin/uv
+
+# Node.js 22 + AI CLIs
+RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    npm install -g @google/gemini-cli@latest @anthropic-ai/claude-code@latest openclaw@latest && \
+    npm cache clean --force && \
+    rm -rf /var/lib/apt/lists/* /root/.npm /tmp/*
+
+# gws CLI (Rust binary compile)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && \
+    . /root/.cargo/env && \
+    cargo install --git https://github.com/benchflow-ai/cli \
+      --branch feat/custom-endpoint-override && \
+    cp /root/.cargo/bin/gws /usr/local/bin/gws-bin && \
+    rustup self uninstall -y && \
+    rm -rf /root/.cargo/registry /root/.cargo/git
+COPY docker/gws-wrapper.sh /usr/local/bin/gws
+COPY docker/gws-discovery-cache /opt/mockflow/gws-discovery-cache
+RUN chmod +x /usr/local/bin/gws && \
+    chmod -R a+rX /opt/mockflow/gws-discovery-cache
+
+# Copy installed Python dependencies from builder (repo checkout stays in discarded stage)
+{{MOCK_COPY}}
+
+# Service URLs generated from config.toml (SSOT).
+COPY config.toml /etc/mockflow/config.toml
+{{MOCK_ENV}}
+
+# Non-root agent user
+RUN useradd -m -s /bin/bash agent
+
+# Seed gws discovery cache for root/oracle and agent users. The wrapper also
+# refreshes per-service cache mtimes before exec so old images stay offline.
+RUN mkdir -p /root/.config/gws/cache /home/agent/.config/gws/cache && \
+    cp /opt/mockflow/gws-discovery-cache/*.json /root/.config/gws/cache/ && \
+    cp /opt/mockflow/gws-discovery-cache/*.json /home/agent/.config/gws/cache/ && \
+    chown -R agent:agent /home/agent/.config/gws
+
+# Agent boot instructions — symlinked to each agent CLI's discovery path
+COPY docker/AGENTS.md /home/agent/AGENTS.md
+RUN mkdir -p /home/agent/.gemini /home/agent/.claude /home/agent/.openclaw && \
+    ln -sf /home/agent/AGENTS.md /home/agent/.gemini/GEMINI.md && \
+    ln -sf /home/agent/AGENTS.md /home/agent/.claude/CLAUDE.md && \
+    echo '{"version":1,"defaults":{"allow_all":true}}' > /home/agent/.openclaw/exec-approvals.json && \
+    chown -R agent:agent /home/agent
+
+RUN mkdir -p /data
+WORKDIR /app
+
+# Lock sensitive directories (root-only)
+# /var/lib/task — hidden task payload (data/ + solution/)
+# /data         — agent must use HTTP API, not read .db files directly
+# /data/oracle  — privileged oracle manifest + artifacts
+# /etc/mockflow — internal service metadata
+RUN mkdir -p /var/lib/task /data/oracle && \
+    chmod 700 /var/lib/task /data /data/oracle /etc/mockflow

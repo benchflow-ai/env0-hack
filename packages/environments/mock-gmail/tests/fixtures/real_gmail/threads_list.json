@@ -1,0 +1,57 @@
+{
+  "threads": [
+    {
+      "id": "19d303903ac6ba43",
+      "snippet": "Address not found Your message wasn&#39;t delivered to fixture-user@example.com because the domain example.com couldn&#39;t be found. Check for typos or unnecessary spaces and try again. LEARN MORE",
+      "historyId": "3448"
+    },
+    {
+      "id": "19d3038fcc9df900",
+      "snippet": "Address not found Your message wasn&#39;t delivered to fixture-user@example.com because the domain example.com couldn&#39;t be found. Check for typos or unnecessary spaces and try again. LEARN MORE",
+      "historyId": "3396"
+    },
+    {
+      "id": "19d3038f680bb7a9",
+      "snippet": "Address not found Your message wasn&#39;t delivered to fixture-user@example.com because the domain example.com couldn&#39;t be found. Check for typos or unnecessary spaces and try again. LEARN MORE",
+      "historyId": "3326"
+    },
+    {
+      "id": "19d2ff9cf68e93ba",
+      "snippet": "Address not found Your message wasn&#39;t delivered to fixture-user@example.com because the domain example.com couldn&#39;t be found. Check for typos or unnecessary spaces and try again. LEARN MORE",
+      "historyId": "3257"
+    },
+    {
+      "id": "19d2ff9ccd4321af",
+      "snippet": "Address not found Your message wasn&#39;t delivered to fixture-user@example.com because the domain example.com couldn&#39;t be found. Check for typos or unnecessary spaces and try again. LEARN MORE",
+      "historyId": "3205"
+    },
+    {
+      "id": "19d2ff9c663d1641",
+      "snippet": "Address not found Your message wasn&#39;t delivered to fixture-user@example.com because the domain example.com couldn&#39;t be found. Check for typos or unnecessary spaces and try again. LEARN MORE",
+      "historyId": "3135"
+    },
+    {
+      "id": "19d2cf6d6c1fb9e8",
+      "snippet": "Address not found Your message wasn&#39;t delivered to fixture-user@example.com because the domain example.com couldn&#39;t be found. Check for typos or unnecessary spaces and try again. LEARN MORE",
+      "historyId": "3043"
+    },
+    {
+      "id": "19d2cf6d22c04485",
+      "snippet": "Address not found Your message wasn&#39;t delivered to fixture-user@example.com because the domain example.com couldn&#39;t be found. Check for typos or unnecessary spaces and try again. LEARN MORE",
+      "historyId": "2990"
+    },
+    {
+      "id": "19d2cf6ced3e8de8",
+      "snippet": "Address not found Your message wasn&#39;t delivered to fixture-user@example.com because the domain example.com couldn&#39;t be found. Check for typos or unnecessary spaces and try again. LEARN MORE",
+      "historyId": "2774"
+    },
+    {
+      "id": "19d2cec84216dde5",
+      "snippet": "Golden fixture test message from capture script.",
+      "historyId": "2640"
+    }
+  ],
+  "nextPageToken": "11553629607203562601",
+  "resultSizeEstimate": 16,
+  "_captured_at": "2026-03-27T18:33:27.359182+00:00"
+}

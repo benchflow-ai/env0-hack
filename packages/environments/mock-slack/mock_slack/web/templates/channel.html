@@ -1,0 +1,1163 @@
+{% extends "base.html" %}
+{% from "_avatar_macros.html" import slack_avatar %}
+{% from "_reaction_macros.html" import reaction_chip, reaction_picker %}
+{% from "_composer_macros.html" import render_slack_composer %}
+{% from "_message_macros.html" import render_link_unfurl, render_attachments %}
+{% block content %}
+<div class="flex flex-row flex-1 min-h-0 min-w-0 overflow-hidden">
+<div class="flex flex-col flex-1 min-h-0 min-w-0 overflow-hidden">
+<!-- Channel Header -->
+<div class="h-16 flex items-center justify-between px-5 border-b border-gray-200 flex-shrink-0 bg-white z-10 w-full relative">
+  <div class="flex flex-col min-w-0">
+    <div class="flex items-center gap-2 mb-0.5">
+      <button
+        type="button"
+        id="channel-star-button"
+        data-channel-id="{{ current_channel.id }}"
+        class="text-gray-400 hover:text-gray-600 transition-colors"
+        title="Star channel"
+        aria-pressed="false"
+        onclick="toggleChannelStar()"
+      >
+        <svg id="channel-star-outline" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.664 5.122a1 1 0 00.95.69h5.386c.969 0 1.371 1.24.588 1.81l-4.358 3.166a1 1 0 00-.364 1.118l1.664 5.122c.3.921-.755 1.688-1.538 1.118l-4.358-3.166a1 1 0 00-1.176 0l-4.358 3.166c-.783.57-1.838-.197-1.539-1.118l1.664-5.122a1 1 0 00-.363-1.118L2.46 10.55c-.783-.57-.38-1.81.588-1.81h5.386a1 1 0 00.951-.69l1.664-5.122z"/>
+        </svg>
+      </button>
+      <button
+        type="button"
+        class="font-bold text-[15px] flex items-center min-w-0 hover:underline"
+        onclick="openChannelInfoModal()"
+      >
+        {% if dm_display_name %}
+          <div class="mr-2 flex-shrink-0">
+            {{ slack_avatar(user=dm_other_user, label=dm_display_name, size='w-6 h-6', rounded='rounded-md', text='text-[11px]') }}
+          </div>
+          <span class="truncate">{{ dm_display_name }}</span>
+        {% else %}
+          <span class="text-gray-400 mr-1 text-lg font-normal">{% if current_channel.is_private %}🔒{% else %}#{% endif %}</span>
+          <span class="truncate">{{ current_channel.name }}</span>
+        {% endif %}
+      </button>
+    </div>
+    {% if current_channel.topic %}
+    <span class="text-gray-500 text-[13px] truncate">{{ current_channel.topic }}</span>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Messages Area -->
+<div class="flex-1 min-h-0 overflow-y-auto pt-4 px-0 custom-scroll flex flex-col slack-message-stream" id="message-container" data-message-stream="true">
+  <div class="mt-auto"></div>
+  {% if messages|length > 5 %}
+  <button type="button" class="slack-new-messages-pill">
+    <span>&uarr;</span>
+    <span>{{ messages|length if messages|length < 20 else '20+' }} new messages</span>
+    <span>&times;</span>
+  </button>
+  {% endif %}
+
+  {% if dm_display_name %}
+  <!-- DM intro -->
+  <div class="flex flex-col items-start px-6 py-8 mb-2">
+    {{ slack_avatar(user=dm_other_user, label=dm_display_name, size='w-16 h-16', rounded='rounded-2xl', text='text-2xl', container_extra='mb-3 flex-shrink-0') }}
+    <div class="font-bold text-[22px] text-gray-900 leading-tight">{{ dm_display_name }}</div>
+    {% if dm_other_user and dm_other_user.title %}
+      <div class="text-[14px] text-gray-500 mt-0.5">{{ dm_other_user.title }}</div>
+    {% endif %}
+    <p class="text-[13px] text-gray-500 mt-3 max-w-sm leading-relaxed">
+      This conversation is just between
+      <span class="font-medium text-gray-700">@{{ dm_display_name }}</span>
+      and you. Check out their profile to learn more about them.
+    </p>
+    <button {% if dm_other_user %}onclick="openProfilePanel('{{ dm_other_user.id }}')"{% endif %}
+      class="mt-3 px-4 py-1.5 border border-gray-300 rounded-md text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+      View Profile
+    </button>
+  </div>
+  {% endif %}
+
+  {% if is_new_channel %}
+  <!-- System join message -->
+  <div class="flex items-start px-3 py-1 mb-1">
+    <div class="w-9 h-9 rounded bg-indigo-100 flex-shrink-0 flex items-center justify-center mr-2 text-indigo-700 font-bold overflow-hidden mt-0.5 text-sm">
+      {{ channel_creator_name[0].upper() if channel_creator_name else '?' }}
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="flex items-baseline mb-0.5">
+        <span class="font-bold text-gray-900 text-[15px] mr-2">{{ channel_creator_name }}</span>
+        <span class="text-xs text-gray-500">Today</span>
+      </div>
+      <div class="text-gray-600 text-[15px] leading-relaxed">
+        joined
+        {% if current_channel.is_private %}🔒{% else %}#{% endif %}{{ current_channel.name }}.{% if new_channel_members %}
+        Also, {{ new_channel_members | join(', ') }} joined via invite.{% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  {% for msg in messages %}
+  {% set prev_msg = loop.previtem if loop.previtem is defined else None %}
+  {% set is_continuation = slack_is_message_continuation(prev_msg, msg) %}
+  {% set sender_name = msg.user.real_name or msg.user.name if msg.user else 'Unknown' %}
+  {% set show_date_divider = (not prev_msg) or (prev_msg.created_at and msg.created_at and prev_msg.created_at.date() != msg.created_at.date()) %}
+  {% set link_preview = slack_build_link_preview(msg.text) %}
+  {% if show_date_divider %}
+  <div class="slack-date-divider">
+    <div class="slack-date-divider-pill">
+      <span class="slack-date-divider-label">{{ slack_date_divider_label(msg.created_at, now=now) }}</span>
+      <span class="slack-date-divider-caret">⌄</span>
+    </div>
+  </div>
+  {% endif %}
+  <div
+    class="slack-message-row group{% if is_continuation %} slack-message-row--continuation{% endif %}"
+    data-msg-id="{{ msg.id }}"
+    data-msg-ts="{{ msg.ts }}"
+    data-msg-text="{{ msg.text | e }}"
+    data-msg-attachments="{{ msg.attachments | tojson | e if msg.attachments else '' }}"
+    data-channel-id="{{ current_channel.id }}"
+    data-msg-sender="{{ msg.user.name | e if msg.user else 'Unknown' }}"
+    data-msg-sender-initial="{{ msg.user.name[0].upper() if msg.user and msg.user.name else '?' }}"
+  >
+    <!-- Avatar -->
+    <div class="slack-message-avatar-slot">
+      {% if not is_continuation %}
+      <div class="cursor-pointer hover:opacity-80" onclick="openProfilePanel('{{ msg.user.id if msg.user else '' }}')">
+        {{ slack_avatar(user=msg.user, size='w-9 h-9', rounded='rounded-md', text='text-sm') }}
+      </div>
+      {% else %}
+      <span class="slack-message-gutter-time" data-ts="{{ msg.ts }}"></span>
+      {% endif %}
+    </div>
+
+    <!-- Content -->
+    <div class="slack-message-content">
+      {% if not is_continuation %}
+      <div class="slack-message-meta">
+        <span
+          class="slack-message-sender hover:underline cursor-pointer"
+          onclick="openProfilePanel('{{ msg.user.id if msg.user else '' }}')"
+          >{{ sender_name }}</span
+        >
+        <span class="slack-message-timestamp" data-ts="{{ msg.ts }}"></span>
+        {% if msg.is_edited %}
+        <span class="slack-message-edited">(edited)</span>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <div class="slack-message-text break-words whitespace-pre-wrap msg-text-{{ msg.id }}">{{ slack_render_message_text(msg.text) }}{% if is_continuation and msg.is_edited %}<span class="slack-message-edited ml-1">(edited)</span>{% endif %}</div>
+
+      {{ render_link_unfurl(link_preview) }}
+
+      {{ render_attachments(msg.attachments) }}
+
+      <!-- Reactions display -->
+      {% if msg.reaction_groups %}
+      <div class="slack-message-reactions">
+        {% for reaction in msg.reaction_groups %}
+          {{ reaction_chip(current_channel.id, msg.ts, reaction) }}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <!-- Thread replies indicator -->
+      {% if msg.reply_count > 0 %}
+      {% set preview_users = thread_preview_users.get(msg.ts, []) if thread_preview_users else [] %}
+      <div>
+        <button class="slack-thread-summary text-left" onclick="openThreadPanel('{{ current_channel.id }}', '{{ msg.ts }}')">
+          <span class="slack-thread-summary-avatars">
+            {% for preview_user in preview_users %}
+            {{ slack_avatar(user=preview_user, size='w-5 h-5', rounded='rounded-md', text='text-[9px]') }}
+            {% endfor %}
+          </span>
+          <span class="slack-thread-summary-link">{{ msg.reply_count }} {{ 'reply' if msg.reply_count == 1 else 'replies' }}</span>
+          {% if latest_reply_at and latest_reply_at.get(msg.ts) %}
+          <span class="slack-thread-summary-separator">•</span>
+          <span class="slack-thread-summary-meta">{{ slack_reply_summary_label(latest_reply_at.get(msg.ts), now=now) }}</span>
+          {% endif %}
+        </button>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Hover Action Bar -->
+    <div class="slack-message-actions slack-message-actions--floating" data-message-actions="true">
+      <!-- Add Reaction -->
+      {{ reaction_picker(current_channel.id, msg.ts) }}
+
+      <!-- Reply in Thread -->
+      <button
+        class="slack-message-action-button"
+        title="Reply in thread"
+        onclick="openThreadPanel('{{ current_channel.id }}', '{{ msg.ts }}')"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+        </svg>
+      </button>
+
+      <!-- Forward / Share -->
+      <button
+        class="slack-message-action-button"
+        title="Forward message"
+        onclick="forwardMessage(this)"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+        </svg>
+      </button>
+
+      <!-- More Actions (⋮) -->
+      <div class="relative">
+        <button
+          class="slack-message-action-button"
+          title="More actions"
+          data-message-id="{{ msg.id }}"
+          data-message-ts="{{ msg.ts }}"
+          data-channel-id="{{ current_channel.id }}"
+          data-message-text='{{ msg.text | tojson }}'
+          data-sender-name='{{ (msg.user.real_name or msg.user.name if msg.user else "Unknown") | tojson }}'
+          data-avatar-url='{{ (msg.user.avatar_url if msg.user and msg.user.avatar_url and msg.user.avatar_url != "/static/profile_picture.jpg" else "") | tojson }}'
+          data-avatar-label='{{ ((msg.user.real_name or msg.user.name if msg.user else "?")[:1].upper()) | tojson }}'
+          data-is-own-message="{{ 'true' if msg.user.id == user.id else 'false' }}"
+          onclick="toggleMoreActions(this)"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- More Actions Dropdown (shared, positioned absolutely by JS) -->
+<div
+  id="more-actions-menu"
+  class="hidden fixed bg-white border border-gray-200 rounded-lg shadow-xl z-50 w-64 py-1 text-[14px]"
+  style="min-width: 240px;"
+>
+  <div id="more-actions-content"></div>
+</div>
+
+<!-- Edit Message Modal -->
+<div id="edit-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+  <div class="bg-white rounded-lg shadow-xl w-full max-w-lg mx-4">
+    <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+      <h3 class="font-bold text-[15px]">Edit message</h3>
+      <button onclick="closeEditModal()" class="text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <form id="edit-form" method="POST" class="p-4">
+      <textarea
+        id="edit-text"
+        name="text"
+        rows="4"
+        class="w-full border border-gray-300 rounded-lg p-3 text-[15px] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+      ></textarea>
+      <div class="flex justify-end gap-2 mt-3">
+        <button
+          type="button"
+          onclick="closeEditModal()"
+          class="px-4 py-1.5 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium"
+        >Cancel</button>
+        <button
+          type="submit"
+          class="px-4 py-1.5 rounded bg-green-700 hover:bg-green-800 text-white text-sm font-medium"
+        >Save changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Forward Message Modal -->
+<div id="forward-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4">
+    <!-- Header -->
+    <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+      <h3 class="font-bold text-[16px] text-gray-900">Forward this message</h3>
+      <button onclick="closeForwardModal()" class="text-gray-400 hover:text-gray-600 rounded-full p-1 hover:bg-gray-100">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Token input + dropdown -->
+    <div class="px-5 pt-4 relative" id="fwd-search-area">
+      <!-- Token input wrapper (chips + input inline) -->
+      <div
+        id="fwd-token-wrap"
+        class="flex flex-wrap gap-1 items-center border border-gray-300 rounded-lg px-2 py-1.5 min-h-[44px] focus-within:border-[#1164a3] focus-within:ring-2 focus-within:ring-[#1164a3]/20 bg-white cursor-text"
+        onclick="document.getElementById('forward-channel-search').focus()"
+      >
+        <svg class="w-4 h-4 text-gray-400 mr-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <!-- chips injected here by JS -->
+        <input
+          id="forward-channel-search"
+          type="text"
+          placeholder="Add channels or people"
+          autocomplete="off"
+          class="flex-1 min-w-[120px] text-[14px] outline-none bg-transparent text-gray-800 placeholder-gray-400 py-0.5"
+          oninput="filterForwardChannels()"
+          onkeydown="handleForwardChannelKey(event)"
+        />
+      </div>
+      <!-- Dropdown (positioned relative to fwd-search-area) -->
+      <div id="forward-channel-dropdown" class="hidden absolute left-5 right-5 top-[calc(100%-8px)] mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-56 overflow-y-auto">
+      </div>
+    </div>
+
+    <!-- Original Message Preview -->
+    <div class="px-5 pt-3 pb-1">
+      <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+        <div class="flex items-start gap-2">
+          <div id="fwd-preview-avatar" class="w-8 h-8 rounded bg-indigo-100 flex-shrink-0 flex items-center justify-center text-indigo-700 font-bold text-[13px]"></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline gap-2 mb-0.5">
+              <span id="fwd-preview-sender" class="font-bold text-[14px] text-gray-900"></span>
+              <span id="fwd-preview-time" class="text-xs text-gray-400"></span>
+            </div>
+            <p id="fwd-preview-text" class="text-[14px] text-gray-700 leading-relaxed break-words whitespace-pre-wrap line-clamp-4"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Optional message compose -->
+    <div class="px-5 pt-2 pb-3">
+      <div class="border border-gray-300 rounded-lg focus-within:border-[#1164a3] focus-within:ring-2 focus-within:ring-[#1164a3]/20 overflow-hidden">
+        <textarea
+          id="forward-compose"
+          rows="2"
+          placeholder="Add a message, if you'd like."
+          class="w-full px-3 py-2.5 text-[14px] outline-none resize-none text-gray-800 placeholder-gray-400 bg-white"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- Footer buttons -->
+    <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+      <button
+        onclick="copyForwardLink()"
+        class="flex items-center gap-2 text-[14px] text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded hover:bg-gray-100"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+        </svg>
+        Copy link
+      </button>
+      <div class="flex items-center gap-2">
+        <button onclick="closeForwardModal()" class="px-4 py-1.5 rounded-lg border border-gray-300 text-[14px] text-gray-700 hover:bg-gray-50 font-medium">Cancel</button>
+        <button
+          id="forward-submit-btn"
+          onclick="submitForward()"
+          disabled
+          class="px-4 py-1.5 rounded-lg bg-[#007a5a] hover:bg-[#006649] text-white text-[14px] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+        >Forward</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Input Area -->
+<div class="px-5 pb-4 pt-2 shrink-0 bg-white border-t border-gray-100">
+  {% set channel_placeholder = 'Message ' ~ dm_display_name if dm_display_name else 'Message #' ~ current_channel.name %}
+  <form id="channel-compose-form" action="/channel/{{ current_channel.id }}/message" method="POST" class="flex flex-col">
+    {{ render_slack_composer(
+      textarea_id='msg-input',
+      placeholder=channel_placeholder,
+      placeholder_base=channel_placeholder,
+      toolbar_id='channel-compose-toolbar',
+      actions_id='channel-compose-actions',
+      data_channel_id=current_channel.id,
+      data_channel_name=current_channel.name
+    ) }}
+  </form>
+</div>
+
+</div><!-- end channel-main -->
+
+<!-- Thread Panel: inline split view -->
+<div id="thread-panel"
+  class="hidden w-[420px] flex-shrink-0 border-l border-gray-200 bg-white flex-col overflow-hidden transition-all">
+</div>
+
+</div><!-- end channel-layout -->
+
+<div id="channel-info-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/30 px-4">
+  <div class="w-full max-w-[760px] max-h-[88vh] overflow-hidden rounded-2xl bg-white shadow-2xl">
+    <div class="flex items-center justify-between px-7 py-5 border-b border-gray-200">
+      {% if current_channel.is_im and dm_other_user %}
+      <div class="flex min-w-0 items-center gap-4">
+        {{ slack_avatar(user=dm_other_user, label=dm_other_user.name, size='w-16 h-16', rounded='rounded-2xl', text='text-xl', container_extra='flex-shrink-0') }}
+        <div class="min-w-0">
+          <h3 class="truncate text-[30px] font-bold leading-tight text-gray-900">{{ dm_other_user.name }}</h3>
+          {% if dm_other_user.title %}
+          <p class="mt-1 truncate text-[18px] text-gray-500">{{ dm_other_user.title }}</p>
+          {% endif %}
+        </div>
+      </div>
+      {% else %}
+      <div class="min-w-0">
+        <h3 class="text-[28px] font-bold text-gray-900 truncate">
+          {% if current_channel.is_private %}<span class="mr-1">🔒</span>{% endif %}<span id="channel-info-name">{{ current_channel.name }}</span>
+        </h3>
+        <p class="mt-1 text-[13px] text-gray-500 truncate" id="channel-info-topic">{{ current_channel.topic or 'No topic set.' }}</p>
+      </div>
+      {% endif %}
+      <button type="button" onclick="closeChannelInfoModal()" class="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="px-7 pt-4 pb-0 border-b border-gray-100">
+      <div class="flex items-center gap-8 text-[15px] text-gray-700">
+        <button
+          type="button"
+          data-channel-info-tab-button="about"
+          onclick="switchChannelInfoTab('about')"
+          class="border-b-2 border-[#6d4b74] pb-3 font-medium text-gray-900"
+        >
+          About
+        </button>
+        {% if not current_channel.is_im %}
+        <button
+          type="button"
+          data-channel-info-tab-button="members"
+          onclick="switchChannelInfoTab('members')"
+          class="border-b-2 border-transparent pb-3"
+        >
+          <span id="channel-info-members-tab">Members {{ channel_member_count }}</span>
+        </button>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="max-h-[60vh] overflow-y-auto px-7 py-6">
+      <div data-channel-info-panel="about" class="space-y-5">
+        {% if current_channel.is_im and dm_other_user %}
+        <section class="rounded-2xl border border-gray-200 overflow-hidden">
+          <div class="px-5 py-4">
+            <div class="space-y-4 text-[15px] text-gray-700">
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span id="channel-info-dm-local-time" data-user-tz="{{ dm_other_user.tz or 'America/Los_Angeles' }}">Local time</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 12H8m8-4H8m-2 8h12a2 2 0 002-2V8a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>
+                </svg>
+                <span>{{ dm_other_user.email }}</span>
+              </div>
+              <button
+                type="button"
+                onclick="closeChannelInfoModal(); openProfilePanel('{{ dm_other_user.id }}')"
+                class="font-medium text-[#1264a3] hover:underline"
+              >
+                View full profile
+              </button>
+            </div>
+          </div>
+        </section>
+        {% else %}
+        <section class="rounded-2xl border border-gray-200 overflow-hidden">
+          <div class="border-b border-gray-100 px-5 py-4">
+            <h4 class="text-[14px] font-semibold text-gray-900">Channel name</h4>
+            <p class="mt-1 text-[15px] text-gray-700">
+              {% if current_channel.is_private %}🔒 {% else %}# {% endif %}<span id="channel-info-name-card">{{ current_channel.name }}</span>
+            </p>
+          </div>
+          <div class="border-b border-gray-100 px-5 py-4">
+            <h4 class="text-[14px] font-semibold text-gray-900">Topic</h4>
+            <p class="mt-1 text-[15px] text-gray-700" id="channel-info-topic-card">{{ current_channel.topic or 'No topic set.' }}</p>
+          </div>
+          <div class="border-b border-gray-100 px-5 py-4">
+            <h4 class="text-[14px] font-semibold text-gray-900">Description</h4>
+            <p class="mt-1 text-[15px] text-gray-700" id="channel-info-purpose-card">{{ current_channel.purpose or 'No description set.' }}</p>
+          </div>
+          <div class="border-b border-gray-100 px-5 py-4">
+            <h4 class="text-[14px] font-semibold text-gray-900">Managed by</h4>
+            <p class="mt-1 text-[15px] text-gray-700" id="channel-info-creator">{{ channel_creator_name }}</p>
+          </div>
+          <div class="px-5 py-4">
+            <h4 class="text-[14px] font-semibold text-gray-900">Created</h4>
+            <p class="mt-1 text-[15px] text-gray-700" id="channel-info-created">{{ current_channel.created_at.strftime('%B %-d, %Y') if current_channel.created_at else 'Unknown' }}</p>
+          </div>
+        </section>
+        {% endif %}
+      </div>
+
+      {% if not current_channel.is_im %}
+      <div data-channel-info-panel="members" class="hidden">
+        <section class="rounded-2xl border border-gray-200 overflow-hidden">
+          {% for member in channel_members %}
+          <div class="{% if not loop.last %}border-b border-gray-100 {% endif %}px-5 py-4">
+            <div class="flex items-center gap-3">
+              {{ slack_avatar(user=member, label=member.name, size='w-10 h-10', rounded='rounded-lg', text='text-sm', container_extra='flex-shrink-0') }}
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="truncate text-[15px] font-semibold text-gray-900">
+                    {{ member.name }}{% if member.id == user.id %} <span class="font-normal text-gray-500">(you)</span>{% endif %}
+                  </span>
+                </div>
+                <p class="truncate text-[14px] text-gray-500">
+                  {{ member.title or (member.real_name if member.real_name and member.real_name != member.name else 'Member') }}
+                </p>
+              </div>
+              {% if member.id == current_channel.creator_id %}
+              <span class="rounded-full bg-gray-100 px-3 py-1 text-[12px] text-gray-600">Channel Manager</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </section>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Scroll to Bottom -->
+<script>
+  var container = document.getElementById("message-container");
+  if (container) container.scrollTop = container.scrollHeight;
+</script>
+
+<!-- Message Actions JS -->
+<script>
+  // ── State ──────────────────────────────────────────────────────────────────
+  let _activeMore = null;   // button that opened more-actions
+
+  // ── Close helpers ──────────────────────────────────────────────────────────
+  function closeAllDropdowns() {
+    document.getElementById('more-actions-menu').classList.add('hidden');
+    closeSlackReactionPickers();
+    _activeMore = null;
+  }
+
+  document.addEventListener('click', function(e) {
+    const menu = document.getElementById('more-actions-menu');
+    if (!menu.contains(e.target) && _activeMore && !_activeMore.contains(e.target)) {
+      menu.classList.add('hidden');
+      _activeMore = null;
+    }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeAllDropdowns();
+  });
+
+  // ── More actions menu ──────────────────────────────────────────────────────
+  function toggleMoreActions(btn) {
+    event.stopPropagation();
+    const menu = document.getElementById('more-actions-menu');
+    const isOpen = !menu.classList.contains('hidden') && _activeMore === btn;
+    closeAllDropdowns();
+    if (isOpen) return;
+
+    const ts = btn.dataset.messageTs;
+    const channelId = btn.dataset.channelId;
+    const text = JSON.parse(btn.dataset.messageText || '""');
+    const isOwnMessage = btn.dataset.isOwnMessage === 'true';
+
+    // Position below button
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 4 + window.scrollY) + 'px';
+    menu.style.right = (window.innerWidth - rect.right) + 'px';
+    menu.style.left = 'auto';
+
+    window.__mockSlackPreparedDeleteMessage = {
+      channelId,
+      ts,
+      text,
+      senderName: parseSlackButtonJson(btn.dataset.senderName, "Unknown"),
+      avatarUrl: parseSlackButtonJson(btn.dataset.avatarUrl, ""),
+      avatarLabel: parseSlackButtonJson(btn.dataset.avatarLabel, "?"),
+    };
+
+    const ownMessageActions = isOwnMessage ? `
+      <div class="border-t border-gray-100 py-1">
+        <button class="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-100 text-gray-700 text-left"
+          onclick="openEditModal('${channelId}', '${ts}', \`${text.replace(/`/g,'\\`')}\`); closeAllDropdowns();">
+          <span class="flex items-center gap-3">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+            </svg>
+            Edit message
+          </span>
+          <span class="text-gray-400 text-xs">E</span>
+        </button>
+        <button class="w-full flex items-center px-4 py-2 hover:bg-red-50 text-red-600 text-left gap-3"
+          onclick="openPreparedDeleteMessageModal(); closeAllDropdowns();">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          Delete message...
+          <span class="text-red-400 text-xs ml-auto">delete</span>
+        </button>
+      </div>
+    ` : '';
+
+    document.getElementById('more-actions-content').innerHTML = `
+      <div class="py-1">
+        <button class="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-100 text-gray-700 text-left"
+          onclick="copyLink('${channelId}', '${ts}'); closeAllDropdowns();">
+          <span class="flex items-center gap-3">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            </svg>
+            Copy link
+          </span>
+          <span class="text-gray-400 text-xs">L</span>
+        </button>
+        <button class="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-100 text-gray-700 text-left"
+          onclick="copyMessageText(\`${text.replace(/`/g,'\\`')}\`); closeAllDropdowns();">
+          <span class="flex items-center gap-3">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+            </svg>
+            Copy message
+          </span>
+          <span class="text-gray-400 text-xs">⌘C</span>
+        </button>
+      </div>
+      <div class="border-t border-gray-100 py-1">
+        <button class="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-100 text-gray-700 text-left"
+          onclick="pinMessage('${channelId}', '${ts}'); closeAllDropdowns();">
+          <span class="flex items-center gap-3">
+            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+            </svg>
+            Pin to this conversation
+          </span>
+          <span class="text-gray-400 text-xs">P</span>
+        </button>
+      </div>
+      ${ownMessageActions}
+    `;
+
+    menu.classList.remove('hidden');
+    _activeMore = btn;
+  }
+
+  // ── API Actions ────────────────────────────────────────────────────────────
+  async function pinMessage(channelId, ts) {
+    try {
+      await fetch(`/channel/${channelId}/pin`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ts})
+      });
+      showToast('Message pinned to conversation');
+    } catch(e) { console.error('pinMessage failed', e); }
+  }
+
+  async function copyLink(channelId, ts) {
+    try {
+      const res = await fetch(`/channel/${channelId}/permalink?ts=${ts}`);
+      if (res.ok) {
+        const data = await res.json();
+        await navigator.clipboard.writeText(data.permalink || window.location.href);
+      } else {
+        await navigator.clipboard.writeText(window.location.href + '#' + ts);
+      }
+      showToast('Link copied to clipboard');
+    } catch(e) {
+      await navigator.clipboard.writeText(window.location.href + '#' + ts);
+      showToast('Link copied to clipboard');
+    }
+  }
+
+  async function copyMessageText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('Message copied to clipboard');
+    } catch(e) { console.error('copyMessageText failed', e); }
+  }
+
+  // ── Forward message ────────────────────────────────────────────────────────
+  let _fwdData = null;
+  let _fwdChannels = [];   // channels: {_type:'channel', _label, id, name, is_private}
+  let _fwdPeople = [];     // people:   {_type:'dm', _label, _initial, _userId}
+  let _fwdSelections = []; // array of selected {id, name, isPrivate, isDm, userId}
+  let _fwdHighlight = -1;
+  let _fwdLoaded = false;
+
+  // Pre-load on page ready so search is instant
+  async function _preloadForwardTargets() {
+    try {
+      const selfId = '{{ user.id if user else "" }}';
+      const [pubRes, privRes, usersRes] = await Promise.all([
+        fetch('/api/conversations.list?limit=200&types=public_channel'),
+        fetch('/api/conversations.list?limit=200&types=private_channel'),
+        fetch('/api/users.list?limit=200'),
+      ]);
+      const pubData = pubRes.ok ? await pubRes.json() : {};
+      const privData = privRes.ok ? await privRes.json() : {};
+      const usersData = usersRes.ok ? await usersRes.json() : {};
+
+      _fwdChannels = [
+        ...(pubData.channels || []).filter(c => !c.is_archived),
+        ...(privData.channels || []).filter(c => !c.is_archived),
+      ].map(c => ({ _type: 'channel', _label: c.name, id: c.id, name: c.name, is_private: c.is_private }));
+
+      _fwdPeople = (usersData.members || [])
+        .filter(u => u.id !== selfId && !u.is_bot && u.deleted !== true && u.id !== 'USLACKBOT')
+        .map(u => {
+          const name = u.real_name || u.profile?.real_name || u.name || u.id;
+          return { _type: 'dm', _label: name, _initial: name[0].toUpperCase(), _userId: u.id };
+        });
+
+      _fwdLoaded = true;
+    } catch(e) { console.warn('preloadForwardTargets failed', e); }
+  }
+
+  function forwardMessage(btn) {
+    const row = btn.closest('[data-msg-id]');
+    if (!row) return;
+    _fwdData = {
+      sender: row.dataset.msgSender || 'Unknown',
+      senderInitial: row.dataset.msgSenderInitial || '?',
+      ts: row.dataset.msgTs || '',
+      text: row.dataset.msgText || '',
+      channelId: row.dataset.channelId || '',
+      channelName: {{ (dm_display_name or current_channel.name)|tojson }},
+      isDm: {{ 'true' if current_channel.is_im else 'false' }},
+      isPrivate: {{ 'true' if current_channel.is_private else 'false' }},
+    };
+    _fwdSelections = [];
+    _fwdHighlight = -1;
+
+    // Populate preview
+    document.getElementById('fwd-preview-avatar').textContent = _fwdData.senderInitial;
+    document.getElementById('fwd-preview-sender').textContent = _fwdData.sender;
+    const ts = parseFloat(_fwdData.ts);
+    document.getElementById('fwd-preview-time').textContent = ts
+      ? formatSlackMessageTimestamp(ts)
+      : 'Today';
+    // If forwarding a forwarded message, show the first attachment text instead
+    let previewText = _fwdData.text;
+    const attrsRaw = row.dataset.msgAttachments;
+    if (attrsRaw) {
+      try {
+        const atts = JSON.parse(attrsRaw);
+        if (atts && atts[0] && atts[0].text) previewText = atts[0].text;
+      } catch(e) {}
+    }
+    document.getElementById('fwd-preview-text').textContent = previewText;
+
+    // Reset inputs
+    document.getElementById('forward-channel-search').value = '';
+    document.getElementById('forward-compose').value = '';
+    document.getElementById('forward-channel-dropdown').classList.add('hidden');
+    _renderFwdChips();
+    document.getElementById('forward-submit-btn').disabled = true;
+
+    // If not loaded yet, load now (fallback)
+    if (!_fwdLoaded) _preloadForwardTargets();
+
+    document.getElementById('forward-modal').classList.remove('hidden');
+    setTimeout(() => document.getElementById('forward-channel-search').focus(), 80);
+  }
+
+  function closeForwardModal() {
+    document.getElementById('forward-modal').classList.add('hidden');
+    document.getElementById('forward-channel-dropdown').classList.add('hidden');
+    _fwdSelections = [];
+    _renderFwdChips();
+    _fwdData = null;
+  }
+
+  function filterForwardChannels() {
+    const q = document.getElementById('forward-channel-search').value.toLowerCase().trim();
+    const dd = document.getElementById('forward-channel-dropdown');
+    if (!q) { dd.classList.add('hidden'); return; }
+
+    const allTargets = [..._fwdChannels, ..._fwdPeople];
+    const matches = allTargets.filter(c => c._label && c._label.toLowerCase().includes(q)).slice(0, 12);
+    if (!matches.length) {
+      dd.innerHTML = `<div class="px-4 py-3 text-[13px] text-gray-400">No matches found</div>`;
+      dd.classList.remove('hidden');
+      return;
+    }
+    _fwdHighlight = -1;
+
+    const chMatches = matches.filter(c => c._type === 'channel');
+    const dmMatches = matches.filter(c => c._type === 'dm');
+
+    let html = '';
+    if (chMatches.length && dmMatches.length) {
+      html += `<div class="px-3 pt-2 pb-0.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Channels</div>`;
+    }
+    chMatches.forEach(c => {
+      html += `<button class="fwd-ch-option w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 text-left text-[14px] text-gray-800"
+        data-ch-id="${escHtml(c.id)}" data-ch-name="${escHtml(c.name)}" data-ch-private="${c.is_private ? '1' : ''}" data-ch-dm="">
+        <span class="text-gray-500 font-medium w-5 text-center">${c.is_private ? '🔒' : '#'}</span>
+        <span>${escHtml(c.name)}</span>
+      </button>`;
+    });
+    if (dmMatches.length) {
+      if (chMatches.length) html += `<div class="mx-3 my-1 border-t border-gray-100"></div>`;
+      html += `<div class="px-3 pt-1 pb-0.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">People</div>`;
+      dmMatches.forEach(c => {
+        html += `<button class="fwd-ch-option w-full flex items-center gap-2.5 px-3 py-2 hover:bg-gray-100 text-left text-[14px] text-gray-800"
+          data-ch-id="" data-ch-name="${escHtml(c._label)}" data-ch-private="" data-ch-dm="1" data-ch-user-id="${escHtml(c._userId)}">
+          <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold text-[11px] flex-shrink-0">${escHtml(c._initial || '?')}</div>
+          <span>${escHtml(c._label)}</span>
+        </button>`;
+      });
+    }
+
+    dd.innerHTML = html;
+
+    // Attach click handlers + mark already-selected
+    dd.querySelectorAll('.fwd-ch-option').forEach(btn => {
+      const isDm = !!btn.dataset.chDm;
+      const key = isDm ? ('dm:' + btn.dataset.chUserId) : ('ch:' + btn.dataset.chId);
+      const alreadySelected = _fwdSelections.some(s => s._key === key);
+      if (alreadySelected) {
+        btn.classList.add('opacity-40', 'cursor-not-allowed');
+        btn.disabled = true;
+      } else {
+        btn.addEventListener('click', () => {
+          const id = btn.dataset.chId || null;
+          const name = btn.dataset.chName;
+          const isPrivate = !!btn.dataset.chPrivate;
+          const userId = btn.dataset.chUserId || null;
+          selectForwardChannel(id, name, isPrivate, isDm, userId);
+        });
+      }
+    });
+
+    dd.classList.remove('hidden');
+  }
+
+  function handleForwardChannelKey(e) {
+    const dd = document.getElementById('forward-channel-dropdown');
+    const opts = dd.querySelectorAll('.fwd-ch-option');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      _fwdHighlight = Math.min(_fwdHighlight + 1, opts.length - 1);
+      opts.forEach((o, i) => o.classList.toggle('bg-gray-100', i === _fwdHighlight));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      _fwdHighlight = Math.max(_fwdHighlight - 1, 0);
+      opts.forEach((o, i) => o.classList.toggle('bg-gray-100', i === _fwdHighlight));
+    } else if (e.key === 'Enter' && _fwdHighlight >= 0 && opts[_fwdHighlight]) {
+      opts[_fwdHighlight].click();
+    } else if (e.key === 'Escape') {
+      dd.classList.add('hidden');
+    }
+  }
+
+  function selectForwardChannel(id, name, isPrivate, isDm, userId) {
+    // Deduplicate by key
+    const key = isDm ? ('dm:' + userId) : ('ch:' + id);
+    if (_fwdSelections.some(s => s._key === key)) {
+      document.getElementById('forward-channel-search').value = '';
+      document.getElementById('forward-channel-dropdown').classList.add('hidden');
+      document.getElementById('forward-channel-search').focus();
+      return;
+    }
+    _fwdSelections.push({ id, name, isPrivate, isDm, userId, _key: key });
+    document.getElementById('forward-channel-search').value = '';
+    document.getElementById('forward-channel-dropdown').classList.add('hidden');
+    _renderFwdChips();
+    document.getElementById('forward-submit-btn').disabled = false;
+    document.getElementById('forward-channel-search').focus();
+  }
+
+  function removeFwdSelection(key) {
+    _fwdSelections = _fwdSelections.filter(s => s._key !== key);
+    _renderFwdChips();
+    document.getElementById('forward-submit-btn').disabled = _fwdSelections.length === 0;
+    document.getElementById('forward-channel-search').focus();
+  }
+
+  function _renderFwdChips() {
+    const wrap = document.getElementById('fwd-token-wrap');
+    // Remove existing chips
+    wrap.querySelectorAll('.fwd-chip').forEach(el => el.remove());
+    // Update placeholder
+    const input = document.getElementById('forward-channel-search');
+    input.placeholder = _fwdSelections.length ? '' : 'Add channels or people';
+    // Insert chips before the input
+    _fwdSelections.forEach(s => {
+      const chip = document.createElement('span');
+      chip.className = 'fwd-chip inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full bg-[#1164a3] text-white text-[13px] font-medium whitespace-nowrap';
+      const prefix = s.isDm ? '👤 ' : (s.isPrivate ? '🔒 ' : '# ');
+      chip.innerHTML = `
+        <span>${prefix}${escHtml(s.name)}</span>
+        <button type="button" class="ml-0.5 rounded-full hover:bg-white/20 p-0.5 leading-none" data-key="${escHtml(s._key)}">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>`;
+      chip.querySelector('button').addEventListener('click', (e) => {
+        e.stopPropagation();
+        removeFwdSelection(s._key);
+      });
+      wrap.insertBefore(chip, input);
+    });
+  }
+
+  function copyForwardLink() {
+    if (!_fwdData) return;
+    const link = window.location.origin + '/channel/' + _fwdData.channelId + '#' + _fwdData.ts;
+    navigator.clipboard.writeText(link).then(() => showToast('Link copied to clipboard'));
+  }
+
+  async function submitForward() {
+    if (!_fwdSelections.length || !_fwdData) return;
+    const btn = document.getElementById('forward-submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Forwarding…';
+
+    const userMsg = document.getElementById('forward-compose').value.trim();
+    const icon = _fwdData.isDm ? '@' : (_fwdData.isPrivate ? '🔒' : '#');
+    const ts = parseFloat(_fwdData.ts);
+    const timeStr = ts ? formatSlackMessageTimestamp(ts) : '';
+    const attachments = [{
+      author_name: _fwdData.sender,
+      text: _fwdData.text,
+      footer: `${icon}${_fwdData.channelName}${timeStr ? ' · Today at ' + timeStr : ''}`,
+      ts: _fwdData.ts,
+    }];
+
+    try {
+      // Resolve all destination channel IDs in parallel
+      const resolved = await Promise.all(_fwdSelections.map(async s => {
+        if (s.isDm && s.userId) {
+          const res = await fetch('/api/conversations.open', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ users: s.userId }),
+          });
+          const data = await res.json();
+          if (!data.ok || !data.channel?.id) throw new Error(data.error || 'Failed to open DM');
+          return { ...s, _resolvedId: data.channel.id };
+        }
+        return { ...s, _resolvedId: s.id };
+      }));
+
+      // Post to all destinations in parallel
+      await Promise.all(resolved.map(s =>
+        fetch(`/channel/${s._resolvedId}/forward`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: userMsg, attachments }),
+        })
+      ));
+
+      closeForwardModal();
+      const names = resolved.map(s => s.isDm ? `@${s.name}` : `#${s.name}`).join(', ');
+      showToast(`Forwarded to ${names}`);
+      // Navigate to first destination
+      setTimeout(() => { window.location.href = `/channel/${resolved[0]._resolvedId}`; }, 700);
+    } catch(e) {
+      btn.disabled = false;
+      btn.textContent = 'Forward';
+      showToast('Failed to forward. Please try again.');
+    }
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    _preloadForwardTargets();
+  });
+
+  // Close forward modal on backdrop click
+  document.getElementById('forward-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeForwardModal();
+  });
+
+  async function openChannelInfoModal() {
+    const modal = document.getElementById('channel-info-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    switchChannelInfoTab('about');
+    const localTime = document.getElementById('channel-info-dm-local-time');
+    if (localTime) {
+      const userTz = localTime.dataset.userTz || 'America/Los_Angeles';
+      try {
+        const timeLabel = new Intl.DateTimeFormat([], {
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZone: userTz,
+        }).format(new Date());
+        localTime.textContent = `${timeLabel} local time`;
+      } catch (error) {
+        localTime.textContent = 'Local time unavailable';
+      }
+    }
+  }
+
+  function closeChannelInfoModal() {
+    const modal = document.getElementById('channel-info-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+
+  function switchChannelInfoTab(tabName) {
+    document.querySelectorAll('[data-channel-info-tab-button]').forEach(function(button) {
+      const active = button.dataset.channelInfoTabButton === tabName;
+      button.classList.toggle('border-[#6d4b74]', active);
+      button.classList.toggle('text-gray-900', active);
+      button.classList.toggle('font-medium', active);
+      button.classList.toggle('border-transparent', !active);
+      button.classList.toggle('text-gray-700', !active);
+    });
+    document.querySelectorAll('[data-channel-info-panel]').forEach(function(panel) {
+      panel.classList.toggle('hidden', panel.dataset.channelInfoPanel !== tabName);
+    });
+  }
+
+  // ── Edit modal ─────────────────────────────────────────────────────────────
+  function openEditModal(channelId, ts, currentText) {
+    document.getElementById('edit-text').value = currentText;
+    document.getElementById('edit-form').action = `/channel/${channelId}/message/edit`;
+
+    // Add hidden ts field
+    let tsField = document.getElementById('edit-ts-field');
+    if (!tsField) {
+      tsField = document.createElement('input');
+      tsField.type = 'hidden';
+      tsField.name = 'ts';
+      tsField.id = 'edit-ts-field';
+      document.getElementById('edit-form').appendChild(tsField);
+    }
+    tsField.value = ts;
+
+    document.getElementById('edit-modal').classList.remove('hidden');
+    setTimeout(() => document.getElementById('edit-text').focus(), 50);
+  }
+
+  function closeEditModal() {
+    document.getElementById('edit-modal').classList.add('hidden');
+  }
+
+  document.getElementById('edit-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeEditModal();
+  });
+
+  document.getElementById('channel-info-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeChannelInfoModal();
+  });
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.className = 'fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50 transition-opacity';
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2000);
+  }
+
+  // ── Draft lifecycle ───────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('channel-compose-form');
+    const input = document.getElementById('msg-input');
+    if (!form || !input) return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const requestedDraftId = urlParams.get('draft_id');
+    const requestedDraftAction = urlParams.get('draft_action');
+    let editingDraftId = null;
+    let composeSubmitted = false;
+    let draftHandled = false;
+
+    if (requestedDraftId && requestedDraftAction === 'edit' && window.getDraftById) {
+      const draft = window.getDraftById(requestedDraftId);
+      if (draft && draft.channelId === input.dataset.channelId) {
+        editingDraftId = draft.id;
+        input.value = draft.text || '';
+        requestAnimationFrame(() => {
+          input.focus();
+          input.setSelectionRange(input.value.length, input.value.length);
+        });
+      }
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    function persistDraftAndClear() {
+      if (draftHandled) return;
+      if (composeSubmitted || !window.upsertDraft || !window.removeDraft) return;
+      const text = input.value.trim();
+      const channelId = input.dataset.channelId;
+      const channelName = input.dataset.channelName;
+
+      draftHandled = true;
+
+      if (!text) {
+        return;
+      }
+
+      window.upsertDraft({
+        id: editingDraftId,
+        channelId,
+        channelName,
+        channelUrl: `/channel/${channelId}`,
+        text,
+        updatedAt: new Date().toISOString(),
+      });
+      input.value = '';
+    }
+
+    form.addEventListener('submit', function () {
+      composeSubmitted = true;
+      draftHandled = true;
+      if (editingDraftId && window.removeDraft) {
+        window.removeDraft(editingDraftId);
+      }
+      if (window.addSentItem) {
+        const text = input.value.trim();
+        if (text) {
+          window.addSentItem({
+            channelId: input.dataset.channelId,
+            channelName: input.dataset.channelName,
+            channelUrl: `/channel/${input.dataset.channelId}`,
+            text,
+            sentAt: new Date().toISOString(),
+          });
+        }
+      }
+    });
+
+    window.addEventListener('pagehide', persistDraftAndClear);
+    window.addEventListener('beforeunload', persistDraftAndClear);
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') {
+        persistDraftAndClear();
+      }
+    });
+  });
+</script>
+
+<script>
+  document.querySelectorAll('[data-ts]').forEach(function(el) {
+    var ts = parseFloat(el.getAttribute('data-ts'));
+    if (!isNaN(ts)) {
+      el.textContent = formatSlackMessageTimestamp(ts);
+    }
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,7 @@
+{
+  "_note": "Export returns raw bytes, this is the decoded text",
+  "fileId": "1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY",
+  "mimeType": "text/plain",
+  "content": "\ufeffSample document for fixture capture.\r\nSecond paragraph.",
+  "_captured_at": "2026-03-27T20:30:19.204330+00:00"
+}

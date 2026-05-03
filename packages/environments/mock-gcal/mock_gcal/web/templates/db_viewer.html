@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}DB Viewer - Mock GCal{% endblock %}
+
+{% block content %}
+<div class="min-h-full bg-gray-50 p-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-semibold text-gray-800">DB Viewer</h1>
+        <p class="text-sm text-gray-500 mt-1">Browse database tables</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-3 gap-4 mb-6">
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="text-sm text-gray-500">Calendars</div>
+            <div class="text-2xl font-bold text-blue-600">{{ db_stats.calendars }}</div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="text-sm text-gray-500">Events</div>
+            <div class="text-2xl font-bold text-green-600">{{ db_stats.events }}</div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="text-sm text-gray-500">ACL Rules</div>
+            <div class="text-2xl font-bold text-purple-600">{{ db_stats.acl_rules }}</div>
+        </div>
+    </div>
+
+    <!-- Table tabs -->
+    <div class="flex gap-1 mb-4">
+        {% for t in tables %}
+        <a href="/dev/db-viewer?table={{ t }}"
+           class="px-4 py-2 text-sm rounded-t-lg border border-gray-200
+               {{ 'bg-white font-medium text-blue-600 border-b-white' if table == t else 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+            {{ t }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Table content -->
+    <div class="bg-white rounded-b-lg rounded-tr-lg border border-gray-200 overflow-hidden">
+        <div class="flex items-center px-4 py-2 bg-gray-50 border-b border-gray-200 text-xs text-gray-500">
+            <span>{{ total }} rows</span>
+            {% if total_pages > 1 %}
+            <span class="ml-4">Page {{ page }} / {{ total_pages }}</span>
+            {% endif %}
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-xs">
+                <thead>
+                    <tr class="border-b border-gray-200 bg-gray-50 text-left text-gray-500">
+                        <th class="py-2 px-3 text-center">#</th>
+                        {% for col in columns %}
+                        <th class="py-2 px-3 font-medium">{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-1.5 px-3 text-gray-400 text-center">{{ loop.index + (page - 1) * 25 }}</td>
+                        {% for col in columns %}
+                        <td class="py-1.5 px-3
+                            {% if col in ('id', 'calendar_id', 'message_id') %}font-mono text-blue-700{% endif %}
+                            {% if row[col] is sameas true %}text-green-600
+                            {% elif row[col] is sameas false %}text-gray-400{% endif %}">
+                            {% if row[col] is sameas true %}✓
+                            {% elif row[col] is sameas false %}–
+                            {% else %}{{ row[col] }}{% endif %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{{ columns | length + 1 }}" class="py-8 text-center text-gray-400">No rows</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        {% if total_pages > 1 %}
+        <div class="flex items-center gap-2 px-4 py-3 border-t border-gray-200">
+            {% if page > 1 %}
+            <a href="/dev/db-viewer?table={{ table }}&page={{ page - 1 }}"
+               class="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">← Prev</a>
+            {% endif %}
+            {% if page < total_pages %}
+            <a href="/dev/db-viewer?table={{ table }}&page={{ page + 1 }}"
+               class="px-3 py-1 text-xs border border-gray-300 rounded hover:bg-gray-50">Next →</a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

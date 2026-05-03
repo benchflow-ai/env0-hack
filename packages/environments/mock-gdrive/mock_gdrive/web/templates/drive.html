@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}
+{% if view == 'shared' %}Shared with me{% elif view == 'starred' %}Starred{% elif view == 'trash' %}Trash{% elif view == 'recent' %}Recent{% elif folder_id %}{{ breadcrumbs[-1].name if breadcrumbs else 'Folder' }}{% else %}My Drive{% endif %} - Mock GDrive
+{% endblock %}
+
+{% block content %}
+<div class="min-h-full">
+    <!-- Breadcrumb bar -->
+    <div class="flex items-center h-12 px-6">
+        <div class="flex items-center gap-1 text-sm font-google-sans">
+            {% if view == 'my-drive' %}
+                <a href="/" class="text-gray-900 text-lg font-medium hover:bg-gray-100 px-2 py-1 rounded-lg">My Drive</a>
+                {% for crumb in breadcrumbs %}
+                <span class="material-symbols-outlined text-[18px] text-gray-400 mx-0.5">chevron_right</span>
+                <a href="/?folder={{ crumb.id }}" class="text-gray-900 text-lg hover:bg-gray-100 px-2 py-1 rounded-lg">{{ crumb.name }}</a>
+                {% endfor %}
+            {% elif view == 'shared' %}
+                <span class="text-gray-900 text-lg font-medium px-2 py-1">Shared with me</span>
+            {% elif view == 'starred' %}
+                <span class="text-gray-900 text-lg font-medium px-2 py-1">Starred</span>
+            {% elif view == 'recent' %}
+                <span class="text-gray-900 text-lg font-medium px-2 py-1">Recent</span>
+            {% elif view == 'trash' %}
+                <span class="text-gray-900 text-lg font-medium px-2 py-1">Trash</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="flex items-center h-10 px-4 border-b border-gray-200">
+        <div class="flex items-center gap-1">
+            <!-- Type filter -->
+            <button class="flex items-center gap-1 px-3 py-1 rounded-lg text-sm text-gray-700 hover:bg-gray-100 border border-gray-300">
+                <span>Type</span>
+                <span class="material-symbols-outlined text-[18px]">arrow_drop_down</span>
+            </button>
+            <!-- People filter -->
+            <button class="flex items-center gap-1 px-3 py-1 rounded-lg text-sm text-gray-700 hover:bg-gray-100 border border-gray-300">
+                <span>People</span>
+                <span class="material-symbols-outlined text-[18px]">arrow_drop_down</span>
+            </button>
+            <!-- Modified filter -->
+            <button class="flex items-center gap-1 px-3 py-1 rounded-lg text-sm text-gray-700 hover:bg-gray-100 border border-gray-300">
+                <span>Modified</span>
+                <span class="material-symbols-outlined text-[18px]">arrow_drop_down</span>
+            </button>
+        </div>
+        <div class="flex-1"></div>
+        <div class="flex items-center gap-1">
+            <span class="text-xs text-gray-400 mr-2">{{ files | length }} item{{ 's' if files | length != 1 else '' }}</span>
+            <!-- Sort (Name) -->
+            <button class="p-1.5 rounded-full hover:bg-gray-100" title="Sort">
+                <span class="material-symbols-outlined text-[20px] text-gray-600">sort</span>
+            </button>
+            <!-- List view (active) -->
+            <button class="p-1.5 rounded-full bg-blue-50" title="List view">
+                <span class="material-symbols-outlined text-[20px] text-blue-600">view_list</span>
+            </button>
+            <!-- Grid view -->
+            <button class="p-1.5 rounded-full hover:bg-gray-100" title="Grid view">
+                <span class="material-symbols-outlined text-[20px] text-gray-600">grid_view</span>
+            </button>
+            <!-- Info panel -->
+            <button class="p-1.5 rounded-full hover:bg-gray-100" title="Details">
+                <span class="material-symbols-outlined text-[20px] text-gray-600">info</span>
+            </button>
+        </div>
+    </div>
+
+    {% if search_query %}
+    <div class="px-6 py-2 bg-blue-50 border-b border-blue-100 flex items-center gap-2">
+        <span class="material-symbols-outlined text-[16px] text-blue-600">search</span>
+        <span class="text-xs text-blue-700">Search results for "<strong>{{ search_query }}</strong>"</span>
+        <a href="/" class="text-xs text-blue-600 hover:underline ml-2">Clear</a>
+    </div>
+    {% endif %}
+
+    {% if not files %}
+    <div class="flex flex-col items-center justify-center py-24 text-gray-400">
+        {% if view == 'trash' %}
+        <span class="material-symbols-outlined text-[72px] mb-4 text-gray-300">delete</span>
+        <p class="text-lg font-google-sans">Trash is empty</p>
+        {% elif view == 'recent' %}
+        <span class="material-symbols-outlined text-[72px] mb-4 text-gray-300">schedule</span>
+        <p class="text-lg font-google-sans">No recent files</p>
+        {% elif search_query %}
+        <span class="material-symbols-outlined text-[72px] mb-4 text-gray-300">search_off</span>
+        <p class="text-lg font-google-sans">No results found</p>
+        {% else %}
+        <span class="material-symbols-outlined text-[72px] mb-4 text-gray-300">folder_open</span>
+        <p class="text-lg font-google-sans">Drop files here or use the "New" button</p>
+        {% endif %}
+    </div>
+    {% else %}
+
+    <!-- Column headers -->
+    <div class="flex items-center h-10 px-6 border-b border-gray-100 text-xs text-gray-500 font-medium select-none">
+        <div class="w-10"></div>
+        <div class="flex-1 pl-2">Name</div>
+        <div class="w-40">Owner</div>
+        <div class="w-40">Last modified</div>
+        <div class="w-24 text-right">File size</div>
+        <div class="w-16 text-center">
+            <span class="material-symbols-outlined text-[16px] text-gray-400">group</span>
+        </div>
+    </div>
+
+    <!-- File list -->
+    <div class="divide-y divide-gray-50">
+        {% for f in files %}
+        <a href="{{ '/?folder=' + f.id if f.is_folder else '/file/' + f.id }}"
+           class="file-row flex items-center h-12 px-6 cursor-pointer transition-colors group relative">
+            <!-- Icon -->
+            <div class="w-10 flex items-center justify-center">
+                {% if f.icon.icon == 'folder' %}
+                <span class="material-symbols-outlined text-[24px] text-gray-500" style="font-variation-settings: 'FILL' 1;">folder</span>
+                {% elif f.icon.icon == 'doc' %}
+                <span class="material-symbols-outlined text-[24px] text-blue-500" style="font-variation-settings: 'FILL' 1;">description</span>
+                {% elif f.icon.icon == 'sheet' %}
+                <span class="material-symbols-outlined text-[24px] text-green-600" style="font-variation-settings: 'FILL' 1;">table_chart</span>
+                {% elif f.icon.icon == 'slides' %}
+                <span class="material-symbols-outlined text-[24px] text-yellow-600" style="font-variation-settings: 'FILL' 1;">slideshow</span>
+                {% elif f.icon.icon == 'pdf' %}
+                <span class="material-symbols-outlined text-[24px] text-red-500" style="font-variation-settings: 'FILL' 1;">picture_as_pdf</span>
+                {% elif f.icon.icon == 'image' %}
+                <span class="material-symbols-outlined text-[24px] text-purple-500" style="font-variation-settings: 'FILL' 1;">image</span>
+                {% elif f.icon.icon == 'csv' %}
+                <span class="material-symbols-outlined text-[24px] text-green-600" style="font-variation-settings: 'FILL' 1;">csv</span>
+                {% elif f.icon.icon == 'shortcut' %}
+                <span class="material-symbols-outlined text-[24px] text-gray-400">link</span>
+                {% else %}
+                <span class="material-symbols-outlined text-[24px] text-gray-400" style="font-variation-settings: 'FILL' 1;">insert_drive_file</span>
+                {% endif %}
+            </div>
+
+            <!-- Name -->
+            <div class="flex-1 pl-2 truncate flex items-center gap-1">
+                <span class="text-sm text-gray-900">{{ f.name }}</span>
+                {% if f.is_shortcut %}
+                <span class="material-symbols-outlined text-[14px] text-gray-400">shortcut</span>
+                {% endif %}
+                {% if f.starred %}
+                <span class="material-symbols-outlined text-[16px] text-yellow-400" style="font-variation-settings: 'FILL' 1;">star</span>
+                {% endif %}
+            </div>
+
+            <!-- Owner (hidden on hover, replaced by actions) -->
+            <div class="w-40 text-sm text-gray-600 truncate group-hover:hidden">
+                {% if f.owner %}
+                    {% if f.owner.id == user.id %}me{% else %}{{ f.owner.display_name }}{% endif %}
+                {% endif %}
+            </div>
+
+            <!-- Modified (hidden on hover, replaced by actions) -->
+            <div class="w-40 text-sm text-gray-600 group-hover:hidden">
+                {% if f.modified_time %}
+                {{ f.modified_time.strftime('%b %d, %Y') }}
+                {% endif %}
+            </div>
+
+            <!-- Size (hidden on hover) -->
+            <div class="w-24 text-right text-sm text-gray-600 group-hover:hidden">
+                {% if not f.is_folder %}{{ f.size_fmt }}{% else %}-{% endif %}
+            </div>
+
+            <!-- Shared indicator (hidden on hover) -->
+            <div class="w-16 text-center group-hover:hidden">
+                {% if f.perm_count > 1 %}
+                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-gray-100 text-xs text-gray-500" title="{{ f.perm_count }} permissions">
+                    {{ f.perm_count }}
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Hover action buttons (visible on hover) -->
+            <div class="hidden group-hover:flex items-center gap-0.5" onclick="event.stopPropagation(); event.preventDefault();">
+                <button class="p-1.5 rounded-full hover:bg-blue-100 transition-colors" title="Share" onclick="event.stopPropagation(); event.preventDefault();">
+                    <span class="material-symbols-outlined text-[20px] text-gray-600">person_add</span>
+                </button>
+                <button class="p-1.5 rounded-full hover:bg-blue-100 transition-colors" title="Download" onclick="event.stopPropagation(); event.preventDefault();">
+                    <span class="material-symbols-outlined text-[20px] text-gray-600">download</span>
+                </button>
+                <button class="p-1.5 rounded-full hover:bg-blue-100 transition-colors" title="Rename" onclick="event.stopPropagation(); event.preventDefault();">
+                    <span class="material-symbols-outlined text-[20px] text-gray-600">drive_file_rename_outline</span>
+                </button>
+                <button class="p-1.5 rounded-full hover:bg-blue-100 transition-colors" title="{{ 'Unstar' if f.starred else 'Star' }}" onclick="event.stopPropagation(); event.preventDefault();">
+                    <span class="material-symbols-outlined text-[20px] {{ 'text-yellow-400' if f.starred else 'text-gray-600' }}" style="font-variation-settings: 'FILL' {{ 1 if f.starred else 0 }};">star</span>
+                </button>
+                <button class="p-1.5 rounded-full hover:bg-blue-100 transition-colors" title="More actions" onclick="event.stopPropagation(); event.preventDefault();">
+                    <span class="material-symbols-outlined text-[20px] text-gray-600">more_vert</span>
+                </button>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

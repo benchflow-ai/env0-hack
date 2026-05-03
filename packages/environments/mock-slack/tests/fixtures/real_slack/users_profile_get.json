@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "profile": {
+    "title": "Communication Manager",
+    "phone": "",
+    "skype": "",
+    "real_name": "Jane Manager",
+    "real_name_normalized": "Jane Manager",
+    "display_name": "Jane",
+    "display_name_normalized": "Jane",
+    "fields": {},
+    "status_text": "",
+    "status_emoji": "",
+    "status_emoji_display_info": [],
+    "status_expiration": 0,
+    "status_clear_on_focus_end": false,
+    "avatar_hash": "10a52ade6851",
+    "image_original": "https://avatars.slack-edge.com/2026-03-18/10739552775377_10a52ade6851bce7a56d_original.png",
+    "is_custom_image": true,
+    "email": "jane_manager_9556@andrew.cmu.edu",
+    "first_name": "Jane",
+    "last_name": "Manager",
+    "image_24": "https://avatars.slack-edge.com/2026-03-18/10739552775377_10a52ade6851bce7a56d_24.png",
+    "image_32": "https://avatars.slack-edge.com/2026-03-18/10739552775377_10a52ade6851bce7a56d_32.png",
+    "image_48": "https://avatars.slack-edge.com/2026-03-18/10739552775377_10a52ade6851bce7a56d_48.png",
+    "image_72": "https://avatars.slack-edge.com/2026-03-18/10739552775377_10a52ade6851bce7a56d_72.png",
+    "image_192": "https://avatars.slack-edge.com/2026-03-18/10739552775377_10a52ade6851bce7a56d_192.png",
+    "image_512": "https://avatars.slack-edge.com/2026-03-18/10739552775377_10a52ade6851bce7a56d_512.png",
+    "image_1024": "https://avatars.slack-edge.com/2026-03-18/10739552775377_10a52ade6851bce7a56d_1024.png",
+    "status_text_canonical": ""
+  },
+  "_captured_at": "2026-03-27T20:39:34.255964+00:00"
+}

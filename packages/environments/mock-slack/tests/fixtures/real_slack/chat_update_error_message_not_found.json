@@ -1,0 +1,11 @@
+{
+  "ok": false,
+  "error": "message_not_found",
+  "warning": "missing_charset",
+  "response_metadata": {
+    "warnings": [
+      "missing_charset"
+    ]
+  },
+  "_captured_at": "2026-03-27T20:39:43.599476+00:00"
+}

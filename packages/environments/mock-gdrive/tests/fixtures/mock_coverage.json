@@ -1,0 +1,646 @@
+{
+  "endpoints": [
+    {
+      "id": "drive.files.list",
+      "resource": "Files",
+      "method": "GET",
+      "path": "/drive/v3/files",
+      "implemented": true,
+      "fixture": "files_list_default.json",
+      "additional_fixtures": [
+        "files_list_folders.json",
+        "files_list_trashed.json",
+        "files_list_fields_filtered.json",
+        "files_list_in_parents.json"
+      ],
+      "tests": [
+        "test_golden_fixtures.py::TestFilesListGolden",
+        "test_files.py"
+      ]
+    },
+    {
+      "id": "drive.files.get",
+      "resource": "Files",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}",
+      "implemented": true,
+      "fixture": "files_get_full.json",
+      "additional_fixtures": [
+        "files_get_folder.json",
+        "files_get_fields_filtered.json"
+      ],
+      "tests": [
+        "test_golden_fixtures.py::TestFilesGetGolden",
+        "test_files.py"
+      ]
+    },
+    {
+      "id": "drive.files.create",
+      "resource": "Files",
+      "method": "POST",
+      "path": "/drive/v3/files",
+      "implemented": true,
+      "fixture": "files_create_response.json",
+      "tests": [
+        "test_files.py"
+      ]
+    },
+    {
+      "id": "drive.files.update",
+      "resource": "Files",
+      "method": "PATCH",
+      "path": "/drive/v3/files/{fileId}",
+      "implemented": true,
+      "fixture": "files_update_response.json",
+      "tests": [
+        "test_files.py"
+      ]
+    },
+    {
+      "id": "drive.files.delete",
+      "resource": "Files",
+      "method": "DELETE",
+      "path": "/drive/v3/files/{fileId}",
+      "implemented": true,
+      "fixture": "files_delete_response.json",
+      "tests": [
+        "test_files.py"
+      ]
+    },
+    {
+      "id": "drive.files.copy",
+      "resource": "Files",
+      "method": "POST",
+      "path": "/drive/v3/files/{fileId}/copy",
+      "implemented": true,
+      "fixture": "files_copy_response.json",
+      "tests": [
+        "test_files.py"
+      ]
+    },
+    {
+      "id": "drive.files.export",
+      "resource": "Files",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/export",
+      "implemented": true,
+      "fixture": "files_export_text.json",
+      "tests": [
+        "test_files.py"
+      ]
+    },
+    {
+      "id": "drive.files.generateIds",
+      "resource": "Files",
+      "method": "GET",
+      "path": "/drive/v3/files/generateIds",
+      "implemented": true,
+      "fixture": "files_generateIds.json",
+      "tests": [
+        "test_files.py"
+      ]
+    },
+    {
+      "id": "drive.files.emptyTrash",
+      "resource": "Files",
+      "method": "DELETE",
+      "path": "/drive/v3/files/trash",
+      "implemented": true,
+      "fixture": "files_emptyTrash_response.json",
+      "tests": [
+        "test_files.py"
+      ]
+    },
+    {
+      "id": "drive.files.watch",
+      "resource": "Files",
+      "method": "POST",
+      "path": "/drive/v3/files/{fileId}/watch",
+      "implemented": true,
+      "fixture": "files_watch_response.json",
+      "tests": [
+        "test_files.py"
+      ]
+    },
+    {
+      "id": "drive.permissions.list",
+      "resource": "Permissions",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/permissions",
+      "implemented": true,
+      "fixture": "permissions_list.json",
+      "tests": [
+        "test_golden_fixtures.py::TestPermissionsGolden",
+        "test_permissions.py"
+      ]
+    },
+    {
+      "id": "drive.permissions.get",
+      "resource": "Permissions",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/permissions/{permissionId}",
+      "implemented": true,
+      "fixture": "permissions_get.json",
+      "tests": [
+        "test_golden_fixtures.py::TestPermissionsGolden",
+        "test_permissions.py"
+      ]
+    },
+    {
+      "id": "drive.permissions.create",
+      "resource": "Permissions",
+      "method": "POST",
+      "path": "/drive/v3/files/{fileId}/permissions",
+      "implemented": true,
+      "fixture": "permissions_create_response.json",
+      "tests": [
+        "test_permissions.py"
+      ]
+    },
+    {
+      "id": "drive.permissions.update",
+      "resource": "Permissions",
+      "method": "PATCH",
+      "path": "/drive/v3/files/{fileId}/permissions/{permissionId}",
+      "implemented": true,
+      "fixture": "permissions_update_response.json",
+      "tests": [
+        "test_permissions.py"
+      ]
+    },
+    {
+      "id": "drive.permissions.delete",
+      "resource": "Permissions",
+      "method": "DELETE",
+      "path": "/drive/v3/files/{fileId}/permissions/{permissionId}",
+      "implemented": true,
+      "fixture": "permissions_delete_response.json",
+      "tests": [
+        "test_permissions.py"
+      ]
+    },
+    {
+      "id": "drive.comments.list",
+      "resource": "Comments",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/comments",
+      "implemented": true,
+      "fixture": "comments_list.json",
+      "additional_fixtures": [
+        "comments_list_empty.json"
+      ],
+      "tests": [
+        "test_golden_fixtures.py::TestCommentsGolden",
+        "test_comments.py"
+      ]
+    },
+    {
+      "id": "drive.comments.get",
+      "resource": "Comments",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/comments/{commentId}",
+      "implemented": true,
+      "fixture": "comments_get.json",
+      "tests": [
+        "test_golden_fixtures.py::TestCommentsGolden",
+        "test_comments.py"
+      ]
+    },
+    {
+      "id": "drive.comments.create",
+      "resource": "Comments",
+      "method": "POST",
+      "path": "/drive/v3/files/{fileId}/comments",
+      "implemented": true,
+      "fixture": "comments_create_response.json",
+      "tests": [
+        "test_comments.py"
+      ]
+    },
+    {
+      "id": "drive.comments.update",
+      "resource": "Comments",
+      "method": "PATCH",
+      "path": "/drive/v3/files/{fileId}/comments/{commentId}",
+      "implemented": true,
+      "fixture": "comments_update_response.json",
+      "tests": [
+        "test_comments.py"
+      ]
+    },
+    {
+      "id": "drive.comments.delete",
+      "resource": "Comments",
+      "method": "DELETE",
+      "path": "/drive/v3/files/{fileId}/comments/{commentId}",
+      "implemented": true,
+      "fixture": null,
+      "tests": [
+        "test_comments.py"
+      ]
+    },
+    {
+      "id": "drive.replies.list",
+      "resource": "Replies",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/comments/{commentId}/replies",
+      "implemented": true,
+      "fixture": "replies_list.json",
+      "tests": [
+        "test_golden_fixtures.py::TestRepliesGolden",
+        "test_comments.py"
+      ]
+    },
+    {
+      "id": "drive.replies.get",
+      "resource": "Replies",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/comments/{commentId}/replies/{replyId}",
+      "implemented": true,
+      "fixture": "replies_get.json",
+      "tests": [
+        "test_golden_fixtures.py::TestRepliesGolden",
+        "test_comments.py"
+      ]
+    },
+    {
+      "id": "drive.replies.create",
+      "resource": "Replies",
+      "method": "POST",
+      "path": "/drive/v3/files/{fileId}/comments/{commentId}/replies",
+      "implemented": true,
+      "fixture": "replies_create_response.json",
+      "tests": [
+        "test_comments.py"
+      ]
+    },
+    {
+      "id": "drive.replies.update",
+      "resource": "Replies",
+      "method": "PATCH",
+      "path": "/drive/v3/files/{fileId}/comments/{commentId}/replies/{replyId}",
+      "implemented": true,
+      "fixture": "replies_update_response.json",
+      "tests": [
+        "test_comments.py"
+      ]
+    },
+    {
+      "id": "drive.replies.delete",
+      "resource": "Replies",
+      "method": "DELETE",
+      "path": "/drive/v3/files/{fileId}/comments/{commentId}/replies/{replyId}",
+      "implemented": true,
+      "fixture": null,
+      "tests": [
+        "test_comments.py"
+      ]
+    },
+    {
+      "id": "drive.revisions.list",
+      "resource": "Revisions",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/revisions",
+      "implemented": true,
+      "fixture": "revisions_list.json",
+      "tests": [
+        "test_golden_fixtures.py::TestRevisionsGolden",
+        "test_revisions.py"
+      ]
+    },
+    {
+      "id": "drive.revisions.get",
+      "resource": "Revisions",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/revisions/{revisionId}",
+      "implemented": true,
+      "fixture": "revisions_get.json",
+      "tests": [
+        "test_golden_fixtures.py::TestRevisionsGolden",
+        "test_revisions.py"
+      ]
+    },
+    {
+      "id": "drive.revisions.update",
+      "resource": "Revisions",
+      "method": "PATCH",
+      "path": "/drive/v3/files/{fileId}/revisions/{revisionId}",
+      "implemented": true,
+      "fixture": "revisions_update_response.json",
+      "tests": [
+        "test_revisions.py"
+      ]
+    },
+    {
+      "id": "drive.revisions.delete",
+      "resource": "Revisions",
+      "method": "DELETE",
+      "path": "/drive/v3/files/{fileId}/revisions/{revisionId}",
+      "implemented": true,
+      "fixture": null,
+      "tests": [
+        "test_revisions.py"
+      ]
+    },
+    {
+      "id": "drive.changes.getStartPageToken",
+      "resource": "Changes",
+      "method": "GET",
+      "path": "/drive/v3/changes/startPageToken",
+      "implemented": true,
+      "fixture": "changes_startPageToken.json",
+      "tests": [
+        "test_golden_fixtures.py::TestChangesGolden",
+        "test_changes.py"
+      ]
+    },
+    {
+      "id": "drive.changes.list",
+      "resource": "Changes",
+      "method": "GET",
+      "path": "/drive/v3/changes",
+      "implemented": true,
+      "fixture": "changes_list.json",
+      "additional_fixtures": [
+        "changes_list_empty.json"
+      ],
+      "tests": [
+        "test_golden_fixtures.py::TestChangesGolden",
+        "test_changes.py"
+      ]
+    },
+    {
+      "id": "drive.changes.watch",
+      "resource": "Changes",
+      "method": "POST",
+      "path": "/drive/v3/changes/watch",
+      "implemented": true,
+      "fixture": "changes_watch_response.json",
+      "tests": [
+        "test_changes.py"
+      ]
+    },
+    {
+      "id": "drive.channels.stop",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/drive/v3/channels/stop",
+      "implemented": true,
+      "fixture": "channels_stop_response.json",
+      "tests": [
+        "test_golden_fixtures.py::TestChannelsGolden"
+      ]
+    },
+    {
+      "id": "drive.drives.list",
+      "resource": "Drives",
+      "method": "GET",
+      "path": "/drive/v3/drives",
+      "implemented": true,
+      "fixture": "drives_list.json",
+      "tests": [
+        "test_golden_fixtures.py::TestDrivesGolden",
+        "test_drives.py"
+      ]
+    },
+    {
+      "id": "drive.drives.get",
+      "resource": "Drives",
+      "method": "GET",
+      "path": "/drive/v3/drives/{driveId}",
+      "implemented": true,
+      "fixture": "drives_get.json",
+      "tests": [
+        "test_golden_fixtures.py::TestDrivesGolden",
+        "test_drives.py"
+      ]
+    },
+    {
+      "id": "drive.drives.create",
+      "resource": "Drives",
+      "method": "POST",
+      "path": "/drive/v3/drives",
+      "implemented": true,
+      "fixture": "drives_create_response.json",
+      "tests": [
+        "test_drives.py"
+      ]
+    },
+    {
+      "id": "drive.drives.update",
+      "resource": "Drives",
+      "method": "PATCH",
+      "path": "/drive/v3/drives/{driveId}",
+      "implemented": true,
+      "fixture": "drives_update_response.json",
+      "tests": [
+        "test_drives.py"
+      ]
+    },
+    {
+      "id": "drive.drives.delete",
+      "resource": "Drives",
+      "method": "DELETE",
+      "path": "/drive/v3/drives/{driveId}",
+      "implemented": true,
+      "fixture": null,
+      "tests": [
+        "test_drives.py"
+      ]
+    },
+    {
+      "id": "drive.drives.hide",
+      "resource": "Drives",
+      "method": "POST",
+      "path": "/drive/v3/drives/{driveId}/hide",
+      "implemented": true,
+      "fixture": "drives_hide_response.json",
+      "tests": [
+        "test_drives.py"
+      ]
+    },
+    {
+      "id": "drive.drives.unhide",
+      "resource": "Drives",
+      "method": "POST",
+      "path": "/drive/v3/drives/{driveId}/unhide",
+      "implemented": true,
+      "fixture": "drives_unhide_response.json",
+      "tests": [
+        "test_drives.py"
+      ]
+    },
+    {
+      "id": "drive.about.get",
+      "resource": "About",
+      "method": "GET",
+      "path": "/drive/v3/about",
+      "implemented": true,
+      "fixture": "about_get.json",
+      "tests": [
+        "test_golden_fixtures.py::TestAboutGolden",
+        "test_about.py"
+      ]
+    },
+    {
+      "id": "drive.files.download",
+      "resource": "Files",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/download",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "New long-running download. files.get?alt=media already handles download.",
+      "tests": []
+    },
+    {
+      "id": "drive.files.listLabels",
+      "resource": "Files",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/listLabels",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Requires separate Google Drive Labels API.",
+      "tests": []
+    },
+    {
+      "id": "drive.files.modifyLabels",
+      "resource": "Files",
+      "method": "POST",
+      "path": "/drive/v3/files/{fileId}/modifyLabels",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Requires separate Google Drive Labels API.",
+      "tests": []
+    },
+    {
+      "id": "drive.teamdrives.create",
+      "resource": "Teamdrives",
+      "method": "POST",
+      "path": "/drive/v3/teamdrives",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Deprecated -- use drives.create",
+      "tests": []
+    },
+    {
+      "id": "drive.teamdrives.delete",
+      "resource": "Teamdrives",
+      "method": "DELETE",
+      "path": "/drive/v3/teamdrives/{teamDriveId}",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Deprecated -- use drives.delete",
+      "tests": []
+    },
+    {
+      "id": "drive.teamdrives.get",
+      "resource": "Teamdrives",
+      "method": "GET",
+      "path": "/drive/v3/teamdrives/{teamDriveId}",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Deprecated -- use drives.get",
+      "tests": []
+    },
+    {
+      "id": "drive.teamdrives.list",
+      "resource": "Teamdrives",
+      "method": "GET",
+      "path": "/drive/v3/teamdrives",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Deprecated -- use drives.list",
+      "tests": []
+    },
+    {
+      "id": "drive.teamdrives.update",
+      "resource": "Teamdrives",
+      "method": "PATCH",
+      "path": "/drive/v3/teamdrives/{teamDriveId}",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Deprecated -- use drives.update",
+      "tests": []
+    },
+    {
+      "id": "drive.accessproposals.get",
+      "resource": "Accessproposals",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/accessproposals/{proposalId}",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Enterprise request-access flow.",
+      "tests": []
+    },
+    {
+      "id": "drive.accessproposals.list",
+      "resource": "Accessproposals",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/accessproposals",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Enterprise request-access flow.",
+      "tests": []
+    },
+    {
+      "id": "drive.accessproposals.resolve",
+      "resource": "Accessproposals",
+      "method": "POST",
+      "path": "/drive/v3/files/{fileId}/accessproposals/{proposalId}:resolve",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Enterprise request-access flow.",
+      "tests": []
+    },
+    {
+      "id": "drive.approvals.get",
+      "resource": "Approvals",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/approvals/{approvalId}",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Google Workspace add-on.",
+      "tests": []
+    },
+    {
+      "id": "drive.approvals.list",
+      "resource": "Approvals",
+      "method": "GET",
+      "path": "/drive/v3/files/{fileId}/approvals",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Google Workspace add-on.",
+      "tests": []
+    },
+    {
+      "id": "drive.apps.get",
+      "resource": "Apps",
+      "method": "GET",
+      "path": "/drive/v3/apps/{appId}",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Third-party app listing. Meaningless in mock.",
+      "tests": []
+    },
+    {
+      "id": "drive.apps.list",
+      "resource": "Apps",
+      "method": "GET",
+      "path": "/drive/v3/apps",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Third-party app listing. Meaningless in mock.",
+      "tests": []
+    },
+    {
+      "id": "drive.operations.get",
+      "resource": "Operations",
+      "method": "GET",
+      "path": "/drive/v3/operations/{operationId}",
+      "implemented": false,
+      "fixture": null,
+      "skip_reason": "Long-running operation polling.",
+      "tests": []
+    }
+  ]
+}

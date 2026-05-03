@@ -1,0 +1,62 @@
+{
+  "ok": true,
+  "file": {
+    "id": "F0AQ84VM6M6",
+    "created": 1774643986,
+    "timestamp": 1774643986,
+    "name": "fixture_test.txt",
+    "title": "Fixture Test File",
+    "mimetype": "text/plain",
+    "filetype": "text",
+    "pretty_type": "Plain Text",
+    "user": "U0AMGBHA936",
+    "user_team": "E0AMAHCGFL6",
+    "editable": true,
+    "size": 30,
+    "mode": "snippet",
+    "is_external": false,
+    "external_type": "",
+    "is_public": true,
+    "public_url_shared": false,
+    "display_as_bot": false,
+    "username": "",
+    "url_private": "https://files.slack.com/files-pri/T0AMAHCGFL6-F0AQ84VM6M6/fixture_test.txt",
+    "url_private_download": "https://files.slack.com/files-pri/T0AMAHCGFL6-F0AQ84VM6M6/download/fixture_test.txt",
+    "permalink": "https://testmockslack1.enterprise.slack.com/files/U0AMGBHA936/F0AQ84VM6M6/fixture_test.txt",
+    "permalink_public": "https://slack-files.com/T0AMAHCGFL6-F0AQ84VM6M6-e81fbe27b4",
+    "edit_link": "https://testmockslack1.enterprise.slack.com/files/U0AMGBHA936/F0AQ84VM6M6/fixture_test.txt/edit",
+    "preview": "Hello from capture_fixtures.py",
+    "preview_highlight": "<div class=\"CodeMirror cm-s-default CodeMirrorServer\">\n<div class=\"CodeMirror-code\">\n<div><pre>Hello from capture_fixtures.py</pre></div>\n</div>\n</div>\n",
+    "lines": 1,
+    "lines_more": 0,
+    "preview_is_truncated": false,
+    "comments_count": 0,
+    "is_starred": false,
+    "shares": {
+      "public": {
+        "C0AM67S42PM": [
+          {
+            "reply_users": [],
+            "reply_users_count": 0,
+            "reply_count": 0,
+            "ts": "1774643987.631829",
+            "channel_name": "watercooler",
+            "team_id": "T0AN6SZBR3J",
+            "share_user_id": "U0AMGBHA936",
+            "source": "UNKNOWN",
+            "is_silent_share": false
+          }
+        ]
+      }
+    },
+    "channels": [
+      "C0AM67S42PM"
+    ],
+    "groups": [],
+    "ims": [],
+    "has_more_shares": false,
+    "has_rich_preview": false,
+    "file_access": "visible"
+  },
+  "_captured_at": "2026-03-27T20:39:47.832065+00:00"
+}

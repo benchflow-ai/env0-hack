@@ -1,0 +1,45 @@
+{
+  "accessRole": "owner",
+  "backgroundColor": "#9fe1e7",
+  "colorId": "14",
+  "conferenceProperties": {
+    "allowedConferenceSolutionTypes": [
+      "hangoutsMeet"
+    ]
+  },
+  "defaultReminders": [
+    {
+      "method": "popup",
+      "minutes": 30
+    }
+  ],
+  "etag": "\"1774575631795733\"",
+  "foregroundColor": "#000000",
+  "id": "mediar.acc1@gmail.com",
+  "kind": "calendar#calendarListEntry",
+  "notificationSettings": {
+    "notifications": [
+      {
+        "method": "email",
+        "type": "eventCreation"
+      },
+      {
+        "method": "email",
+        "type": "eventChange"
+      },
+      {
+        "method": "email",
+        "type": "eventCancellation"
+      },
+      {
+        "method": "email",
+        "type": "eventResponse"
+      }
+    ]
+  },
+  "primary": true,
+  "selected": true,
+  "summary": "mediar.acc1@gmail.com",
+  "timeZone": "UTC",
+  "_captured_at": "2026-03-27T21:09:04.157039+00:00"
+}

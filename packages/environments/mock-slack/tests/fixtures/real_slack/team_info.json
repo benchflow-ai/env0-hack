@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "team": {
+    "id": "T0AN6SZBR3J",
+    "name": "mockslack",
+    "url": "https://e0amahcgfl6-uez87xyy.slack.com/",
+    "domain": "e0amahcgfl6-uez87xyy",
+    "email_domain": "",
+    "avatar_base_url": "https://ca.slack-edge.com/",
+    "is_verified": false,
+    "icon": {
+      "image_default": true,
+      "image_34": "https://a.slack-edge.com/80588/img/avatars-teams/ava_0006-34.png",
+      "image_44": "https://a.slack-edge.com/80588/img/avatars-teams/ava_0006-44.png",
+      "image_68": "https://a.slack-edge.com/80588/img/avatars-teams/ava_0006-68.png",
+      "image_88": "https://a.slack-edge.com/80588/img/avatars-teams/ava_0006-88.png",
+      "image_102": "https://a.slack-edge.com/80588/img/avatars-teams/ava_0006-102.png",
+      "image_230": "https://a.slack-edge.com/80588/img/avatars-teams/ava_0006-230.png",
+      "image_132": "https://a.slack-edge.com/80588/img/avatars-teams/ava_0006-132.png"
+    },
+    "discoverable": "closed",
+    "enterprise_id": "E0AMAHCGFL6",
+    "enterprise_name": "mockslack",
+    "enterprise_domain": "testmockslack1",
+    "lob_sales_home_enabled": false,
+    "is_sfdc_auto_slack": false
+  },
+  "_captured_at": "2026-03-27T20:39:33.689082+00:00"
+}

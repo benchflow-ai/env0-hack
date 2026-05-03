@@ -1,0 +1,10 @@
+{
+  "ok": true,
+  "warning": "missing_charset",
+  "response_metadata": {
+    "warnings": [
+      "missing_charset"
+    ]
+  },
+  "_captured_at": "2026-03-27T20:39:45.745196+00:00"
+}

@@ -1,0 +1,15 @@
+{
+  "kind": "drive#reply",
+  "id": "AAAB4PK7SPI",
+  "modifiedTime": "2026-03-27T20:30:23.384Z",
+  "author": {
+    "kind": "drive#user",
+    "displayName": "Mediar Acc1",
+    "photoLink": "//lh3.googleusercontent.com/a/ACg8ocJfVsHyBJebj48JaaMy-w2KzU3lq6aRM8TvWOiBJBlz4C0w7A=s50-c-k-no",
+    "me": true
+  },
+  "htmlContent": "Updated capture test reply",
+  "content": "Updated capture test reply",
+  "deleted": false,
+  "_captured_at": "2026-03-27T20:30:23.873620+00:00"
+}

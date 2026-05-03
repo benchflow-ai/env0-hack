@@ -1,0 +1,146 @@
+{% extends "base.html" %} {% block content %}
+<div id="drafts-page" data-active-tab="drafts" class="flex flex-1 flex-col bg-white">
+  <div class="flex items-center justify-between border-b border-gray-200 px-5 py-3">
+    <h2 class="text-[18px] font-bold text-gray-900">Drafts &amp; sent</h2>
+    <div class="flex items-center gap-2">
+      <button id="drafts-delete-button" type="button" class="hidden rounded-md bg-gray-100 px-3 py-1.5 text-[13px] font-medium text-gray-500 hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50">
+        Delete
+      </button>
+      <button id="drafts-done-button" type="button" class="hidden rounded-md border border-gray-200 px-3 py-1.5 text-[13px] font-medium text-gray-700 hover:bg-gray-50">
+        Done
+      </button>
+      <button id="drafts-edit-button" type="button" class="inline-flex items-center gap-1 rounded-md border border-gray-200 px-3 py-1.5 text-[13px] font-medium text-gray-700 hover:bg-gray-50">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+      </svg>
+      Edit
+      </button>
+    </div>
+  </div>
+
+  <div class="border-b border-gray-200 px-5">
+    <div class="flex items-center gap-8 text-[14px] text-gray-500">
+      <button id="drafts-tab-drafts" type="button" class="border-b-2 border-gray-900 py-3 font-medium text-gray-900">
+        Drafts <span id="drafts-tab-count" class="ml-1">0</span>
+      </button>
+      <button id="drafts-tab-scheduled" type="button" class="py-3 font-medium">
+        Scheduled <span id="drafts-tab-scheduled-count" class="ml-1">0</span>
+      </button>
+      <button id="drafts-tab-sent" type="button" class="py-3 font-medium">
+        Sent
+      </button>
+    </div>
+  </div>
+
+  <div class="flex-1 overflow-y-auto bg-[#f8f8f8] px-5 py-4">
+    <div id="drafts-select-all-row" class="hidden items-center gap-3 border-b border-gray-200 px-1 pb-3 text-[14px] text-gray-700">
+      <input id="drafts-select-all-checkbox" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-[#6d4b74] focus:ring-[#6d4b74]" />
+      <label for="drafts-select-all-checkbox" id="drafts-select-all-label" class="cursor-pointer">Select all</label>
+    </div>
+    <div id="drafts-items" class="space-y-4"></div>
+    <div id="drafts-empty" class="rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center text-[14px] text-gray-500">
+      No drafts yet.
+    </div>
+  </div>
+</div>
+
+<div id="drafts-schedule-modal" class="hidden fixed inset-0 z-50 items-center justify-center bg-black/40 px-4">
+  <div class="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl">
+    <div class="flex items-start justify-between px-7 pb-3 pt-6">
+      <div>
+        <h3 class="text-[18px] font-bold text-gray-900">Schedule message</h3>
+        <p class="mt-1 text-[14px] text-gray-500">Time zone: Eastern Time (US and Canada)</p>
+      </div>
+      <button id="drafts-schedule-close" type="button" class="rounded-full p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    <form id="drafts-schedule-form" class="px-7 pb-6">
+      <div class="flex flex-col gap-3 border-b border-gray-100 pb-6 sm:flex-row">
+        <div class="relative flex-1">
+          <button id="drafts-schedule-date-button" type="button" class="flex w-full items-center justify-between rounded-xl border border-gray-300 bg-white px-4 py-3 text-left text-[16px] text-gray-800 focus:border-[#6d4b74] focus:outline-none focus:ring-1 focus:ring-[#6d4b74]">
+            <span class="flex items-center gap-2">
+              <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span id="drafts-schedule-date-label">Today</span>
+            </span>
+            <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div id="drafts-schedule-calendar" class="absolute left-0 top-[calc(100%+12px)] z-20 hidden w-[350px] rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1 text-gray-300">
+                <button id="drafts-schedule-month-prev-year" type="button" class="rounded-full p-2 hover:bg-gray-100 hover:text-gray-500">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 17l-5-5 5-5M18 17l-5-5 5-5"/>
+                  </svg>
+                </button>
+                <button id="drafts-schedule-month-prev" type="button" class="rounded-full p-2 hover:bg-gray-100 hover:text-gray-500">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 19l-7-7 7-7"/>
+                  </svg>
+                </button>
+              </div>
+              <div id="drafts-schedule-month-label" class="text-[16px] font-semibold text-gray-900">March 2026</div>
+              <div class="flex items-center gap-1 text-gray-300">
+                <button id="drafts-schedule-month-next" type="button" class="rounded-full p-2 hover:bg-gray-100 hover:text-gray-500">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 5l7 7-7 7"/>
+                  </svg>
+                </button>
+                <button id="drafts-schedule-month-next-year" type="button" class="rounded-full p-2 hover:bg-gray-100 hover:text-gray-500">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 5l7 7-7 7M6 5l7 7-7 7"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="mt-5 grid grid-cols-7 gap-y-2 text-center text-[13px] font-medium text-gray-500">
+              <span>Su</span>
+              <span>Mo</span>
+              <span>Tu</span>
+              <span>We</span>
+              <span>Th</span>
+              <span>Fr</span>
+              <span>Sa</span>
+            </div>
+            <div id="drafts-schedule-calendar-grid" class="mt-3 grid grid-cols-7 gap-0.5"></div>
+          </div>
+        </div>
+        <div class="relative sm:w-[174px]">
+          <button id="drafts-schedule-time-button" type="button" class="flex w-full items-center justify-between rounded-xl border border-gray-300 bg-white px-4 py-3 text-left text-[16px] text-gray-800 focus:border-[#6d4b74] focus:outline-none focus:ring-1 focus:ring-[#6d4b74]">
+            <span class="flex items-center gap-2">
+              <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span id="drafts-schedule-time-label">5:00 PM</span>
+            </span>
+            <svg class="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div id="drafts-schedule-time-menu" class="absolute left-0 top-[calc(100%+12px)] z-20 hidden max-h-[316px] w-full overflow-y-auto rounded-2xl border border-gray-200 bg-white py-2 shadow-2xl"></div>
+        </div>
+      </div>
+      <div class="flex justify-end gap-3 pt-5">
+        <button id="drafts-schedule-cancel" type="button" class="rounded-xl border border-gray-300 px-5 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50">
+          Cancel
+        </button>
+        <button type="submit" class="rounded-xl bg-[#007a5a] px-5 py-2 text-[15px] font-medium text-white hover:bg-[#00684d]">
+          Schedule Message
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.renderDraftsView) window.renderDraftsView();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mock GDoc Dev{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <style>
+        .sidebar-item { border-radius: 6px; }
+        .sidebar-item:hover { background-color: #f3f4f6; }
+        .sidebar-item.active { background-color: #e0e7ff; color: #3730a3; font-weight: 600; }
+        .htmx-indicator { display: none; }
+        .htmx-request .htmx-indicator { display: inline-block; }
+        .htmx-request button[type="submit"] { opacity: 0.7; pointer-events: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 text-sm">
+
+    <header class="flex items-center h-12 px-5 bg-[#1a237e] text-white border-b border-[#283593] fixed top-0 w-full z-50">
+        <div class="flex items-center gap-3 flex-1">
+            <svg class="w-5 h-5 text-[#42a5f5]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm-1 7V3.5L18.5 9H13zM6 20V4h5v7h7v9H6z"/>
+            </svg>
+            <span class="font-semibold text-sm tracking-wide">mock-gdoc</span>
+            <span class="text-xs bg-[#283593] text-[#90caf9] px-2 py-0.5 rounded font-medium">DEV</span>
+        </div>
+        <div class="flex items-center gap-4 text-xs text-blue-200">
+            <a href="/" class="hover:text-white flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                </svg>
+                Docs UI
+            </a>
+            <a href="/docs" class="hover:text-white flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                OpenAPI
+            </a>
+        </div>
+    </header>
+
+    <div class="flex h-screen pt-12">
+        <nav class="w-52 bg-white border-r border-gray-200 p-3 flex-shrink-0 overflow-y-auto">
+            <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-3 mt-1">Dev Tools</div>
+
+            <a href="/dev/dashboard"
+               class="sidebar-item flex items-center gap-2.5 px-3 py-2 mb-0.5 text-sm {{ 'active' if request.url.path == '/dev/dashboard' else 'text-gray-700' }}">
+                <svg class="w-4 h-4 flex-shrink-0 {{ 'text-indigo-600' if request.url.path == '/dev/dashboard' else 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Dashboard
+            </a>
+
+            <a href="/dev/api-explorer"
+               class="sidebar-item flex items-center gap-2.5 px-3 py-2 mb-0.5 text-sm {{ 'active' if request.url.path == '/dev/api-explorer' else 'text-gray-700' }}">
+                <svg class="w-4 h-4 flex-shrink-0 {{ 'text-indigo-600' if request.url.path == '/dev/api-explorer' else 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                </svg>
+                API Explorer
+            </a>
+
+            <a href="/dev/db-viewer"
+               class="sidebar-item flex items-center gap-2.5 px-3 py-2 mb-0.5 text-sm {{ 'active' if request.url.path == '/dev/db-viewer' else 'text-gray-700' }}">
+                <svg class="w-4 h-4 flex-shrink-0 {{ 'text-indigo-600' if request.url.path == '/dev/db-viewer' else 'text-gray-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 3 4 8 4s8-2 8-4V7M4 7c0 2 3 4 8 4s8-2 8-4M4 7c0-2 3-4 8-4s8 2 8 4m0 5c0 2-3 4-8 4s-8-2-8-4"/>
+                </svg>
+                DB Viewer
+            </a>
+        </nav>
+
+        <main class="flex-1 overflow-y-auto">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

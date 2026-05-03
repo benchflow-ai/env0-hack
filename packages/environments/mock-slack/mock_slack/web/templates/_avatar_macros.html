@@ -1,0 +1,38 @@
+{% macro slack_avatar(user=None, label=None, avatar_url=None, size='w-9 h-9', rounded='rounded-lg', text='text-sm', container_extra='', fallback_bg='', fallback_text='', img_extra='object-cover object-top') -%}
+  {% set display_name = label or ((user.real_name or user.name) if user else '') or '?' %}
+  {% set explicit_avatar = avatar_url if avatar_url != '/static/profile_picture.jpg' else '' %}
+  {% set user_avatar = (user.avatar_url if user and user.avatar_url and user.avatar_url != '/static/profile_picture.jpg' else '') %}
+  {% set resolved_avatar = explicit_avatar if avatar_url is not none else user_avatar %}
+  {% set fallback_palettes = [
+    {'bg': 'bg-[#ececec]', 'text': 'text-[#1f1f1f]'},
+    {'bg': 'bg-[#e7edf5]', 'text': 'text-[#2f9bd3]'},
+    {'bg': 'bg-[#e8dfc4]', 'text': 'text-[#4d7a92]'},
+    {'bg': 'bg-[#ece9ee]', 'text': 'text-[#5b1f61]'},
+  ] %}
+  {% set fallback_token = (((user.id if user and user.id else '') or display_name) | upper) %}
+  {% set palette_chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ' %}
+  {% set palette_position = palette_chars.find(fallback_token[-1]) if fallback_token else 0 %}
+  {% set palette_index = (palette_position if palette_position >= 0 else 0) % (fallback_palettes | length) %}
+  {% set fallback_palette = fallback_palettes[palette_index] %}
+  {% set resolved_fallback_bg = fallback_bg or fallback_palette['bg'] %}
+  {% set resolved_fallback_text = fallback_text or fallback_palette['text'] %}
+  <div class="{{ size }} {{ rounded }} overflow-hidden flex items-center justify-center font-semibold leading-none {{ text }} {{ container_extra }} {% if not resolved_avatar %}{{ resolved_fallback_bg }} {{ resolved_fallback_text }}{% endif %}">
+    {% if resolved_avatar %}
+    <img src="{{ resolved_avatar }}" class="w-full h-full {{ img_extra }}" alt="{{ display_name }}">
+    {% else %}
+    <svg
+      viewBox="0 0 36 36"
+      aria-label="Default avatar"
+      data-default-avatar="true"
+      data-default-avatar-palette="{{ palette_index }}"
+      class="h-full w-full"
+      fill="none"
+    >
+      <g data-default-avatar-silhouette="true" fill="currentColor">
+        <circle cx="18" cy="11.25" r="6.25"></circle>
+        <path d="M18 20.5C9.99187 20.5 3.5 25.636 3.5 32V36H32.5V32C32.5 25.636 26.0081 20.5 18 20.5Z"></path>
+      </g>
+    </svg>
+    {% endif %}
+  </div>
+{%- endmacro %}

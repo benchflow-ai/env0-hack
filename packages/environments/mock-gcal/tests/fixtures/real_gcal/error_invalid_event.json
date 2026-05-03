@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": 400,
+    "message": "Missing end time.",
+    "reason": "required"
+  },
+  "_captured_at": "2026-03-27T21:09:20.037585+00:00"
+}

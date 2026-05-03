@@ -1,0 +1,65 @@
+{
+  "id": "19d30929c3fe7274",
+  "threadId": "19d30929c3fe7274",
+  "labelIds": [
+    "UNREAD",
+    "SENT",
+    "INBOX"
+  ],
+  "snippet": "Golden fixture test message from capture script.",
+  "payload": {
+    "partId": "",
+    "mimeType": "text/plain",
+    "filename": "",
+    "headers": [
+      {
+        "name": "Received",
+        "value": "from 549629853672 named unknown by gmailapi.google.com with HTTPREST; Fri, 27 Mar 2026 11:33:28 -0700"
+      },
+      {
+        "name": "Received",
+        "value": "from 549629853672 named unknown by gmailapi.google.com with HTTPREST; Fri, 27 Mar 2026 11:33:28 -0700"
+      },
+      {
+        "name": "Content-Type",
+        "value": "text/plain; charset=\"us-ascii\""
+      },
+      {
+        "name": "MIME-Version",
+        "value": "1.0"
+      },
+      {
+        "name": "Content-Transfer-Encoding",
+        "value": "7bit"
+      },
+      {
+        "name": "To",
+        "value": "mediar.acc1@gmail.com"
+      },
+      {
+        "name": "From",
+        "value": "mediar.acc1@gmail.com"
+      },
+      {
+        "name": "Subject",
+        "value": "Mock Gmail Fixture Test"
+      },
+      {
+        "name": "Date",
+        "value": "Fri, 27 Mar 2026 11:33:28 -0700"
+      },
+      {
+        "name": "Message-Id",
+        "value": "<CA+oLZ01c-Mc2V-OFMBpOD69yn-QN2Qgwt0Kzzg5qcQXV+OkzYA@mail.gmail.com>"
+      }
+    ],
+    "body": {
+      "size": 48,
+      "data": "R29sZGVuIGZpeHR1cmUgdGVzdCBtZXNzYWdlIGZyb20gY2FwdHVyZSBzY3JpcHQu"
+    }
+  },
+  "sizeEstimate": 601,
+  "historyId": "3517",
+  "internalDate": "1774636408000",
+  "_captured_at": "2026-03-27T18:33:28.652371+00:00"
+}

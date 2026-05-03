@@ -1,0 +1,537 @@
+{
+  "api": "Google Drive API v3",
+  "discovery_url": "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest",
+  "total_endpoints": 57,
+  "implemented": 41,
+  "skipped": 16,
+  "resources": {
+    "Files": {
+      "endpoints": [
+        {
+          "id": "drive.files.list",
+          "method": "GET",
+          "path": "/drive/v3/files",
+          "type": "list",
+          "shape_changing_params": ["q", "fields", "orderBy", "spaces"],
+          "implemented": true
+        },
+        {
+          "id": "drive.files.get",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}",
+          "type": "read",
+          "shape_changing_params": ["fields", "alt"],
+          "implemented": true
+        },
+        {
+          "id": "drive.files.create",
+          "method": "POST",
+          "path": "/drive/v3/files",
+          "type": "mutation",
+          "shape_changing_params": ["fields", "uploadType"],
+          "implemented": true
+        },
+        {
+          "id": "drive.files.update",
+          "method": "PATCH",
+          "path": "/drive/v3/files/{fileId}",
+          "type": "mutation",
+          "shape_changing_params": ["fields", "uploadType"],
+          "implemented": true
+        },
+        {
+          "id": "drive.files.delete",
+          "method": "DELETE",
+          "path": "/drive/v3/files/{fileId}",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        },
+        {
+          "id": "drive.files.copy",
+          "method": "POST",
+          "path": "/drive/v3/files/{fileId}/copy",
+          "type": "mutation",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.files.export",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/export",
+          "type": "read",
+          "shape_changing_params": ["mimeType"],
+          "implemented": true
+        },
+        {
+          "id": "drive.files.generateIds",
+          "method": "GET",
+          "path": "/drive/v3/files/generateIds",
+          "type": "singleton",
+          "shape_changing_params": ["count", "space"],
+          "implemented": true
+        },
+        {
+          "id": "drive.files.emptyTrash",
+          "method": "DELETE",
+          "path": "/drive/v3/files/trash",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        },
+        {
+          "id": "drive.files.watch",
+          "method": "POST",
+          "path": "/drive/v3/files/{fileId}/watch",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        },
+        {
+          "id": "drive.files.download",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/download",
+          "type": "read",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "New long-running download. files.get?alt=media already handles download."
+        },
+        {
+          "id": "drive.files.listLabels",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/listLabels",
+          "type": "list",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Requires separate Google Drive Labels API."
+        },
+        {
+          "id": "drive.files.modifyLabels",
+          "method": "POST",
+          "path": "/drive/v3/files/{fileId}/modifyLabels",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Requires separate Google Drive Labels API."
+        }
+      ]
+    },
+    "Permissions": {
+      "endpoints": [
+        {
+          "id": "drive.permissions.list",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/permissions",
+          "type": "list",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.permissions.get",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/permissions/{permissionId}",
+          "type": "read",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.permissions.create",
+          "method": "POST",
+          "path": "/drive/v3/files/{fileId}/permissions",
+          "type": "mutation",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.permissions.update",
+          "method": "PATCH",
+          "path": "/drive/v3/files/{fileId}/permissions/{permissionId}",
+          "type": "mutation",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.permissions.delete",
+          "method": "DELETE",
+          "path": "/drive/v3/files/{fileId}/permissions/{permissionId}",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        }
+      ]
+    },
+    "Comments": {
+      "endpoints": [
+        {
+          "id": "drive.comments.list",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/comments",
+          "type": "list",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.comments.get",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/comments/{commentId}",
+          "type": "read",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.comments.create",
+          "method": "POST",
+          "path": "/drive/v3/files/{fileId}/comments",
+          "type": "mutation",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.comments.update",
+          "method": "PATCH",
+          "path": "/drive/v3/files/{fileId}/comments/{commentId}",
+          "type": "mutation",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.comments.delete",
+          "method": "DELETE",
+          "path": "/drive/v3/files/{fileId}/comments/{commentId}",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        }
+      ]
+    },
+    "Replies": {
+      "endpoints": [
+        {
+          "id": "drive.replies.list",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/comments/{commentId}/replies",
+          "type": "list",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.replies.get",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/comments/{commentId}/replies/{replyId}",
+          "type": "read",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.replies.create",
+          "method": "POST",
+          "path": "/drive/v3/files/{fileId}/comments/{commentId}/replies",
+          "type": "mutation",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.replies.update",
+          "method": "PATCH",
+          "path": "/drive/v3/files/{fileId}/comments/{commentId}/replies/{replyId}",
+          "type": "mutation",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.replies.delete",
+          "method": "DELETE",
+          "path": "/drive/v3/files/{fileId}/comments/{commentId}/replies/{replyId}",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        }
+      ]
+    },
+    "Revisions": {
+      "endpoints": [
+        {
+          "id": "drive.revisions.list",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/revisions",
+          "type": "list",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.revisions.get",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/revisions/{revisionId}",
+          "type": "read",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.revisions.update",
+          "method": "PATCH",
+          "path": "/drive/v3/files/{fileId}/revisions/{revisionId}",
+          "type": "mutation",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.revisions.delete",
+          "method": "DELETE",
+          "path": "/drive/v3/files/{fileId}/revisions/{revisionId}",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        }
+      ]
+    },
+    "Changes": {
+      "endpoints": [
+        {
+          "id": "drive.changes.getStartPageToken",
+          "method": "GET",
+          "path": "/drive/v3/changes/startPageToken",
+          "type": "singleton",
+          "shape_changing_params": [],
+          "implemented": true
+        },
+        {
+          "id": "drive.changes.list",
+          "method": "GET",
+          "path": "/drive/v3/changes",
+          "type": "list",
+          "shape_changing_params": ["fields", "pageToken"],
+          "implemented": true
+        },
+        {
+          "id": "drive.changes.watch",
+          "method": "POST",
+          "path": "/drive/v3/changes/watch",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        }
+      ]
+    },
+    "Channels": {
+      "endpoints": [
+        {
+          "id": "drive.channels.stop",
+          "method": "POST",
+          "path": "/drive/v3/channels/stop",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        }
+      ]
+    },
+    "Drives": {
+      "endpoints": [
+        {
+          "id": "drive.drives.list",
+          "method": "GET",
+          "path": "/drive/v3/drives",
+          "type": "list",
+          "shape_changing_params": ["fields", "q"],
+          "implemented": true
+        },
+        {
+          "id": "drive.drives.get",
+          "method": "GET",
+          "path": "/drive/v3/drives/{driveId}",
+          "type": "read",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.drives.create",
+          "method": "POST",
+          "path": "/drive/v3/drives",
+          "type": "mutation",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.drives.update",
+          "method": "PATCH",
+          "path": "/drive/v3/drives/{driveId}",
+          "type": "mutation",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        },
+        {
+          "id": "drive.drives.delete",
+          "method": "DELETE",
+          "path": "/drive/v3/drives/{driveId}",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        },
+        {
+          "id": "drive.drives.hide",
+          "method": "POST",
+          "path": "/drive/v3/drives/{driveId}/hide",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        },
+        {
+          "id": "drive.drives.unhide",
+          "method": "POST",
+          "path": "/drive/v3/drives/{driveId}/unhide",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": true
+        }
+      ]
+    },
+    "About": {
+      "endpoints": [
+        {
+          "id": "drive.about.get",
+          "method": "GET",
+          "path": "/drive/v3/about",
+          "type": "singleton",
+          "shape_changing_params": ["fields"],
+          "implemented": true
+        }
+      ]
+    },
+    "Teamdrives": {
+      "endpoints": [
+        {
+          "id": "drive.teamdrives.create",
+          "method": "POST",
+          "path": "/drive/v3/teamdrives",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Deprecated -- use drives.create"
+        },
+        {
+          "id": "drive.teamdrives.delete",
+          "method": "DELETE",
+          "path": "/drive/v3/teamdrives/{teamDriveId}",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Deprecated -- use drives.delete"
+        },
+        {
+          "id": "drive.teamdrives.get",
+          "method": "GET",
+          "path": "/drive/v3/teamdrives/{teamDriveId}",
+          "type": "read",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Deprecated -- use drives.get"
+        },
+        {
+          "id": "drive.teamdrives.list",
+          "method": "GET",
+          "path": "/drive/v3/teamdrives",
+          "type": "list",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Deprecated -- use drives.list"
+        },
+        {
+          "id": "drive.teamdrives.update",
+          "method": "PATCH",
+          "path": "/drive/v3/teamdrives/{teamDriveId}",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Deprecated -- use drives.update"
+        }
+      ]
+    },
+    "Accessproposals": {
+      "endpoints": [
+        {
+          "id": "drive.accessproposals.get",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/accessproposals/{proposalId}",
+          "type": "read",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Enterprise request-access flow. Niche feature."
+        },
+        {
+          "id": "drive.accessproposals.list",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/accessproposals",
+          "type": "list",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Enterprise request-access flow. Niche feature."
+        },
+        {
+          "id": "drive.accessproposals.resolve",
+          "method": "POST",
+          "path": "/drive/v3/files/{fileId}/accessproposals/{proposalId}:resolve",
+          "type": "mutation",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Enterprise request-access flow. Niche feature."
+        }
+      ]
+    },
+    "Approvals": {
+      "endpoints": [
+        {
+          "id": "drive.approvals.get",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/approvals/{approvalId}",
+          "type": "read",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Google Workspace add-on. Not core Drive."
+        },
+        {
+          "id": "drive.approvals.list",
+          "method": "GET",
+          "path": "/drive/v3/files/{fileId}/approvals",
+          "type": "list",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Google Workspace add-on. Not core Drive."
+        }
+      ]
+    },
+    "Apps": {
+      "endpoints": [
+        {
+          "id": "drive.apps.get",
+          "method": "GET",
+          "path": "/drive/v3/apps/{appId}",
+          "type": "read",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Third-party app listing. Meaningless in a mock."
+        },
+        {
+          "id": "drive.apps.list",
+          "method": "GET",
+          "path": "/drive/v3/apps",
+          "type": "list",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Third-party app listing. Meaningless in a mock."
+        }
+      ]
+    },
+    "Operations": {
+      "endpoints": [
+        {
+          "id": "drive.operations.get",
+          "method": "GET",
+          "path": "/drive/v3/operations/{operationId}",
+          "type": "read",
+          "shape_changing_params": [],
+          "implemented": false,
+          "skip_reason": "Long-running operation polling. Only needed for files.download."
+        }
+      ]
+    }
+  }
+}

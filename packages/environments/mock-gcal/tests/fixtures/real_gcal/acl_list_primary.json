@@ -1,0 +1,18 @@
+{
+  "etag": "\"p33npf17ron0960o\"",
+  "items": [
+    {
+      "etag": "\"00000000000000000000\"",
+      "id": "user:mediar.acc1@gmail.com",
+      "kind": "calendar#aclRule",
+      "role": "owner",
+      "scope": {
+        "type": "user",
+        "value": "mediar.acc1@gmail.com"
+      }
+    }
+  ],
+  "kind": "calendar#acl",
+  "nextSyncToken": "00001774630547295215",
+  "_captured_at": "2026-03-27T21:09:04.545605+00:00"
+}

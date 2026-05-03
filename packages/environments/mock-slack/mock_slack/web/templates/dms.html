@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% from "_avatar_macros.html" import slack_avatar %}
+{% block content %}
+<div class="flex flex-1 min-h-0 overflow-hidden">
+
+  <!-- ── LEFT: DM list panel ─────────────────────────────────── -->
+  <div class="w-[300px] flex-shrink-0 flex flex-col border-r border-[#522653] bg-[#3f0e40] text-white min-h-0">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-4 h-16 border-b border-[#522653] flex-shrink-0">
+      <h2 class="font-bold text-[18px]">Direct messages</h2>
+      <div class="flex items-center gap-2">
+        <!-- Compose new DM -->
+        <button
+          type="button"
+          onclick="openNewMessagePanel()"
+          class="w-8 h-8 rounded-full bg-white text-[#350D36] flex items-center justify-center shadow-sm"
+          title="New message"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="px-3 py-2 flex-shrink-0">
+      <div class="flex items-center gap-2 rounded bg-[#5d2c5d] border border-[#683368] px-3 py-1.5">
+        <svg class="w-4 h-4 text-[#cfc3cf] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" placeholder="Find a DM"
+          class="bg-transparent text-[13px] text-white focus:outline-none w-full placeholder-[#cfc3cf]"
+          oninput="filterDMs(this.value)"/>
+      </div>
+    </div>
+
+    <!-- DM list -->
+    <div class="flex-1 overflow-y-auto custom-scroll px-1 py-1 min-h-0" id="dm-list">
+      {% if dm_channels %}
+        {% for ch in dm_channels %}
+        {% set display_name = dm_names[ch.id] if dm_names and ch.id in dm_names else (ch.name or 'Direct Message') %}
+        {% set dm_user = dm_users[ch.id] if dm_users and ch.id in dm_users else None %}
+        <div id="dm-btn-{{ ch.id }}"
+          onclick="selectDM('{{ ch.id }}', this)"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#350d36] transition-colors cursor-pointer dm-item">
+          <!-- Avatar -->
+          <div class="relative flex-shrink-0">
+            {{ slack_avatar(user=dm_user, label=display_name, size='w-9 h-9', rounded='rounded-lg', text='text-sm') }}
+            <!-- Online indicator -->
+            <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#3f0e40] {{ 'bg-transparent border-[#cfc3cf]' if dm_user and dm_user.presence == 'away' else 'bg-green-400' }}"></div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="font-semibold text-[14px] text-white truncate">
+              {{ display_name }}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <!-- Empty state -->
+      <div class="flex flex-col items-center text-center px-6 py-10">
+        <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-[#cfc3cf]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+          </svg>
+        </div>
+        <p class="font-semibold text-[15px] text-white mb-1">Slack is better when everyone's here.</p>
+        <p class="text-[13px] text-[#cfc3cf] mb-4">Add your team and get the conversation started.</p>
+        <button
+          type="button"
+          onclick="openNewMessagePanel()"
+          class="px-4 py-1.5 rounded bg-white text-[#350d36] text-[13px] font-medium hover:bg-white/90 transition-colors">
+          Add Coworkers
+        </button>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- ── RIGHT: Chat panel ─────────────────────────────────────── -->
+  <div class="flex-1 flex flex-col min-h-0 overflow-hidden relative bg-white">
+    <!-- Inline channel panel target (auto-loaded) -->
+    <div id="chat-right-panel" class="flex-1 flex flex-col min-h-0 overflow-hidden"></div>
+  </div>
+</div>
+
+<script>
+  function selectDM(channelId, el) {
+    document.querySelectorAll('.dm-item').forEach(function(i) { i.classList.remove('bg-[#1164a3]', 'text-white'); });
+    if (el) el.classList.add('bg-[#1164a3]', 'text-white');
+    loadInlineChannel(channelId);
+  }
+
+  function openNewMessagePanel() {
+    document.querySelectorAll('.dm-item').forEach(function(i) { i.classList.remove('bg-gray-200'); });
+    var panel = document.getElementById('chat-right-panel');
+    if (!panel) return;
+    fetch('/new/inline').then(function(r) { return r.text(); }).then(function(html) {
+      panel.innerHTML = html;
+      if (typeof htmx !== 'undefined') htmx.process(panel);
+    });
+  }
+
+  function filterDMs(query) {
+    const items = document.querySelectorAll('.dm-item');
+    query = query.toLowerCase();
+    items.forEach(function(el) {
+      el.style.display = el.textContent.toLowerCase().includes(query) ? '' : 'none';
+    });
+  }
+
+  // Auto-load first DM
+  {% if first_dm_id %}
+  document.addEventListener('DOMContentLoaded', function() {
+    var firstBtn = document.getElementById('dm-btn-{{ first_dm_id }}');
+    if (firstBtn) selectDM('{{ first_dm_id }}', firstBtn);
+  });
+  {% endif %}
+</script>
+{% endblock %}

@@ -1,0 +1,71 @@
+{
+  "ok": true,
+  "content": "Hello from capture_fixtures.py",
+  "is_truncated": false,
+  "content_highlight_html": "<div class=\"CodeMirror cm-s-default CodeMirrorServer\">\n<div class=\"CodeMirror-code\">\n<div><pre>Hello from capture_fixtures.py</pre></div>\n</div>\n</div>\n",
+  "content_highlight_css": "\n.CodeMirror {\n\tfont-family: monospace;\n\theight: auto;\n}\n\n.CodeMirror pre {\n\tpadding: 0;\n\tbackground: transparent;\n\tfont-family: inherit;\n\tfont-size: inherit;\n\tmargin: 0;\n\twhite-space: pre;\n\tword-wrap: normal;\n\tline-height: inherit;\n\tcolor: inherit;\n\tz-index: 2;\n\tposition: relative;\n\toverflow: visible;\n}\n\n.cm-keyword {color: #708;}\n.cm-atom {color: #219;}\n.cm-number {color: #164;}\n.cm-def {color: #00f;}\n.cm-variable-2 {color: #05a;}\n.cm-variable-3 {color: #085;}\n.cm-comment {color: #a50;}\n.cm-string {color: #a11;}\n.cm-string-2 {color: #f50;}\n.cm-meta {color: #555;}\n.cm-qualifier {color: #555;}\n.cm-builtin {color: #30a;}\n.cm-bracket {color: #997;}\n.cm-tag {color: #170;}\n.cm-attribute {color: #00c;}\n.cm-header {color: blue;}\n",
+  "content_highlight_html_truncated": false,
+  "file": {
+    "id": "F0AQ84VM6M6",
+    "created": 1774643986,
+    "timestamp": 1774643986,
+    "name": "fixture_test.txt",
+    "title": "Fixture Test File",
+    "mimetype": "text/plain",
+    "filetype": "text",
+    "pretty_type": "Plain Text",
+    "user": "U0AMGBHA936",
+    "user_team": "E0AMAHCGFL6",
+    "editable": true,
+    "size": 30,
+    "mode": "snippet",
+    "is_external": false,
+    "external_type": "",
+    "is_public": true,
+    "public_url_shared": false,
+    "display_as_bot": false,
+    "username": "",
+    "url_private": "https://files.slack.com/files-pri/T0AMAHCGFL6-F0AQ84VM6M6/fixture_test.txt",
+    "url_private_download": "https://files.slack.com/files-pri/T0AMAHCGFL6-F0AQ84VM6M6/download/fixture_test.txt",
+    "permalink": "https://testmockslack1.enterprise.slack.com/files/U0AMGBHA936/F0AQ84VM6M6/fixture_test.txt",
+    "permalink_public": "https://slack-files.com/T0AMAHCGFL6-F0AQ84VM6M6-e81fbe27b4",
+    "edit_link": "https://testmockslack1.enterprise.slack.com/files/U0AMGBHA936/F0AQ84VM6M6/fixture_test.txt/edit",
+    "preview": "Hello from capture_fixtures.py",
+    "preview_highlight": "<div class=\"CodeMirror cm-s-default CodeMirrorServer\">\n<div class=\"CodeMirror-code\">\n<div><pre>Hello from capture_fixtures.py</pre></div>\n</div>\n</div>\n",
+    "lines": 1,
+    "lines_more": 0,
+    "preview_is_truncated": false,
+    "is_starred": false,
+    "shares": {
+      "public": {
+        "C0AM67S42PM": [
+          {
+            "reply_users": [],
+            "reply_users_count": 0,
+            "reply_count": 0,
+            "ts": "1774643987.631829",
+            "channel_name": "watercooler",
+            "team_id": "T0AN6SZBR3J",
+            "share_user_id": "U0AMGBHA936",
+            "source": "UNKNOWN",
+            "is_silent_share": false
+          }
+        ]
+      }
+    },
+    "channels": [
+      "C0AM67S42PM"
+    ],
+    "groups": [],
+    "ims": [],
+    "has_more_shares": false,
+    "has_rich_preview": false,
+    "file_access": "visible",
+    "comments_count": 0
+  },
+  "comments": [],
+  "response_metadata": {
+    "next_cursor": ""
+  },
+  "_captured_at": "2026-03-27T20:39:47.989258+00:00"
+}

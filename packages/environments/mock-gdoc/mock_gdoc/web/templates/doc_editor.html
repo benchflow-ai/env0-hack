@@ -1,0 +1,1989 @@
+{% extends "base.html" %}
+
+{% block title %}{{ doc.title }} - Google Docs{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<style>
+    /* Restore list styles inside editor (Tailwind Preflight resets them) */
+    #doc-content ul { list-style: disc; padding-left: 1.5em; margin: 0.5em 0; }
+    #doc-content ol { list-style: decimal; padding-left: 1.5em; margin: 0.5em 0; }
+    #doc-content li { margin: 0.25em 0; }
+    .menu-bar-item { position: relative; padding: 4px 8px; border-radius: 4px; font-size: 13px; cursor: pointer; user-select: none; }
+    .menu-bar-item:hover, .menu-bar-item.active { background-color: var(--gdoc-menu-hover); }
+    .menu-dropdown {
+        display: none; position: absolute; top: 100%; left: 0; min-width: 240px; z-index: 100;
+        background: white; border: 1px solid var(--gdoc-border); border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15); padding: 6px 0; margin-top: 2px;
+    }
+    .menu-dropdown.show { display: block; }
+    .menu-dropdown .menu-item {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 6px 16px; font-size: 13px; cursor: pointer; color: var(--gdoc-text);
+    }
+    .menu-dropdown .menu-item:hover { background-color: var(--gdoc-menu-hover); }
+    .menu-dropdown .menu-item.disabled { color: #bdc1c6; pointer-events: none; }
+    .menu-dropdown .menu-sep { height: 1px; background: var(--gdoc-border); margin: 4px 0; }
+    .menu-dropdown .shortcut { color: var(--gdoc-text-secondary); font-size: 12px; margin-left: 24px; }
+    .toolbar-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 28px; height: 28px; border-radius: 4px; cursor: pointer; border: none; background: none;
+        color: var(--gdoc-text-secondary);
+    }
+    .toolbar-btn:hover { background-color: rgba(32,33,36,0.08); }
+    .toolbar-btn.active { background-color: #d3e3fd; color: var(--gdoc-blue); }
+    .toolbar-sep { width: 1px; height: 20px; background: var(--gdoc-border); margin: 0 4px; flex-shrink: 0; }
+    .toolbar-select {
+        height: 28px; border: 1px solid transparent; border-radius: 4px; font-size: 13px;
+        padding: 0 6px; background: none; cursor: pointer; color: var(--gdoc-text);
+        appearance: none; -webkit-appearance: none;
+    }
+    .toolbar-select:hover { border-color: var(--gdoc-border); }
+    .ruler {
+        height: 20px; background: #f0f0f0; border-bottom: 1px solid var(--gdoc-border);
+        position: relative; overflow: hidden;
+    }
+    .ruler-ticks {
+        position: absolute; left: 50%; transform: translateX(-408px); width: 816px; height: 100%;
+        background: repeating-linear-gradient(
+            90deg,
+            #c4c7c5 0px, #c4c7c5 1px, transparent 1px, transparent 96px
+        );
+    }
+    .ruler-ticks::after {
+        content: ''; position: absolute; top: 12px; left: 0; right: 0; height: 8px;
+        background: repeating-linear-gradient(
+            90deg,
+            #c4c7c5 0px, #c4c7c5 1px, transparent 1px, transparent 48px
+        );
+    }
+    .comment-card { border: 1px solid var(--gdoc-border); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+    .comment-card:hover { border-color: var(--gdoc-blue); }
+    .comment-card.resolved { opacity: 0.6; }
+    .comment-reply { padding: 8px 0 0 28px; border-top: 1px solid var(--gdoc-border); margin-top: 8px; }
+    .comment-reply + .comment-reply { border-top: none; margin-top: 0; }
+    .reply-input-row { display: flex; gap: 8px; align-items: flex-start; padding: 8px 0 0 28px; margin-top: 8px; border-top: 1px solid var(--gdoc-border); }
+    .reply-input-row textarea { flex: 1; resize: none; border: 1px solid var(--gdoc-border); border-radius: 16px; padding: 6px 12px; font-size: 13px; font-family: inherit; min-height: 32px; max-height: 80px; outline: none; }
+    .reply-input-row textarea:focus { border-color: var(--gdoc-blue); }
+    .reply-input-row .reply-send-btn { width: 28px; height: 28px; border-radius: 50%; border: none; background: var(--gdoc-blue); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+    .reply-input-row .reply-send-btn:hover { background: var(--gdoc-blue-hover); }
+    .comment-action-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        height: 28px; padding: 0 10px; border-radius: 9999px;
+        border: 1px solid var(--gdoc-border); background: white; cursor: pointer;
+        color: var(--gdoc-text-secondary); font-size: 12px; font-weight: 500;
+    }
+    .comment-action-btn:hover { border-color: var(--gdoc-blue); color: var(--gdoc-blue); }
+    .avatar-circle {
+        width: 28px; height: 28px; border-radius: 50%; display: inline-flex;
+        align-items: center; justify-content: center; font-size: 12px; font-weight: 500; flex-shrink: 0;
+    }
+    .katex-equation { display: inline; padding: 0 2px; cursor: default; user-select: none; border-radius: 2px; }
+    .katex-equation:hover { background: #e8f0fe; }
+    /* Floating comment tooltip on text selection */
+    .selection-comment-tooltip {
+        position: fixed;
+        z-index: 40;
+        display: none;
+        align-items: center;
+        gap: 4px;
+        background: white;
+        border: 1px solid var(--gdoc-border);
+        border-radius: 20px;
+        box-shadow: 0 1px 3px rgba(60,64,67,0.15), 0 4px 8px rgba(60,64,67,0.1);
+        padding: 4px;
+        cursor: pointer;
+        transition: box-shadow 0.15s;
+    }
+    .selection-comment-tooltip:hover {
+        box-shadow: 0 1px 3px rgba(60,64,67,0.25), 0 4px 12px rgba(60,64,67,0.18);
+        border-color: var(--gdoc-blue);
+    }
+    .selection-comment-tooltip .tooltip-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gdoc-text-secondary);
+        transition: background 0.15s, color 0.15s;
+    }
+    .selection-comment-tooltip:hover .tooltip-icon {
+        background: #e8f0fe;
+        color: var(--gdoc-blue);
+    }
+    .dialog-backdrop { background: rgba(32, 33, 36, 0.32); }
+    .dialog-card { width: min(560px, calc(100vw - 32px)); }
+    .dialog-input,
+    .dialog-select,
+    .dialog-textarea {
+        width: 100%;
+        border: 1px solid var(--gdoc-border);
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 14px;
+        color: var(--gdoc-text);
+        background: white;
+    }
+    .dialog-input:focus,
+    .dialog-select:focus,
+    .dialog-textarea:focus {
+        outline: none;
+        border-color: var(--gdoc-blue);
+        box-shadow: 0 0 0 1px var(--gdoc-blue);
+    }
+    .dialog-textarea { min-height: 120px; resize: vertical; }
+    .dialog-banner {
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 13px;
+        line-height: 1.4;
+    }
+    .dialog-banner.info {
+        background: #f1f3f4;
+        color: var(--gdoc-text-secondary);
+    }
+    .dialog-banner.success {
+        background: #e6f4ea;
+        color: #137333;
+    }
+    .dialog-banner.error {
+        background: #fce8e6;
+        color: #c5221f;
+    }
+    .share-dialog-card {
+        width: min(640px, calc(100vw - 24px));
+        border-radius: 20px;
+        box-shadow: 0 18px 48px rgba(60, 64, 67, 0.28), 0 8px 18px rgba(60, 64, 67, 0.18);
+    }
+    .share-dialog-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 22px 24px 12px;
+    }
+    .share-dialog-title {
+        font-size: 24px;
+        line-height: 1.15;
+        color: var(--gdoc-text);
+        font-weight: 400;
+        letter-spacing: -0.01em;
+    }
+    .share-doc-inline {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+        margin-top: 14px;
+    }
+    .share-doc-inline-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: #e8f0fe;
+        color: var(--gdoc-blue);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .share-doc-inline-label {
+        font-size: 11px;
+        line-height: 1;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #5f6368;
+        margin-bottom: 4px;
+    }
+    .share-doc-inline-name {
+        font-size: 14px;
+        color: var(--gdoc-text);
+        font-weight: 500;
+    }
+    .share-dialog-body {
+        padding: 4px 24px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+    .share-invite-shell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .share-input-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-height: 56px;
+        border: 1px solid #dadce0;
+        border-radius: 28px;
+        padding: 0 10px 0 16px;
+        background: white;
+    }
+    .share-input-wrap:focus-within {
+        border-color: var(--gdoc-blue);
+        box-shadow: 0 0 0 1px rgba(26,115,232,0.16);
+    }
+    .share-input-leading {
+        color: #5f6368;
+        flex-shrink: 0;
+    }
+    .share-email-input {
+        border: none;
+        padding: 0;
+        font-size: 15px;
+        box-shadow: none;
+        background: transparent;
+    }
+    .share-email-input:focus {
+        box-shadow: none;
+        border-color: transparent;
+    }
+    .share-role-select {
+        width: 132px;
+        border: none;
+        border-radius: 9999px;
+        background: #f1f3f4;
+        padding: 8px 14px;
+        color: var(--gdoc-text);
+        font-size: 13px;
+        font-weight: 500;
+    }
+    .share-send-button {
+        height: 40px;
+        padding: 0 22px;
+        border: none;
+        border-radius: 9999px;
+        background: #0b57d0;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+    .share-send-button:hover { background: #0842a0; }
+    .share-input-help {
+        font-size: 12px;
+        line-height: 1.4;
+        color: #5f6368;
+        margin-top: -6px;
+        padding-left: 4px;
+    }
+    .share-section-heading {
+        font-size: 14px;
+        line-height: 1.3;
+        color: var(--gdoc-text);
+        font-weight: 500;
+        margin-bottom: 10px;
+    }
+    .share-list-shell {
+        background: white;
+        border-top: 1px solid #eceff3;
+        border-bottom: 1px solid #eceff3;
+    }
+    .share-list-state {
+        padding: 12px 0;
+        font-size: 13px;
+        color: #5f6368;
+    }
+    .share-list-state.hidden { display: none; }
+    .share-permissions-list:empty { display: none; }
+    .share-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0;
+        border-bottom: 1px solid #eceff3;
+    }
+    .share-row:last-child { border-bottom: none; }
+    .share-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        color: white;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+    .share-row-meta { min-width: 0; flex: 1; }
+    .share-row-name {
+        font-size: 14px;
+        line-height: 1.3;
+        color: var(--gdoc-text);
+        font-weight: 500;
+    }
+    .share-row-email {
+        font-size: 12px;
+        line-height: 1.35;
+        color: #5f6368;
+        margin-top: 2px;
+    }
+    .share-row-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+    .share-row-select {
+        width: 124px;
+        border: none;
+        border-radius: 9999px;
+        background: #f1f3f4;
+        padding: 8px 12px;
+        color: var(--gdoc-text);
+        font-size: 13px;
+        font-weight: 500;
+    }
+    .share-row-select:disabled {
+        color: #5f6368;
+        opacity: 1;
+    }
+    .share-owner-label {
+        min-width: 74px;
+        text-align: right;
+        color: #5f6368;
+        font-size: 13px;
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+    .share-remove-btn {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: #5f6368;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .share-remove-btn:hover {
+        background: #fce8e6;
+        color: #c5221f;
+    }
+    .share-general-row {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 0 6px;
+    }
+    .share-general-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #f1f3f4;
+        color: #5f6368;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .share-general-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        border: none;
+        border-radius: 9999px;
+        background: #f1f3f4;
+        color: var(--gdoc-text);
+        padding: 8px 12px 8px 14px;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: default;
+        flex-shrink: 0;
+    }
+    .share-dialog-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 24px 22px;
+        border-top: 1px solid #eceff3;
+    }
+    .share-copy-link-footer {
+        height: 40px;
+        padding: 0 18px;
+        border-radius: 9999px;
+        border: 1px solid #dadce0;
+        background: white;
+        color: #0b57d0;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    .share-copy-link-footer:hover { background: #f8fbff; }
+    .share-done-button {
+        height: 40px;
+        padding: 0 24px;
+        border: none;
+        border-radius: 9999px;
+        background: #0b57d0;
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    .share-done-button:hover { background: #0842a0; }
+    @media (max-width: 640px) {
+        .share-dialog-card { border-radius: 18px; }
+        .share-dialog-header,
+        .share-dialog-body,
+        .share-dialog-footer { padding-left: 18px; padding-right: 18px; }
+        .share-invite-shell,
+        .share-dialog-footer,
+        .share-row,
+        .share-general-row { flex-direction: column; align-items: stretch; }
+        .share-row-controls { width: 100%; justify-content: space-between; }
+        .share-role-select,
+        .share-row-select,
+        .share-send-button,
+        .share-copy-link-footer,
+        .share-general-badge { width: 100%; }
+        .share-owner-label { text-align: left; }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Header bar -->
+<header class="flex items-center h-16 px-4 bg-white">
+    <div class="flex items-center gap-2 mr-4">
+        <a href="/" class="flex items-center" title="Docs home">
+            <svg viewBox="0 0 72 100" class="w-7 h-10 flex-shrink-0" fill="none">
+                <path d="M44 0H8C3.58 0 0 3.58 0 8v84c0 4.42 3.58 8 8 8h56c4.42 0 8-3.58 8-8V28L44 0z" fill="#4285F4"/>
+                <path d="M44 0v20c0 4.42 3.58 8 8 8h20L44 0z" fill="#A1C2FA"/>
+                <path d="M16 72h40v-4H16v4zm0-12h40v-4H16v4zm0-12h28v-4H16v4z" fill="white"/>
+            </svg>
+        </a>
+    </div>
+    <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2">
+            <h1 class="text-lg font-normal text-[var(--gdoc-text)] truncate">{{ doc.title }}</h1>
+            <button class="toolbar-btn" title="Star">
+                <span class="material-symbols-outlined" style="font-size:20px">star</span>
+            </button>
+        </div>
+        <div class="flex items-center gap-1 text-xs text-[var(--gdoc-text-secondary)] -mt-0.5">
+            <span>Last edit was {{ modified_ago }}</span>
+            <span class="mx-1">&middot;</span>
+            <span id="save-status" style="color:#188038">Saved</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-3 ml-4">
+        <button id="comments-toggle-btn" class="toolbar-btn" title="Comments">
+            <span class="material-symbols-outlined">comment</span>
+        </button>
+        <button class="toolbar-btn" title="Video call">
+            <span class="material-symbols-outlined">videocam</span>
+        </button>
+        <button id="share-button" class="flex items-center gap-2 h-9 px-5 bg-[#c2e7ff] hover:bg-[#a8d8f8] text-[#001d35] rounded-full text-sm font-medium transition-colors">
+            <span class="material-symbols-outlined" style="font-size:18px">lock</span>
+            Share
+        </button>
+        <div class="avatar-circle bg-[var(--gdoc-blue)] text-white text-sm" title="{{ owner.display_name }}">
+            {{ owner.display_name[0] | upper }}
+        </div>
+    </div>
+</header>
+
+<!-- Menu bar -->
+<nav class="flex items-center h-8 px-3 border-b border-[var(--gdoc-border)] bg-white text-[var(--gdoc-text-secondary)]" id="menu-bar">
+    {% set menus = [
+        ("File", [
+            ("New", "Ctrl+N"), ("Open", "Ctrl+O"), ("sep", ""),
+            ("Make a copy", ""), ("Download", ""),
+            ("sep", ""),
+            ("Rename", ""), ("Move to trash", ""),
+            ("sep", ""),
+            ("Print", "Ctrl+P"),
+        ]),
+        ("Edit", [
+            ("Undo", "Ctrl+Z"), ("Redo", "Ctrl+Y"),
+            ("sep", ""),
+            ("Cut", "Ctrl+X"), ("Copy", "Ctrl+C"), ("Paste", "Ctrl+V"),
+            ("sep", ""),
+            ("Select all", "Ctrl+A"), ("Find and replace", "Ctrl+H"),
+        ]),
+        ("View", [
+            ("Mode", ""), ("Show ruler", ""), ("Show outline", ""),
+            ("sep", ""),
+            ("Full screen", ""),
+        ]),
+        ("Insert", [
+            ("Image", ""), ("Table", ""), ("Drawing", ""),
+            ("sep", ""),
+            ("Horizontal line", ""), ("Page break", ""),
+            ("sep", ""),
+            ("Equation", ""), ("Special characters", ""),
+            ("sep", ""),
+            ("Link", "Ctrl+K"), ("Comment", "Ctrl+Alt+M"),
+            ("sep", ""),
+            ("Header & footer", ""), ("Page numbers", ""),
+        ]),
+        ("Format", [
+            ("Text", ""), ("Paragraph styles", ""),
+            ("sep", ""),
+            ("Align & indent", ""), ("Line & paragraph spacing", ""),
+            ("sep", ""),
+            ("Columns", ""), ("Bullets & numbering", ""),
+            ("sep", ""),
+            ("Clear formatting", "Ctrl+\\"),
+        ]),
+        ("Tools", [
+            ("Spelling and grammar", ""), ("Word count", "Ctrl+Shift+C"),
+            ("sep", ""),
+            ("Explore", ""), ("Linked objects", ""),
+            ("sep", ""),
+            ("Preferences", ""),
+        ]),
+        ("Extensions", [
+            ("Add-ons", ""), ("Apps Script", ""),
+        ]),
+        ("Help", [
+            ("Search the menus", ""), ("sep", ""),
+            ("Keyboard shortcuts", ""), ("Help", ""),
+        ]),
+    ] %}
+    {% for menu_name, items in menus %}
+    <div class="menu-bar-item" data-menu="{{ menu_name }}">
+        {{ menu_name }}
+        <div class="menu-dropdown">
+            {% for label, shortcut in items %}
+                {% if label == "sep" %}
+                    <div class="menu-sep"></div>
+                {% else %}
+                    <div class="menu-item" data-action="{{ label }}">
+                        <span>{{ label }}</span>
+                        {% if shortcut %}<span class="shortcut">{{ shortcut }}</span>{% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</nav>
+
+<!-- Toolbar -->
+<div class="flex items-center h-10 px-3 gap-0.5 bg-[var(--gdoc-toolbar-bg)] border-b border-[var(--gdoc-border)]" style="min-height:40px">
+    <button class="toolbar-btn" title="Undo (Ctrl+Z)"><span class="material-symbols-outlined">undo</span></button>
+    <button class="toolbar-btn" title="Redo (Ctrl+Y)"><span class="material-symbols-outlined">redo</span></button>
+    <button class="toolbar-btn" title="Print (Ctrl+P)"><span class="material-symbols-outlined">print</span></button>
+    <button class="toolbar-btn" title="Spell check"><span class="material-symbols-outlined">spellcheck</span></button>
+    <button class="toolbar-btn" title="Paint format"><span class="material-symbols-outlined">format_paint</span></button>
+    <div class="toolbar-sep"></div>
+    <select class="toolbar-select w-24" title="Zoom">
+        <option>100%</option><option>75%</option><option>90%</option><option>125%</option><option>150%</option>
+    </select>
+    <div class="toolbar-sep"></div>
+    <select class="toolbar-select w-28" title="Styles">
+        <option>Normal text</option><option>Title</option><option>Subtitle</option>
+        <option>Heading 1</option><option>Heading 2</option><option>Heading 3</option>
+    </select>
+    <div class="toolbar-sep"></div>
+    <select class="toolbar-select w-28" title="Font">
+        <option>Arial</option><option>Roboto</option><option>Times New Roman</option>
+        <option>Courier New</option><option>Georgia</option><option>Verdana</option>
+    </select>
+    <div class="toolbar-sep"></div>
+    <div class="flex items-center border border-transparent hover:border-[var(--gdoc-border)] rounded h-7 px-1">
+        <button class="toolbar-btn" style="width:18px" title="Decrease font size"><span class="material-symbols-outlined" style="font-size:16px">remove</span></button>
+        <span class="text-xs w-6 text-center select-none">11</span>
+        <button class="toolbar-btn" style="width:18px" title="Increase font size"><span class="material-symbols-outlined" style="font-size:16px">add</span></button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" title="Bold (Ctrl+B)"><span class="material-symbols-outlined">format_bold</span></button>
+    <button class="toolbar-btn" title="Italic (Ctrl+I)"><span class="material-symbols-outlined">format_italic</span></button>
+    <button class="toolbar-btn" title="Underline (Ctrl+U)"><span class="material-symbols-outlined">format_underlined</span></button>
+    <button class="toolbar-btn" title="Text color"><span class="material-symbols-outlined">format_color_text</span></button>
+    <button class="toolbar-btn" title="Highlight color"><span class="material-symbols-outlined">highlight</span></button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" title="Insert link (Ctrl+K)"><span class="material-symbols-outlined">link</span></button>
+    <button id="add-comment-button" class="toolbar-btn" title="Add comment (Ctrl+Alt+M)"><span class="material-symbols-outlined">add_comment</span></button>
+    <button class="toolbar-btn" title="Insert image"><span class="material-symbols-outlined">image</span></button>
+    <button class="toolbar-btn" title="Insert equation" onclick="showEquationDialog()"><span class="material-symbols-outlined">functions</span></button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" title="Align left"><span class="material-symbols-outlined">format_align_left</span></button>
+    <button class="toolbar-btn" title="Align center"><span class="material-symbols-outlined">format_align_center</span></button>
+    <button class="toolbar-btn" title="Align right"><span class="material-symbols-outlined">format_align_right</span></button>
+    <button class="toolbar-btn" title="Justify"><span class="material-symbols-outlined">format_align_justify</span></button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" title="Line & paragraph spacing"><span class="material-symbols-outlined">format_line_spacing</span></button>
+    <button class="toolbar-btn" title="Bulleted list"><span class="material-symbols-outlined">format_list_bulleted</span></button>
+    <button class="toolbar-btn" title="Numbered list"><span class="material-symbols-outlined">format_list_numbered</span></button>
+    <button class="toolbar-btn" title="Decrease indent"><span class="material-symbols-outlined">format_indent_decrease</span></button>
+    <button class="toolbar-btn" title="Increase indent"><span class="material-symbols-outlined">format_indent_increase</span></button>
+    <div class="toolbar-sep"></div>
+    <button class="toolbar-btn" title="Clear formatting"><span class="material-symbols-outlined">format_clear</span></button>
+</div>
+
+<!-- Ruler -->
+<div class="ruler">
+    <div class="ruler-ticks"></div>
+</div>
+
+<!-- Document area + Comments panel -->
+<div class="flex bg-[var(--gdoc-bg)]" style="min-height: calc(100vh - 148px);">
+    <!-- Document area -->
+    <div class="flex-1 py-8 overflow-y-auto">
+        <div id="doc-content" contenteditable="true" class="mx-auto bg-white shadow-md" style="width:816px; min-height:1056px; padding: 96px; font-family: Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #000; outline: none;">
+            {% if html_content %}
+            {{ html_content | safe }}
+            {% else %}
+            {% for paragraph in paragraphs %}
+            <p style="margin: 0 0 12px 0;">{{ paragraph }}</p>
+            {% endfor %}
+            {% if not paragraphs %}
+            <p style="color: #999;">Empty document</p>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Floating comment tooltip (appears on text selection) -->
+    <div id="selection-comment-tooltip" class="selection-comment-tooltip" title="Add comment (Ctrl+Alt+M)">
+        <div class="tooltip-icon">
+            <span class="material-symbols-outlined" style="font-size:20px">add_comment</span>
+        </div>
+    </div>
+
+    <!-- Comments panel -->
+    <aside id="comments-panel" class="w-72 flex-shrink-0 border-l border-[var(--gdoc-border)] bg-white overflow-y-auto p-4 {% if not comments %}hidden{% endif %}">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-sm font-medium text-[var(--gdoc-text)]">Comments</h2>
+            <button id="comment-panel-add-btn" class="comment-action-btn">Add</button>
+        </div>
+        <div id="comments-feedback" class="dialog-banner hidden"></div>
+        <div id="comments-empty-state" class="text-sm text-[var(--gdoc-text-secondary)] {% if comments %}hidden{% endif %}">
+            No comments yet. Select text in the document and add one.
+        </div>
+        <div id="comments-list" class="{% if comments %}mt-4{% endif %}">
+        {% for comment in comments %}
+        <div class="comment-card {{ 'resolved' if comment.resolved else '' }}" data-comment-id="{{ comment.id }}" data-resolved="{{ 'true' if comment.resolved else 'false' }}">
+            <div class="flex items-center gap-2 mb-2">
+                <div class="avatar-circle text-white text-xs"
+                     style="background: {{ ['#ea4335','#4285f4','#34a853','#fbbc05','#e040fb'][loop.index0 % 5] }}">
+                    {{ comment.author.display_name[0] | upper }}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium text-[var(--gdoc-text)] truncate">{{ comment.author.display_name }}</div>
+                    <div class="text-xs text-[var(--gdoc-text-secondary)]">{{ comment.created_time.strftime('%b %d, %Y') }}</div>
+                </div>
+                {% if comment.resolved %}
+                <span class="material-symbols-outlined text-green-600" style="font-size:16px" title="Resolved">check_circle</span>
+                {% endif %}
+            </div>
+            {% if comment.quoted_text %}
+            <div class="text-xs text-[var(--gdoc-text-secondary)] border-l-2 border-[var(--gdoc-blue)] pl-2 mb-2 italic">
+                "{{ comment.quoted_text[:80] }}{{ '...' if comment.quoted_text|length > 80 else '' }}"
+            </div>
+            {% endif %}
+            <div class="text-sm text-[var(--gdoc-text)]">{{ comment.content }}</div>
+            {% for reply in comment.replies %}
+            <div class="comment-reply" data-reply-id="{{ reply.id }}">
+                <div class="flex items-center gap-2 mb-1">
+                    <div class="avatar-circle text-white" style="width:20px;height:20px;font-size:10px;background:{{ ['#ea4335','#4285f4','#34a853','#fbbc05','#e040fb'][(loop.index0 + loop.parent.loop.index0) % 5] }}">
+                        {{ reply.author.display_name[0] | upper }}
+                    </div>
+                    <span class="text-xs font-medium text-[var(--gdoc-text)]">{{ reply.author.display_name }}</span>
+                    <span class="text-xs text-[var(--gdoc-text-secondary)]">{{ reply.created_time.strftime('%b %d, %Y') }}</span>
+                </div>
+                <div class="text-sm text-[var(--gdoc-text)] pl-7">{{ reply.content }}</div>
+            </div>
+            {% endfor %}
+            <div class="mt-3 flex items-center gap-2">
+                <button class="comment-action-btn" data-action="toggle-resolve">
+                    {{ 'Reopen' if comment.resolved else 'Resolve' }}
+                </button>
+                <button class="comment-action-btn" data-action="reply">Reply</button>
+                <button class="comment-action-btn" data-action="delete-comment">Delete</button>
+            </div>
+        </div>
+        {% endfor %}
+        </div>
+    </aside>
+</div>
+
+<!-- Comment dialog -->
+<div id="comment-dialog" class="hidden fixed inset-0 z-50 flex items-center justify-center dialog-backdrop">
+    <div class="dialog-card bg-white rounded-2xl shadow-2xl" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-[var(--gdoc-border)]">
+            <h3 class="text-base font-medium text-[var(--gdoc-text)]">Add comment</h3>
+            <button id="comment-close-button" class="toolbar-btn">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="px-6 py-4 space-y-4">
+            <div id="comment-feedback" class="dialog-banner hidden"></div>
+            <div>
+                <div class="text-sm text-[var(--gdoc-text-secondary)] mb-2">Selected text</div>
+                <div id="comment-selection-preview" class="dialog-banner info hidden"></div>
+                <div id="comment-selection-empty" class="text-sm text-[var(--gdoc-text-secondary)]">
+                    No text selected. This will be added as a general document comment.
+                </div>
+            </div>
+            <div>
+                <label for="comment-input" class="block text-sm text-[var(--gdoc-text-secondary)] mb-2">Comment</label>
+                <textarea id="comment-input" class="dialog-textarea" placeholder="Ask a question or leave feedback"></textarea>
+            </div>
+        </div>
+        <div class="flex justify-end gap-2 px-6 py-4 border-t border-[var(--gdoc-border)]">
+            <button id="comment-cancel-button" class="h-9 px-5 text-sm text-[var(--gdoc-blue)] hover:bg-[var(--gdoc-menu-hover)] rounded-full font-medium">Cancel</button>
+            <button id="comment-submit-button" class="h-9 px-5 text-sm text-white bg-[var(--gdoc-blue)] hover:bg-[var(--gdoc-blue-hover)] rounded-full font-medium">Comment</button>
+        </div>
+    </div>
+</div>
+
+<!-- Share dialog -->
+<div id="share-dialog" class="hidden fixed inset-0 z-50 flex items-center justify-center dialog-backdrop">
+    <div class="dialog-card share-dialog-card bg-white" onclick="event.stopPropagation()">
+        <div class="share-dialog-header">
+            <div class="min-w-0 flex-1">
+                <h3 class="share-dialog-title">Share</h3>
+                <div class="share-doc-inline">
+                    <div class="share-doc-inline-icon">
+                        <span class="material-symbols-outlined">description</span>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="share-doc-inline-label">Document</div>
+                        <div class="share-doc-inline-name truncate">{{ doc.title }}</div>
+                    </div>
+                </div>
+            </div>
+            <button id="share-close-button" class="toolbar-btn" aria-label="Close share dialog">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="share-dialog-body">
+            <div id="share-feedback" class="dialog-banner hidden"></div>
+            <div class="share-invite-shell">
+                <div class="share-input-wrap">
+                    <span class="material-symbols-outlined share-input-leading">person_add</span>
+                    <input id="share-email-input" class="dialog-input share-email-input flex-1" type="email" placeholder="Add people and groups">
+                    <select id="share-role-select" class="dialog-select share-role-select">
+                        <option value="reader">Viewer</option>
+                        <option value="commenter">Commenter</option>
+                        <option value="writer">Editor</option>
+                    </select>
+                </div>
+                <button id="share-submit-button" class="share-send-button">Send</button>
+            </div>
+            <div class="share-input-help">Only users already seeded in the mock workspace can be shared with.</div>
+            <div>
+                <div class="share-section-heading">People with access</div>
+                <div class="share-list-shell">
+                    <div id="share-loading-state" class="share-list-state hidden">Loading access list...</div>
+                    <div id="share-empty-state" class="share-list-state hidden">Only you have access right now.</div>
+                    <div id="share-permissions-list" class="share-permissions-list"></div>
+                </div>
+            </div>
+            <div>
+                <div class="share-section-heading">General access</div>
+                <div class="share-general-row">
+                    <div class="share-general-icon">
+                        <span class="material-symbols-outlined">lock</span>
+                    </div>
+                    <div class="share-row-meta">
+                        <div class="share-row-name">Restricted</div>
+                        <div class="share-row-email">Only people with access can open with the link.</div>
+                    </div>
+                    <button class="share-general-badge" type="button" aria-label="Restricted access">
+                        Restricted
+                        <span class="material-symbols-outlined" style="font-size:18px">arrow_drop_down</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="share-dialog-footer">
+            <button id="share-copy-link-button" class="share-copy-link-footer">Copy link</button>
+            <div>
+                <button id="share-refresh-button" style="display:none">Refresh</button>
+                <button id="share-done-button" class="share-done-button">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Equation dialog -->
+<div id="equation-dialog" class="hidden fixed inset-0 z-50 flex items-center justify-center" style="background:rgba(0,0,0,0.3)">
+    <div class="bg-white rounded-2xl shadow-2xl w-[480px]" onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-[var(--gdoc-border)]">
+            <h3 class="text-base font-medium text-[var(--gdoc-text)]">Insert equation</h3>
+            <button onclick="closeEquationDialog()" class="toolbar-btn">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="px-6 py-4">
+            <label class="block text-sm text-[var(--gdoc-text-secondary)] mb-2">LaTeX expression</label>
+            <input id="equation-input" type="text"
+                class="w-full px-3 py-2 border border-[var(--gdoc-border)] rounded-lg text-sm font-mono focus:outline-none focus:border-[var(--gdoc-blue)] focus:ring-1 focus:ring-[var(--gdoc-blue)]"
+                placeholder="e.g. E = mc^2, \frac{a}{b}, \sum_{i=1}^{n} x_i"
+                oninput="previewEquation()">
+            <div id="equation-preview" class="mt-3 min-h-[48px] flex items-center justify-center border border-dashed border-[var(--gdoc-border)] rounded-lg bg-[var(--gdoc-bg)] p-3">
+                <span style="color:#5f6368;font-size:13px">Preview will appear here</span>
+            </div>
+        </div>
+        <div class="flex justify-end gap-2 px-6 py-4 border-t border-[var(--gdoc-border)]">
+            <button onclick="closeEquationDialog()" class="h-9 px-5 text-sm text-[var(--gdoc-blue)] hover:bg-[var(--gdoc-menu-hover)] rounded-full font-medium">Cancel</button>
+            <button onclick="insertEquation()" id="equation-insert-btn" class="h-9 px-5 text-sm text-white bg-[var(--gdoc-blue)] hover:bg-[var(--gdoc-blue-hover)] rounded-full font-medium disabled:opacity-50 disabled:cursor-not-allowed" disabled>Insert</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script>
+(function() {
+    var menuBar = document.getElementById('menu-bar');
+    var menuItems = menuBar.querySelectorAll('.menu-bar-item');
+    var isMenuOpen = false;
+
+    menuItems.forEach(function(item) {
+        item.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var dropdown = item.querySelector('.menu-dropdown');
+            var wasVisible = dropdown.classList.contains('show');
+            closeAllMenus();
+            if (!wasVisible) {
+                dropdown.classList.add('show');
+                item.classList.add('active');
+                isMenuOpen = true;
+            } else {
+                isMenuOpen = false;
+            }
+        });
+        item.addEventListener('mouseenter', function() {
+            if (isMenuOpen) {
+                closeAllMenus();
+                var dropdown = item.querySelector('.menu-dropdown');
+                dropdown.classList.add('show');
+                item.classList.add('active');
+            }
+        });
+    });
+
+    function closeAllMenus() {
+        menuBar.querySelectorAll('.menu-dropdown').forEach(function(d) { d.classList.remove('show'); });
+        menuBar.querySelectorAll('.menu-bar-item').forEach(function(i) { i.classList.remove('active'); });
+    }
+
+    document.addEventListener('click', function() {
+        closeAllMenus();
+        isMenuOpen = false;
+    });
+
+    // --- Toolbar toggle ---
+    var toggleTitles = [
+        'Bold', 'Italic', 'Underline', 'Strikethrough',
+        'Align left', 'Align center', 'Align right', 'Justify',
+        'Bulleted list', 'Numbered list',
+    ];
+    document.querySelectorAll('.toolbar-btn').forEach(function(btn) {
+        var title = (btn.getAttribute('title') || '').split(' (')[0];
+        if (toggleTitles.indexOf(title) === -1) return;
+        btn.addEventListener('click', function() {
+            if (['Align left','Align center','Align right','Justify'].indexOf(title) !== -1) {
+                btn.closest('.flex').querySelectorAll('.toolbar-btn').forEach(function(b) {
+                    var t = (b.getAttribute('title') || '').split(' (')[0];
+                    if (['Align left','Align center','Align right','Justify'].indexOf(t) !== -1) {
+                        b.classList.remove('active');
+                    }
+                });
+                btn.classList.add('active');
+            } else {
+                btn.classList.toggle('active');
+            }
+        });
+    });
+
+    // --- Selection preservation ---
+    // When clicking toolbar buttons/selects, the contenteditable loses
+    // its selection, making execCommand ineffective.  We save the
+    // selection on every change and restore it before executing commands.
+    var savedRange = null;
+
+    function saveSelection() {
+        var sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            var r = sel.getRangeAt(0);
+            var docContent = document.getElementById('doc-content');
+            if (docContent && docContent.contains(r.startContainer)) {
+                savedRange = r.cloneRange();
+            }
+        }
+    }
+
+    function restoreSelection() {
+        if (savedRange) {
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(savedRange);
+        }
+    }
+
+    document.addEventListener('selectionchange', saveSelection);
+
+    // Prevent toolbar buttons & selects from stealing focus
+    document.querySelectorAll('.toolbar-btn, .toolbar-select').forEach(function(el) {
+        el.addEventListener('mousedown', function(e) {
+            // If there is an active selection inside the editor, prevent
+            // the default focus-stealing behavior of the button/select
+            if (savedRange) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // --- Editor state ---
+    var docContent = document.getElementById('doc-content');
+    var saveStatus = document.getElementById('save-status');
+    var commentsPanel = document.getElementById('comments-panel');
+    var commentsList = document.getElementById('comments-list');
+    var commentsEmptyState = document.getElementById('comments-empty-state');
+    var commentsFeedback = document.getElementById('comments-feedback');
+    var commentsToggleBtn = document.getElementById('comments-toggle-btn');
+    var addCommentButton = document.getElementById('add-comment-button');
+    var commentPanelAddButton = document.getElementById('comment-panel-add-btn');
+    var commentDialog = document.getElementById('comment-dialog');
+    var commentInput = document.getElementById('comment-input');
+    var commentFeedback = document.getElementById('comment-feedback');
+    var commentSelectionPreview = document.getElementById('comment-selection-preview');
+    var commentSelectionEmpty = document.getElementById('comment-selection-empty');
+    var shareButton = document.getElementById('share-button');
+    var shareDialog = document.getElementById('share-dialog');
+    var shareFeedback = document.getElementById('share-feedback');
+    var shareEmailInput = document.getElementById('share-email-input');
+    var shareRoleSelect = document.getElementById('share-role-select');
+    var shareLoadingState = document.getElementById('share-loading-state');
+    var shareEmptyState = document.getElementById('share-empty-state');
+    var sharePermissionsList = document.getElementById('share-permissions-list');
+    var shareCopyLinkButton = document.getElementById('share-copy-link-button');
+    var documentId = {{ doc.id | tojson }};
+    var actingUserId = {{ owner.id | tojson }};
+    var saveTimer = null;
+    var isDirty = false;
+    var savedSelection = null;
+    var pendingQuotedText = '';
+    var selectionTooltip = document.getElementById('selection-comment-tooltip');
+    var selectionTooltipTimer = null;
+
+    // --- Floating comment tooltip on text selection ---
+    function showSelectionTooltip() {
+        var selection = window.getSelection();
+        if (!selection || !selection.rangeCount) { hideSelectionTooltip(); return; }
+        var text = selection.toString().trim();
+        if (!text) { hideSelectionTooltip(); return; }
+        if (!docContent.contains(selection.anchorNode) || !docContent.contains(selection.focusNode)) {
+            hideSelectionTooltip(); return;
+        }
+        var range = selection.getRangeAt(0);
+        var rects = range.getClientRects();
+        if (!rects.length) { hideSelectionTooltip(); return; }
+        // Position to the right of the document page, aligned with the last line of selection
+        var docRect = docContent.getBoundingClientRect();
+        var lastRect = rects[rects.length - 1];
+        var tooltipLeft = docRect.right + 16;
+        var tooltipTop = lastRect.top + (lastRect.height / 2) - 20;
+        selectionTooltip.style.left = tooltipLeft + 'px';
+        selectionTooltip.style.top = tooltipTop + 'px';
+        selectionTooltip.style.display = 'flex';
+    }
+
+    function hideSelectionTooltip() {
+        selectionTooltip.style.display = 'none';
+    }
+
+    document.addEventListener('selectionchange', function() {
+        clearTimeout(selectionTooltipTimer);
+        selectionTooltipTimer = setTimeout(showSelectionTooltip, 150);
+    });
+
+    selectionTooltip.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+    selectionTooltip.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        openCommentDialog();
+        hideSelectionTooltip();
+    });
+
+    function apiHeaders(includeJson) {
+        var headers = {'X-Mock-Gdoc-User': actingUserId};
+        if (includeJson) headers['Content-Type'] = 'application/json';
+        return headers;
+    }
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function truncateText(value, maxLen) {
+        var text = String(value || '');
+        return text.length > maxLen ? text.slice(0, maxLen - 3) + '...' : text;
+    }
+
+    function getApiErrorMessage(payload, fallback) {
+        if (payload && payload.error && payload.error.message) return payload.error.message;
+        if (payload && payload.message) return payload.message;
+        return fallback || 'Request failed';
+    }
+
+    function readJson(response) {
+        return response.json().catch(function() { return {}; });
+    }
+
+    function showBanner(element, kind, message) {
+        if (!element) return;
+        element.textContent = message;
+        element.classList.remove('hidden', 'info', 'success', 'error');
+        element.classList.add('dialog-banner', kind);
+    }
+
+    function hideBanner(element) {
+        if (!element) return;
+        element.classList.add('hidden');
+        element.classList.remove('info', 'success', 'error');
+        element.textContent = '';
+    }
+
+    function formatDateTime(value) {
+        if (!value) return '';
+        var date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString(undefined, {month: 'short', day: 'numeric', year: 'numeric'});
+    }
+
+    function avatarColor(seed) {
+        var colors = ['#ea4335', '#4285f4', '#34a853', '#fbbc05', '#e040fb'];
+        var total = 0;
+        String(seed || '').split('').forEach(function(ch) { total += ch.charCodeAt(0); });
+        return colors[total % colors.length];
+    }
+
+    function setCommentsPanelVisible(visible) {
+        commentsPanel.classList.toggle('hidden', !visible);
+        commentsToggleBtn.classList.toggle('active', visible);
+    }
+
+    function updateCommentsEmptyState() {
+        var hasComments = commentsList.querySelector('[data-comment-id]') !== null;
+        commentsEmptyState.classList.toggle('hidden', hasComments);
+        commentsList.classList.toggle('mt-4', hasComments);
+    }
+
+    function renderReply(reply) {
+        var author = reply.author || {};
+        var authorName = author.displayName || 'Unknown';
+        return [
+            '<div class="comment-reply" data-reply-id="', escapeHtml(reply.id), '">',
+            '<div class="flex items-center gap-2 mb-1">',
+            '<div class="avatar-circle text-white" style="width:20px;height:20px;font-size:10px;background:', avatarColor(authorName), '">',
+            escapeHtml(authorName.charAt(0) || '?').toUpperCase(),
+            '</div>',
+            '<span class="text-xs font-medium text-[var(--gdoc-text)]">', escapeHtml(authorName), '</span>',
+            '<span class="text-xs text-[var(--gdoc-text-secondary)]">', escapeHtml(formatDateTime(reply.createdTime)), '</span>',
+            '</div>',
+            '<div class="text-sm text-[var(--gdoc-text)] pl-7">', escapeHtml(reply.content), '</div>',
+            '</div>',
+        ].join('');
+    }
+
+    function renderCommentCard(comment) {
+        var author = comment.author || {};
+        var authorName = author.displayName || 'Unknown';
+        var quote = comment.quotedText ? (
+            '<div class="text-xs text-[var(--gdoc-text-secondary)] border-l-2 border-[var(--gdoc-blue)] pl-2 mb-2 italic">' +
+            '&quot;' + escapeHtml(truncateText(comment.quotedText, 120)) + '&quot;' +
+            '</div>'
+        ) : '';
+        var resolvedIcon = comment.resolved
+            ? '<span class="material-symbols-outlined text-green-600" style="font-size:16px" title="Resolved">check_circle</span>'
+            : '';
+        var repliesHtml = '';
+        if (comment.replies && comment.replies.length) {
+            for (var i = 0; i < comment.replies.length; i++) {
+                repliesHtml += renderReply(comment.replies[i]);
+            }
+        }
+        return [
+            '<div class="comment-card', comment.resolved ? ' resolved' : '', '" data-comment-id="', escapeHtml(comment.id),
+            '" data-resolved="', comment.resolved ? 'true' : 'false', '">',
+            '<div class="flex items-center gap-2 mb-2">',
+            '<div class="avatar-circle text-white text-xs" style="background:', avatarColor(authorName), '">',
+            escapeHtml(authorName.charAt(0) || '?').toUpperCase(),
+            '</div>',
+            '<div class="flex-1 min-w-0">',
+            '<div class="text-sm font-medium text-[var(--gdoc-text)] truncate">', escapeHtml(authorName), '</div>',
+            '<div class="text-xs text-[var(--gdoc-text-secondary)]">', escapeHtml(formatDateTime(comment.createdTime)), '</div>',
+            '</div>',
+            resolvedIcon,
+            '</div>',
+            quote,
+            '<div class="text-sm text-[var(--gdoc-text)]">', escapeHtml(comment.content), '</div>',
+            repliesHtml,
+            '<div class="mt-3 flex items-center gap-2">',
+            '<button class="comment-action-btn" data-action="toggle-resolve">', comment.resolved ? 'Reopen' : 'Resolve', '</button>',
+            '<button class="comment-action-btn" data-action="reply">Reply</button>',
+            '<button class="comment-action-btn" data-action="delete-comment">Delete</button>',
+            '</div>',
+            '</div>',
+        ].join('');
+    }
+
+    function upsertCommentCard(comment) {
+        var wrapper = document.createElement('div');
+        wrapper.innerHTML = renderCommentCard(comment);
+        var nextCard = wrapper.firstElementChild;
+        var existing = commentsList.querySelector('[data-comment-id="' + comment.id + '"]');
+        if (existing) existing.replaceWith(nextCard);
+        else commentsList.insertBefore(nextCard, commentsList.firstChild);
+        updateCommentsEmptyState();
+    }
+
+    function removeCommentCard(commentId) {
+        var existing = commentsList.querySelector('[data-comment-id="' + commentId + '"]');
+        if (existing) existing.remove();
+        updateCommentsEmptyState();
+    }
+
+    function getSelectionTextFromEditor() {
+        var selection = window.getSelection();
+        if (!selection || !selection.rangeCount) return '';
+        if (!docContent.contains(selection.anchorNode) || !docContent.contains(selection.focusNode)) return '';
+        return selection.toString().replace(/\s+/g, ' ').trim();
+    }
+
+    function openCommentDialog() {
+        hideSelectionTooltip();
+        var sel = window.getSelection();
+        if (sel.rangeCount && docContent.contains(sel.anchorNode))
+            savedSelection = sel.getRangeAt(0).cloneRange();
+        pendingQuotedText = getSelectionTextFromEditor();
+        hideBanner(commentFeedback);
+        commentInput.value = '';
+        if (pendingQuotedText) {
+            commentSelectionPreview.textContent = truncateText(pendingQuotedText, 240);
+            commentSelectionPreview.classList.remove('hidden');
+            commentSelectionEmpty.classList.add('hidden');
+        } else {
+            commentSelectionPreview.textContent = '';
+            commentSelectionPreview.classList.add('hidden');
+            commentSelectionEmpty.classList.remove('hidden');
+        }
+        commentDialog.classList.remove('hidden');
+        setTimeout(function() { commentInput.focus(); }, 50);
+    }
+
+    function closeCommentDialog() {
+        commentDialog.classList.add('hidden');
+        commentInput.value = '';
+        pendingQuotedText = '';
+        hideBanner(commentFeedback);
+    }
+
+    function submitComment() {
+        var content = commentInput.value.trim();
+        if (!content) {
+            showBanner(commentFeedback, 'error', 'Comment text is required.');
+            commentInput.focus();
+            return;
+        }
+        fetch('/v1/documents/' + documentId + '/comments', {
+            method: 'POST',
+            headers: apiHeaders(true),
+            body: JSON.stringify({
+                content: content,
+                quotedText: pendingQuotedText || null,
+            }),
+        }).then(function(response) {
+            return readJson(response).then(function(payload) {
+                if (!response.ok) throw new Error(getApiErrorMessage(payload, 'Failed to add comment'));
+                return payload;
+            });
+        }).then(function(comment) {
+            upsertCommentCard(comment);
+            setCommentsPanelVisible(true);
+            closeCommentDialog();
+            showBanner(commentsFeedback, 'success', 'Comment added.');
+        }).catch(function(error) {
+            showBanner(commentFeedback, 'error', error.message || 'Failed to add comment');
+        });
+    }
+
+    function openShareDialog() {
+        hideBanner(shareFeedback);
+        shareDialog.classList.remove('hidden');
+        shareEmailInput.focus();
+        loadPermissions();
+    }
+
+    function closeShareDialog() {
+        shareDialog.classList.add('hidden');
+        hideBanner(shareFeedback);
+    }
+
+    function copyShareLink() {
+        var url = window.location.href;
+        function onSuccess() {
+            showBanner(shareFeedback, 'success', 'Link copied.');
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(onSuccess).catch(function() {
+                showBanner(shareFeedback, 'error', 'Failed to copy link');
+            });
+            return;
+        }
+        var helper = document.createElement('input');
+        helper.value = url;
+        document.body.appendChild(helper);
+        helper.select();
+        try {
+            document.execCommand('copy');
+            onSuccess();
+        } catch (e) {
+            showBanner(shareFeedback, 'error', 'Failed to copy link');
+        }
+        document.body.removeChild(helper);
+    }
+
+    function renderPermissionRow(permission) {
+        var isOwner = permission.role === 'owner' || String(permission.id || '').indexOf('owner_') === 0;
+        var displayName = permission.displayName || permission.emailAddress || 'Unknown';
+        var email = permission.emailAddress || (isOwner ? 'Owner' : '');
+        var selectDisabled = isOwner ? ' disabled' : '';
+        var removeHidden = isOwner ? ' hidden' : '';
+        var roleControl = isOwner
+            ? '<div class="share-owner-label">Owner</div>'
+            : [
+                '<div class="share-row-controls">',
+                '<select class="dialog-select share-row-select permission-role-select"', selectDisabled, '>',
+                '<option value="reader"', permission.role === 'reader' ? ' selected' : '', '>Viewer</option>',
+                '<option value="commenter"', permission.role === 'commenter' ? ' selected' : '', '>Commenter</option>',
+                '<option value="writer"', permission.role === 'writer' ? ' selected' : '', '>Editor</option>',
+                '</select>',
+                '<button class="share-remove-btn permission-remove-btn" aria-label="Remove collaborator"', removeHidden, '>',
+                '<span class="material-symbols-outlined" style="font-size:18px">close</span>',
+                '</button>',
+                '</div>',
+            ].join('');
+        return [
+            '<div class="share-row" data-permission-id="', escapeHtml(permission.id), '" data-role="', escapeHtml(permission.role), '">',
+            '<div class="share-avatar" style="background:', avatarColor(displayName), '">',
+            escapeHtml((displayName.charAt(0) || '?').toUpperCase()),
+            '</div>',
+            '<div class="share-row-meta">',
+            '<div class="share-row-name">', escapeHtml(displayName), '</div>',
+            '<div class="share-row-email">', escapeHtml(email), '</div>',
+            '</div>',
+            roleControl,
+            '</div>',
+        ].join('');
+    }
+
+    function loadPermissions() {
+        shareLoadingState.classList.remove('hidden');
+        shareEmptyState.classList.add('hidden');
+        sharePermissionsList.innerHTML = '';
+        fetch('/v1/documents/' + documentId + '/permissions', {
+            headers: apiHeaders(false),
+        }).then(function(response) {
+            return readJson(response).then(function(payload) {
+                if (!response.ok) throw new Error(getApiErrorMessage(payload, 'Failed to load permissions'));
+                return payload;
+            });
+        }).then(function(payload) {
+            var permissions = payload.permissions || [];
+            sharePermissionsList.innerHTML = permissions.map(renderPermissionRow).join('');
+            shareEmptyState.classList.toggle('hidden', permissions.length > 1);
+        }).catch(function(error) {
+            showBanner(shareFeedback, 'error', error.message || 'Failed to load access list');
+        }).then(function() {
+            shareLoadingState.classList.add('hidden');
+        });
+    }
+
+    function submitShare() {
+        var email = shareEmailInput.value.trim();
+        var role = shareRoleSelect.value;
+        if (!email) {
+            showBanner(shareFeedback, 'error', 'Email is required.');
+            shareEmailInput.focus();
+            return;
+        }
+        fetch('/v1/documents/' + documentId + '/permissions', {
+            method: 'POST',
+            headers: apiHeaders(true),
+            body: JSON.stringify({
+                type: 'user',
+                role: role,
+                emailAddress: email,
+            }),
+        }).then(function(response) {
+            return readJson(response).then(function(payload) {
+                if (!response.ok) throw new Error(getApiErrorMessage(payload, 'Failed to share document'));
+                return payload;
+            });
+        }).then(function() {
+            shareEmailInput.value = '';
+            shareRoleSelect.value = 'reader';
+            showBanner(shareFeedback, 'success', 'Access updated.');
+            loadPermissions();
+        }).catch(function(error) {
+            showBanner(shareFeedback, 'error', error.message || 'Failed to share document');
+        });
+    }
+
+    // --- Render $...$ and $$...$$ as KaTeX on page load ---
+    function renderEquations(container) {
+        if (typeof katex === 'undefined') return;
+        var walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+        var textNodes = [];
+        while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+        textNodes.forEach(function(node) {
+            if (node.textContent.indexOf('$') === -1) return;
+            var regex = /\$\$([^$]+)\$\$|\$([^$\n]+)\$/g;
+            var parts = [], lastIndex = 0, match;
+
+            while ((match = regex.exec(node.textContent)) !== null) {
+                if (match.index > lastIndex)
+                    parts.push(document.createTextNode(node.textContent.slice(lastIndex, match.index)));
+                var latex = match[1] || match[2], isDisplay = !!match[1];
+                var span = document.createElement('span');
+                span.className = 'katex-equation';
+                span.setAttribute('data-latex', latex);
+                span.setAttribute('data-display', isDisplay ? 'true' : 'false');
+                span.setAttribute('contenteditable', 'false');
+                try { katex.render(latex, span, {displayMode: isDisplay, throwOnError: false}); }
+                catch(e) { span.textContent = (isDisplay ? '$$' : '$') + latex + (isDisplay ? '$$' : '$'); }
+                parts.push(span);
+                lastIndex = regex.lastIndex;
+            }
+
+            if (parts.length) {
+                if (lastIndex < node.textContent.length)
+                    parts.push(document.createTextNode(node.textContent.slice(lastIndex)));
+                var frag = document.createDocumentFragment();
+                parts.forEach(function(p) { frag.appendChild(p); });
+                node.parentNode.replaceChild(frag, node);
+            }
+        });
+    }
+
+    renderEquations(docContent);
+
+    // --- Text extraction (equation spans → $...$) ---
+    function getDocumentText() {
+        var blocks = docContent.querySelectorAll('p, div:not(#doc-content)');
+        if (!blocks.length) {
+            var c = docContent.cloneNode(true);
+            c.querySelectorAll('.katex-equation').forEach(function(eq) {
+                var l = eq.getAttribute('data-latex'), d = eq.getAttribute('data-display') === 'true';
+                eq.replaceWith(document.createTextNode((d ? '$$' : '$') + l + (d ? '$$' : '$')));
+            });
+            return c.innerText || '';
+        }
+        var texts = [];
+        blocks.forEach(function(b) {
+            var c = b.cloneNode(true);
+            c.querySelectorAll('.katex-equation').forEach(function(eq) {
+                var l = eq.getAttribute('data-latex'), d = eq.getAttribute('data-display') === 'true';
+                eq.replaceWith(document.createTextNode((d ? '$$' : '$') + l + (d ? '$$' : '$')));
+            });
+            texts.push(c.innerText || c.textContent || '');
+        });
+        return texts.join('\n\n');
+    }
+
+    // --- Save ---
+    function saveDocument() {
+        if (!isDirty) return;
+        saveStatus.textContent = 'Saving...';
+        saveStatus.style.color = '#5f6368';
+        fetch('/doc/' + documentId + '/save', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({content: docContent.innerHTML, format: 'html'})
+        }).then(function(r) {
+            if (r.ok) { isDirty = false; saveStatus.textContent = 'All changes saved'; saveStatus.style.color = '#188038'; }
+            else { saveStatus.textContent = 'Save failed'; saveStatus.style.color = '#d93025'; }
+        }).catch(function() { saveStatus.textContent = 'Save failed'; saveStatus.style.color = '#d93025'; });
+    }
+
+    docContent.addEventListener('input', function() {
+        isDirty = true;
+        saveStatus.textContent = 'Editing...';
+        saveStatus.style.color = '#5f6368';
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveDocument, 2000);
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+            e.preventDefault();
+            clearTimeout(saveTimer);
+            saveDocument();
+        }
+        if ((e.ctrlKey || e.metaKey) && e.altKey && e.key.toLowerCase() === 'm') {
+            e.preventDefault();
+            openCommentDialog();
+        }
+        if (e.key === 'Escape') {
+            if (!commentDialog.classList.contains('hidden')) closeCommentDialog();
+            if (!shareDialog.classList.contains('hidden')) closeShareDialog();
+            if (!document.getElementById('equation-dialog').classList.contains('hidden')) closeEquationDialog();
+        }
+    });
+
+    // --- Equation dialog ---
+    window.showEquationDialog = function() {
+        var sel = window.getSelection();
+        if (sel.rangeCount && docContent.contains(sel.anchorNode))
+            savedSelection = sel.getRangeAt(0).cloneRange();
+        document.getElementById('equation-dialog').classList.remove('hidden');
+        var inp = document.getElementById('equation-input');
+        inp.value = '';
+        document.getElementById('equation-preview').innerHTML =
+            '<span style="color:#5f6368;font-size:13px">Preview will appear here</span>';
+        document.getElementById('equation-insert-btn').disabled = true;
+        setTimeout(function() { inp.focus(); }, 50);
+    };
+
+    window.closeEquationDialog = function() {
+        document.getElementById('equation-dialog').classList.add('hidden');
+    };
+
+    window.previewEquation = function() {
+        var latex = document.getElementById('equation-input').value.trim();
+        var prev = document.getElementById('equation-preview');
+        var btn = document.getElementById('equation-insert-btn');
+        if (!latex) {
+            prev.innerHTML = '<span style="color:#5f6368;font-size:13px">Preview will appear here</span>';
+            btn.disabled = true; return;
+        }
+        try { katex.render(latex, prev, {displayMode: false, throwOnError: true}); btn.disabled = false; }
+        catch(e) { prev.innerHTML = '<span style="color:#d93025;font-size:13px">' + e.message.replace(/</g,'&lt;') + '</span>'; btn.disabled = true; }
+    };
+
+    window.insertEquation = function() {
+        var latex = document.getElementById('equation-input').value.trim();
+        if (!latex) return;
+        var span = document.createElement('span');
+        span.className = 'katex-equation';
+        span.setAttribute('data-latex', latex);
+        span.setAttribute('data-display', 'false');
+        span.setAttribute('contenteditable', 'false');
+        try { katex.render(latex, span, {displayMode: false, throwOnError: false}); }
+        catch(e) { span.textContent = '$' + latex + '$'; }
+
+        docContent.focus();
+        if (savedSelection) {
+            var sel = window.getSelection();
+            sel.removeAllRanges(); sel.addRange(savedSelection);
+            savedSelection.deleteContents(); savedSelection.insertNode(span);
+            var r = document.createRange(); r.setStartAfter(span); r.collapse(true);
+            sel.removeAllRanges(); sel.addRange(r);
+            savedSelection = null;
+        } else {
+            docContent.appendChild(span);
+        }
+
+        isDirty = true;
+        saveStatus.textContent = 'Editing...'; saveStatus.style.color = '#5f6368';
+        clearTimeout(saveTimer); saveTimer = setTimeout(saveDocument, 2000);
+        closeEquationDialog();
+    };
+
+    document.getElementById('equation-input').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); if (!document.getElementById('equation-insert-btn').disabled) insertEquation(); }
+        if (e.key === 'Escape') closeEquationDialog();
+    });
+
+    document.getElementById('equation-dialog').addEventListener('click', function(e) {
+        if (e.target === this) closeEquationDialog();
+    });
+
+    commentDialog.addEventListener('click', function(e) {
+        if (e.target === this) closeCommentDialog();
+    });
+
+    shareDialog.addEventListener('click', function(e) {
+        if (e.target === this) closeShareDialog();
+    });
+
+    commentsToggleBtn.addEventListener('click', function() {
+        setCommentsPanelVisible(commentsPanel.classList.contains('hidden'));
+        hideBanner(commentsFeedback);
+    });
+    addCommentButton.addEventListener('click', openCommentDialog);
+    commentPanelAddButton.addEventListener('click', openCommentDialog);
+    document.getElementById('comment-close-button').addEventListener('click', closeCommentDialog);
+    document.getElementById('comment-cancel-button').addEventListener('click', closeCommentDialog);
+    document.getElementById('comment-submit-button').addEventListener('click', submitComment);
+
+    shareButton.addEventListener('click', openShareDialog);
+    document.getElementById('share-close-button').addEventListener('click', closeShareDialog);
+    document.getElementById('share-done-button').addEventListener('click', closeShareDialog);
+    document.getElementById('share-submit-button').addEventListener('click', submitShare);
+    document.getElementById('share-refresh-button').addEventListener('click', loadPermissions);
+    shareCopyLinkButton.addEventListener('click', copyShareLink);
+
+    commentsList.addEventListener('click', function(e) {
+        var button = e.target.closest('[data-action]');
+        if (!button) return;
+        var card = button.closest('[data-comment-id]');
+        if (!card) return;
+        var commentId = card.getAttribute('data-comment-id');
+        var action = button.getAttribute('data-action');
+        var resolved = card.getAttribute('data-resolved') === 'true';
+        if (action === 'toggle-resolve') {
+            fetch('/v1/documents/' + documentId + '/comments/' + commentId + (resolved ? '/reopen' : '/resolve'), {
+                method: 'POST',
+                headers: apiHeaders(false),
+            }).then(function(response) {
+                return readJson(response).then(function(payload) {
+                    if (!response.ok) throw new Error(getApiErrorMessage(payload, 'Failed to update comment'));
+                    return payload;
+                });
+            }).then(function(comment) {
+                upsertCommentCard(comment);
+                showBanner(commentsFeedback, 'success', comment.resolved ? 'Comment resolved.' : 'Comment reopened.');
+            }).catch(function(error) {
+                showBanner(commentsFeedback, 'error', error.message || 'Failed to update comment');
+            });
+        } else if (action === 'reply') {
+            // Toggle inline reply input
+            var existingInput = card.querySelector('.reply-input-row');
+            if (existingInput) {
+                existingInput.remove();
+                return;
+            }
+            var row = document.createElement('div');
+            row.className = 'reply-input-row';
+            row.innerHTML = '<textarea placeholder="Reply..." rows="1"></textarea>' +
+                '<button class="reply-send-btn" title="Send reply"><span class="material-symbols-outlined" style="font-size:16px">send</span></button>';
+            var actionsDiv = card.querySelector('.mt-3');
+            card.insertBefore(row, actionsDiv);
+            var textarea = row.querySelector('textarea');
+            textarea.focus();
+            textarea.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    submitReply(card, commentId, textarea.value.trim());
+                }
+                if (e.key === 'Escape') row.remove();
+            });
+            row.querySelector('.reply-send-btn').addEventListener('click', function() {
+                submitReply(card, commentId, textarea.value.trim());
+            });
+        } else if (action === 'delete-comment') {
+            if (!window.confirm('Delete this comment?')) return;
+            fetch('/v1/documents/' + documentId + '/comments/' + commentId, {
+                method: 'DELETE',
+                headers: apiHeaders(false),
+            }).then(function(response) {
+                return readJson(response).then(function(payload) {
+                    if (!response.ok) throw new Error(getApiErrorMessage(payload, 'Failed to delete comment'));
+                    return payload;
+                });
+            }).then(function() {
+                removeCommentCard(commentId);
+                showBanner(commentsFeedback, 'success', 'Comment deleted.');
+            }).catch(function(error) {
+                showBanner(commentsFeedback, 'error', error.message || 'Failed to delete comment');
+            });
+        }
+    });
+
+    function submitReply(card, commentId, content) {
+        if (!content) return;
+        fetch('/v1/documents/' + documentId + '/comments/' + commentId + '/replies', {
+            method: 'POST',
+            headers: apiHeaders(true),
+            body: JSON.stringify({content: content}),
+        }).then(function(response) {
+            return readJson(response).then(function(payload) {
+                if (!response.ok) throw new Error(getApiErrorMessage(payload, 'Failed to add reply'));
+                return payload;
+            });
+        }).then(function(comment) {
+            upsertCommentCard(comment);
+            showBanner(commentsFeedback, 'success', 'Reply added.');
+        }).catch(function(error) {
+            showBanner(commentsFeedback, 'error', error.message || 'Failed to add reply');
+        });
+    }
+
+    sharePermissionsList.addEventListener('change', function(e) {
+        if (!e.target.classList.contains('permission-role-select')) return;
+        var row = e.target.closest('[data-permission-id]');
+        if (!row) return;
+        var permissionId = row.getAttribute('data-permission-id');
+        fetch('/v1/documents/' + documentId + '/permissions/' + permissionId, {
+            method: 'PATCH',
+            headers: apiHeaders(true),
+            body: JSON.stringify({role: e.target.value}),
+        }).then(function(response) {
+            return readJson(response).then(function(payload) {
+                if (!response.ok) throw new Error(getApiErrorMessage(payload, 'Failed to update access'));
+                return payload;
+            });
+        }).then(function() {
+            showBanner(shareFeedback, 'success', 'Access updated.');
+            loadPermissions();
+        }).catch(function(error) {
+            showBanner(shareFeedback, 'error', error.message || 'Failed to update access');
+            loadPermissions();
+        });
+    });
+
+    sharePermissionsList.addEventListener('click', function(e) {
+        var removeBtn = e.target.closest('.permission-remove-btn');
+        if (!removeBtn) return;
+        var row = removeBtn.closest('[data-permission-id]');
+        if (!row) return;
+        var permissionId = row.getAttribute('data-permission-id');
+        if (!window.confirm('Remove this collaborator?')) return;
+        fetch('/v1/documents/' + documentId + '/permissions/' + permissionId, {
+            method: 'DELETE',
+            headers: apiHeaders(false),
+        }).then(function(response) {
+            return readJson(response).then(function(payload) {
+                if (!response.ok) throw new Error(getApiErrorMessage(payload, 'Failed to remove access'));
+                return payload;
+            });
+        }).then(function() {
+            showBanner(shareFeedback, 'success', 'Collaborator removed.');
+            loadPermissions();
+        }).catch(function(error) {
+            showBanner(shareFeedback, 'error', error.message || 'Failed to remove access');
+        });
+    });
+
+    // --- Menu item actions ---
+    document.querySelectorAll('.menu-item[data-action]').forEach(function(item) {
+        item.addEventListener('click', function() {
+            var a = item.getAttribute('data-action');
+            closeAllMenus(); isMenuOpen = false;
+            if (a === 'Equation') showEquationDialog();
+            else if (a === 'Comment') openCommentDialog();
+            else if (a === 'Undo') { docContent.focus(); document.execCommand('undo'); }
+            else if (a === 'Redo') { docContent.focus(); document.execCommand('redo'); }
+            else if (a === 'Select all') { docContent.focus(); document.execCommand('selectAll'); }
+        });
+    });
+
+    // --- Toolbar editing commands ---
+    var cmds = {
+        'Undo':'undo','Redo':'redo','Bold':'bold','Italic':'italic','Underline':'underline',
+        'Align left':'justifyLeft','Align center':'justifyCenter','Align right':'justifyRight','Justify':'justifyFull',
+        'Bulleted list':'insertUnorderedList','Numbered list':'insertOrderedList',
+        'Decrease indent':'outdent','Increase indent':'indent',
+        'Clear formatting':'removeFormat'
+    };
+    document.querySelectorAll('.toolbar-btn').forEach(function(btn) {
+        var t = (btn.getAttribute('title') || '').split(' (')[0];
+        if (cmds[t]) btn.addEventListener('click', function() {
+            restoreSelection();
+            docContent.focus();
+            document.execCommand(cmds[t]);
+        });
+    });
+
+    // --- Format painter ---
+    var paintBtn = document.querySelector('[title="Paint format"]');
+    var paintActive = false;
+    var paintStyle = null;
+
+    function captureTextStyle() {
+        var sel = window.getSelection();
+        if (!sel || !sel.rangeCount) return null;
+        var node = sel.anchorNode;
+        if (node && node.nodeType === 3) node = node.parentNode;
+        if (!node || !docContent.contains(node)) return null;
+        var computed = window.getComputedStyle(node);
+        return {
+            fontFamily: computed.fontFamily,
+            fontSize: computed.fontSize,
+            fontWeight: computed.fontWeight,
+            fontStyle: computed.fontStyle,
+            textDecoration: computed.textDecoration,
+            color: computed.color,
+            backgroundColor: computed.backgroundColor
+        };
+    }
+
+    function applyPaintStyle(style) {
+        if (!style) return;
+        var sel = window.getSelection();
+        if (!sel || sel.isCollapsed || !sel.rangeCount) return;
+        var range = sel.getRangeAt(0);
+        if (!docContent.contains(range.startContainer)) return;
+
+        var span = document.createElement('span');
+        span.style.fontFamily = style.fontFamily;
+        span.style.fontSize = style.fontSize;
+        span.style.fontWeight = style.fontWeight;
+        span.style.fontStyle = style.fontStyle;
+        span.style.textDecoration = style.textDecoration;
+        span.style.color = style.color;
+        if (style.backgroundColor && style.backgroundColor !== 'rgba(0, 0, 0, 0)' && style.backgroundColor !== 'transparent') {
+            span.style.backgroundColor = style.backgroundColor;
+        }
+        try {
+            range.surroundContents(span);
+        } catch(e) {
+            // If range crosses element boundaries, use extractContents
+            var fragment = range.extractContents();
+            span.appendChild(fragment);
+            range.insertNode(span);
+        }
+    }
+
+    if (paintBtn) {
+        paintBtn.addEventListener('click', function() {
+            if (paintActive) {
+                paintActive = false;
+                paintStyle = null;
+                paintBtn.classList.remove('active');
+                docContent.style.cursor = '';
+            } else {
+                paintStyle = captureTextStyle();
+                if (paintStyle) {
+                    paintActive = true;
+                    paintBtn.classList.add('active');
+                    docContent.style.cursor = 'copy';
+                }
+            }
+        });
+
+        docContent.addEventListener('mouseup', function() {
+            if (paintActive && paintStyle) {
+                applyPaintStyle(paintStyle);
+                paintActive = false;
+                paintStyle = null;
+                paintBtn.classList.remove('active');
+                docContent.style.cursor = '';
+            }
+        });
+    }
+
+    // --- Zoom ---
+    var zoomSelect = document.querySelector('.toolbar-select[title="Zoom"]');
+    var docWrapper = document.querySelector('.flex-1.py-8.overflow-y-auto');
+    if (zoomSelect) {
+        zoomSelect.addEventListener('change', function() {
+            var scale = parseInt(this.value) / 100;
+            docContent.style.transform = 'scale(' + scale + ')';
+            docContent.style.transformOrigin = 'top center';
+        });
+    }
+
+    // --- Styles ---
+    var stylesSelect = document.querySelector('.toolbar-select[title="Styles"]');
+    var styleMap = {
+        'Normal text': 'P',
+        'Title': 'H1',
+        'Subtitle': 'H2',
+        'Heading 1': 'H1',
+        'Heading 2': 'H2',
+        'Heading 3': 'H3',
+    };
+    if (stylesSelect) {
+        stylesSelect.addEventListener('change', function() {
+            var tag = styleMap[this.value];
+            if (tag) {
+                restoreSelection();
+                docContent.focus();
+                document.execCommand('formatBlock', false, '<' + tag + '>');
+            }
+        });
+    }
+
+    // --- Font family ---
+    var fontSelect = document.querySelector('.toolbar-select[title="Font"]');
+    if (fontSelect) {
+        fontSelect.addEventListener('change', function() {
+            restoreSelection();
+            docContent.focus();
+            document.execCommand('fontName', false, this.value);
+        });
+    }
+
+    // --- Font size ---
+    var fontSizeDisplay = document.querySelector('.text-xs.w-6.text-center');
+    var currentFontSize = 11;
+    var fontSizes = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 72];
+
+    var decBtn = document.querySelector('[title="Decrease font size"]');
+    var incBtn = document.querySelector('[title="Increase font size"]');
+
+    function applyFontSize() {
+        if (fontSizeDisplay) fontSizeDisplay.textContent = currentFontSize;
+        restoreSelection();
+        docContent.focus();
+        document.execCommand('fontSize', false, '7');
+        var fontElements = docContent.querySelectorAll('font[size="7"], span[style*="xxx-large"]');
+        fontElements.forEach(function(el) {
+            el.removeAttribute('size');
+            el.style.fontSize = currentFontSize + 'pt';
+        });
+    }
+
+    if (decBtn) {
+        decBtn.addEventListener('click', function() {
+            var idx = fontSizes.indexOf(currentFontSize);
+            if (idx > 0) {
+                currentFontSize = fontSizes[idx - 1];
+            } else if (idx === -1) {
+                for (var i = fontSizes.length - 1; i >= 0; i--) {
+                    if (fontSizes[i] < currentFontSize) { currentFontSize = fontSizes[i]; break; }
+                }
+            }
+            applyFontSize();
+        });
+    }
+
+    if (incBtn) {
+        incBtn.addEventListener('click', function() {
+            var idx = fontSizes.indexOf(currentFontSize);
+            if (idx < fontSizes.length - 1 && idx !== -1) {
+                currentFontSize = fontSizes[idx + 1];
+            } else if (idx === -1) {
+                for (var i = 0; i < fontSizes.length; i++) {
+                    if (fontSizes[i] > currentFontSize) { currentFontSize = fontSizes[i]; break; }
+                }
+            }
+            applyFontSize();
+        });
+    }
+
+    // --- Line spacing popup ---
+    var spacingBtn = document.querySelector('[title="Line & paragraph spacing"]');
+    var spacingPopup = null;
+
+    if (spacingBtn) {
+        spacingBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (spacingPopup) { spacingPopup.remove(); spacingPopup = null; return; }
+            spacingPopup = document.createElement('div');
+            spacingPopup.className = 'menu-dropdown show';
+            spacingPopup.style.cssText = 'position:absolute;z-index:100;min-width:140px;background:#fff;border:1px solid #dadce0;border-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,.15);padding:4px 0;';
+            var rect = spacingBtn.getBoundingClientRect();
+            spacingPopup.style.top = rect.bottom + 'px';
+            spacingPopup.style.left = rect.left + 'px';
+            var spacings = [
+                {label: 'Single', value: '1'},
+                {label: '1.15', value: '1.15'},
+                {label: '1.5', value: '1.5'},
+                {label: 'Double', value: '2'},
+            ];
+            spacings.forEach(function(s) {
+                var item = document.createElement('div');
+                item.style.cssText = 'padding:6px 16px;cursor:pointer;font-size:13px;';
+                item.textContent = s.label;
+                item.addEventListener('mouseenter', function() { this.style.backgroundColor = '#f1f3f4'; });
+                item.addEventListener('mouseleave', function() { this.style.backgroundColor = ''; });
+                item.addEventListener('click', function() {
+                    var sel = window.getSelection();
+                    if (sel.rangeCount) {
+                        var range = sel.getRangeAt(0);
+                        var block = range.startContainer;
+                        while (block && block !== docContent && !['P','H1','H2','H3','H4','H5','H6','DIV'].includes(block.nodeName)) {
+                            block = block.parentNode;
+                        }
+                        if (block && block !== docContent) {
+                            block.style.lineHeight = s.value;
+                        }
+                    }
+                    spacingPopup.remove(); spacingPopup = null;
+                });
+                spacingPopup.appendChild(item);
+            });
+            document.body.appendChild(spacingPopup);
+        });
+
+        document.addEventListener('click', function() {
+            if (spacingPopup) { spacingPopup.remove(); spacingPopup = null; }
+        });
+    }
+
+    // --- Update toolbar state on selection change ---
+    document.addEventListener('selectionchange', function() {
+        // Update font select
+        if (fontSelect) {
+            var fontName = document.queryCommandValue('fontName');
+            if (fontName) {
+                fontName = fontName.replace(/['"]/g, '');
+                for (var i = 0; i < fontSelect.options.length; i++) {
+                    if (fontSelect.options[i].value === fontName) {
+                        fontSelect.selectedIndex = i; break;
+                    }
+                }
+            }
+        }
+
+        // Update font size display
+        var sel = window.getSelection();
+        if (sel && sel.rangeCount) {
+            var node = sel.anchorNode;
+            if (node && node.nodeType === 3) node = node.parentNode;
+            if (node && docContent.contains(node)) {
+                var computed = window.getComputedStyle(node);
+                var size = Math.round(parseFloat(computed.fontSize) * 72 / 96);
+                if (size > 0) {
+                    currentFontSize = size;
+                    if (fontSizeDisplay) fontSizeDisplay.textContent = size;
+                }
+            }
+        }
+
+        // Update bold/italic/underline active state
+        var bBtn = document.querySelector('[title="Bold (Ctrl+B)"]');
+        var iBtn = document.querySelector('[title="Italic (Ctrl+I)"]');
+        var uBtn = document.querySelector('[title="Underline (Ctrl+U)"]');
+        if (bBtn) bBtn.classList.toggle('active', document.queryCommandState('bold'));
+        if (iBtn) iBtn.classList.toggle('active', document.queryCommandState('italic'));
+        if (uBtn) uBtn.classList.toggle('active', document.queryCommandState('underline'));
+
+        // Update list button active state
+        var ulBtn = document.querySelector('[title="Bulleted list"]');
+        var olBtn = document.querySelector('[title="Numbered list"]');
+        if (ulBtn) ulBtn.classList.toggle('active', document.queryCommandState('insertUnorderedList'));
+        if (olBtn) olBtn.classList.toggle('active', document.queryCommandState('insertOrderedList'));
+
+        // Update styles dropdown to reflect current block
+        if (stylesSelect) {
+            var blockTag = document.queryCommandValue('formatBlock').toLowerCase();
+            var reverseMap = {'p':'Normal text','h1':'Heading 1','h2':'Heading 2','h3':'Heading 3'};
+            var styleName = reverseMap[blockTag] || 'Normal text';
+            for (var si = 0; si < stylesSelect.options.length; si++) {
+                if (stylesSelect.options[si].value === styleName) {
+                    stylesSelect.selectedIndex = si; break;
+                }
+            }
+        }
+    });
+
+    updateCommentsEmptyState();
+    setCommentsPanelVisible(!commentsPanel.classList.contains('hidden'));
+})();
+</script>
+{% endblock %}

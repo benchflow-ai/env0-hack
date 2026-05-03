@@ -1,0 +1,46 @@
+# Project configuration — single source of truth for service ports and paths.
+# All consumers (cli.py, backend/harbor.py, Dockerfiles, gws wrapper, vite) read from here.
+#
+# [mock-*] sections: environment services
+#   gws_service: maps to gws CLI service name for the wrapper script.
+#     mock-gmail -> "gmail"  -> MOCK_GMAIL_URL
+#     mock-gcal  -> "calendar" -> MOCK_GCAL_URL
+#     Omit for services without a gws CLI counterpart (e.g., mock-slack).
+#
+# [clawsbench] section: dashboard port and output directory
+
+[runtime]
+version = 1
+
+[mock-gmail]
+port = 9001
+db_path = "/data/gmail.db"
+env_var = "MOCK_GMAIL_URL"
+gws_service = "gmail"
+
+[mock-gcal]
+port = 9002
+db_path = "/data/gcal.db"
+env_var = "MOCK_GCAL_URL"
+gws_service = "calendar"
+
+[mock-gdrive]
+port = 9003
+db_path = "/data/gdrive.db"
+env_var = "MOCK_GDRIVE_URL"
+gws_service = "drive"
+
+[mock-gdoc]
+port = 9004
+db_path = "/data/gdoc.db"
+env_var = "MOCK_GDOC_URL"
+gws_service = "docs"
+
+[mock-slack]
+port = 9005
+db_path = "/data/slack.db"
+env_var = "MOCK_SLACK_URL"
+
+[clawsbench]
+port = 9050
+output_dir = ".local/clawsbench-output"

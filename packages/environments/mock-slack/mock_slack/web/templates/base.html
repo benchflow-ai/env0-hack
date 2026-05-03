@@ -1,0 +1,3545 @@
+{% from "_avatar_macros.html" import slack_avatar %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Mock Slack{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <style>
+      body {
+        font-family: "Lato", "Helvetica Neue", Helvetica, "Segoe UI", Tahoma, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+      .slack-workspace-rail {
+        background-color: #350d36;
+        color: #cfc3cf;
+      }
+      .slack-sidebar {
+        background-color: #3f0e40;
+        color: #cfc3cf;
+      }
+      .slack-sidebar-channel {
+        opacity: 0.7;
+      }
+      .slack-sidebar-channel:hover {
+        background-color: #350d36;
+        opacity: 1;
+      }
+      .slack-sidebar-channel.active {
+        background-color: #1164a3;
+        color: white;
+        opacity: 1;
+      }
+      .slack-topbar {
+        background-color: #350d36;
+      }
+
+      .rail-icon {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #cfc3cf;
+        text-decoration: none;
+        margin-bottom: 8px;
+      }
+      .rail-icon:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+      .rail-icon.active {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-weight: 600;
+      }
+      .rail-icon svg {
+        width: 22px;
+        height: 22px;
+        margin-bottom: 4px;
+      }
+      .rail-icon span {
+        font-size: 10px;
+        line-height: 1;
+      }
+      .slack-composer-shell {
+        border: 1px solid #bcc4cc;
+        border-radius: 14px;
+        background: #ffffff;
+        overflow: hidden;
+        box-shadow: 0 1px 1px rgba(15, 23, 42, 0.02);
+        transition: border-color 120ms ease, box-shadow 120ms ease;
+      }
+      .slack-composer-shell:focus-within {
+        border-color: #616061;
+        box-shadow: 0 0 0 1px #616061, 0 4px 14px rgba(15, 23, 42, 0.06);
+      }
+      .slack-composer-toolbar,
+      .slack-composer-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 6px 10px;
+      }
+      .slack-composer-toolbar {
+        border-bottom: 1px solid #e8ecf0;
+        background: #ffffff;
+      }
+      .slack-composer-toolbar.is-collapsed {
+        display: none;
+      }
+      .slack-composer-footer {
+        border-top: 1px solid #e8ecf0;
+        background: #ffffff;
+      }
+      .slack-composer-body {
+        padding: 8px 14px 6px;
+      }
+      .slack-composer-toolbar-group,
+      .slack-composer-footer-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        flex-wrap: nowrap;
+      }
+      .slack-composer-toolbar-group.is-formatting-group {
+        gap: 3px;
+      }
+      .slack-composer-footer-group.is-primary-actions {
+        gap: 5px;
+      }
+      .slack-composer-footer-group.is-send-cluster {
+        gap: 2px;
+        align-items: center;
+      }
+      .slack-composer-toolbar-button,
+      .slack-composer-action-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-width: 30px;
+        height: 30px;
+        padding: 0 7px;
+        border-radius: 6px;
+        color: #616061;
+        transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+      }
+      .slack-composer-toolbar-button:hover,
+      .slack-composer-action-button:hover {
+        background: #ebedef;
+        color: #1d1c1d;
+      }
+      .slack-composer-toolbar-button.is-textual {
+        min-width: 28px;
+        padding: 0 6px;
+      }
+      .slack-composer-toolbar-button.is-bold-mark {
+        min-width: 30px;
+        font-weight: 700;
+      }
+      .slack-composer-toolbar-button.is-italic-mark {
+        min-width: 28px;
+        font-family: Georgia, 'Times New Roman', serif;
+      }
+      .slack-composer-toolbar-button.is-underline-mark,
+      .slack-composer-toolbar-button.is-strike-mark {
+        min-width: 30px;
+      }
+      .slack-composer-toolbar-button.is-code-mark {
+        min-width: 34px;
+        letter-spacing: -0.02em;
+      }
+      .slack-composer-toolbar-button.is-link-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      .slack-composer-toolbar-button.is-list-icon svg {
+        width: 17px;
+        height: 17px;
+      }
+      .slack-composer-toolbar-button.is-ordered-list-icon,
+      .slack-composer-toolbar-button.is-bulleted-list-icon {
+        min-width: 28px;
+        padding: 0 5px;
+      }
+      .slack-composer-toolbar-button.is-ordered-list-icon svg,
+      .slack-composer-toolbar-button.is-bulleted-list-icon svg {
+        width: 16px;
+        height: 16px;
+      }
+      .slack-composer-toolbar-button.is-quote-icon {
+        min-width: 28px;
+        padding: 0 5px;
+      }
+      .slack-composer-toolbar-button.is-quote-icon svg {
+        width: 17px;
+        height: 17px;
+      }
+      .slack-composer-toolbar-button.is-code-block-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      .slack-composer-toolbar-button svg,
+      .slack-composer-action-button svg {
+        width: 16px;
+        height: 16px;
+      }
+      .slack-composer-action-button.is-round {
+        width: 30px;
+        min-width: 30px;
+        height: 30px;
+        padding: 0;
+        border-radius: 999px;
+      }
+      .slack-composer-action-button.is-tonal-round {
+        background: #f1f2f4;
+      }
+      .slack-composer-action-button.is-plus-icon svg {
+        width: 18px;
+        height: 18px;
+        stroke-width: 2.2;
+      }
+      .slack-composer-action-button.is-tonal-round:hover {
+        background: #e7e9ec;
+      }
+      .slack-composer-action-button.is-compact-text {
+        min-width: 0;
+        padding: 0 4px;
+        font-size: 16px;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+      .slack-composer-action-button.is-format-toggle-mark {
+        letter-spacing: -0.03em;
+        font-weight: 450;
+      }
+      .slack-composer-action-button.is-textual-icon {
+        min-width: 28px;
+        padding: 0 4px;
+        font-size: 17px;
+        font-weight: 500;
+        line-height: 1;
+      }
+      .slack-composer-action-button.is-at-glyph {
+        font-size: 18px;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+      }
+      .slack-composer-action-button.is-emoji-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      .slack-composer-action-button.is-video-icon svg,
+      .slack-composer-action-button.is-mic-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+      .slack-composer-action-button.is-compact-text.is-active,
+      .slack-composer-action-button.is-compact-text[aria-pressed="true"] {
+        background: transparent;
+        text-decoration-thickness: 1.5px;
+        color: #1d1c1d;
+      }
+      .slack-composer-action-button.is-outline-square {
+        width: 17px;
+        min-width: 17px;
+        height: 17px;
+        padding: 0;
+        border: 1.5px solid #868b91;
+        border-radius: 4px;
+        font-size: 18px;
+      }
+      .slack-composer-action-button.is-outline-square:hover {
+        background: transparent;
+        border-color: #4f5359;
+      }
+      .slack-composer-action-button.is-slash-glyph {
+        color: #616061;
+      }
+      .slack-composer-action-button.is-slash-glyph svg {
+        width: 25px;
+        height: 25px;
+      }
+      .slack-composer-footer-divider {
+        width: 1px;
+        height: 22px;
+        background: #d8dde4;
+        margin: 0 6px;
+      }
+      .slack-composer-divider {
+        width: 1px;
+        height: 22px;
+        background: #d4dae1;
+        margin: 0 5px;
+      }
+      .slack-composer-textarea {
+        min-height: 22px;
+        max-height: 220px;
+        overflow-y: auto;
+        padding: 0;
+        font-size: 15px;
+        line-height: 1.42;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+      }
+      .slack-composer-textarea::placeholder {
+        color: #9ca3af;
+      }
+      .slack-composer-send {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        background: #007a5a;
+        color: white;
+        transition: background-color 120ms ease, color 120ms ease;
+      }
+      .slack-composer-send svg {
+        width: 16px;
+        height: 16px;
+      }
+      .slack-composer-send:hover {
+        background: #0b6e4f;
+      }
+      .slack-composer-send:disabled,
+      .slack-composer-send.is-disabled {
+        background: transparent;
+        color: #8a9199;
+        cursor: default;
+      }
+      .slack-composer-send-option {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 28px;
+        border-radius: 4px;
+        color: #7a7f85;
+        transition: background-color 120ms ease, color 120ms ease;
+      }
+      .slack-composer-send-option:hover {
+        background: #ebedef;
+        color: #1d1c1d;
+      }
+      .slack-composer-send-option.is-send-chevron svg {
+        width: 12px;
+        height: 12px;
+        stroke-width: 2.4;
+      }
+      .slack-message-stream {
+        width: 100%;
+      }
+      .slack-message-row {
+        position: relative;
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+        padding: 4px 18px 4px 12px;
+        transition: background-color 120ms ease;
+      }
+      .slack-message-row:hover {
+        background: #f7f7f7;
+      }
+      .slack-message-row--continuation {
+        padding-top: 0;
+        padding-bottom: 2px;
+      }
+      .slack-message-avatar-slot {
+        width: 38px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding-top: 1px;
+      }
+      .slack-message-avatar-slot.is-compact {
+        width: 34px;
+      }
+      .slack-message-gutter-time {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        width: 100%;
+        padding-top: 2px;
+        padding-right: 2px;
+        font-size: 11px;
+        line-height: 1;
+        color: #616061;
+        font-variant-numeric: tabular-nums;
+        opacity: 0;
+        visibility: hidden;
+      }
+      .slack-message-row--continuation:hover .slack-message-gutter-time {
+        opacity: 1;
+        visibility: visible;
+      }
+      .slack-message-content {
+        min-width: 0;
+        padding-bottom: 1px;
+      }
+      .slack-message-meta {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        margin-bottom: 0;
+        min-height: 18px;
+      }
+      .slack-message-sender {
+        font-size: 15px;
+        line-height: 1.3334;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        color: #1d1c1d;
+      }
+      .slack-message-timestamp {
+        font-size: 12px;
+        line-height: 1.3334;
+        color: #616061;
+        font-variant-numeric: tabular-nums;
+      }
+      .slack-message-edited {
+        font-size: 12px;
+        color: #868686;
+      }
+      .slack-message-text {
+        font-size: 15px;
+        line-height: 1.46668;
+        color: #1d1c1d;
+      }
+      .slack-inline-code {
+        display: inline-block;
+        padding: 0 0.35em;
+        border: 1px solid #d8dde4;
+        border-radius: 4px;
+        background: #f8f8f8;
+        color: #1d1c1d;
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 0.9em;
+        line-height: 1.45;
+        vertical-align: baseline;
+      }
+      .slack-inline-emoji {
+        display: inline-block;
+        margin: 0 0.03em;
+        line-height: 1;
+        vertical-align: -0.1em;
+      }
+      .slack-message-text a {
+        color: #1264a3;
+        text-decoration: none;
+      }
+      .slack-message-text a:hover {
+        text-decoration: underline;
+      }
+      .slack-message-text.is-small {
+        font-size: 15px;
+      }
+      .slack-message-row--continuation .slack-message-text {
+        margin-top: 0;
+      }
+      .slack-message-actions {
+        position: absolute;
+        top: -10px;
+        right: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 2px;
+        border: 1px solid #d7dde4;
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+        z-index: 20;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(2px);
+        transition: opacity 120ms ease, transform 120ms ease, visibility 120ms ease;
+      }
+      .slack-message-actions--floating {
+        top: -11px;
+        right: 14px;
+        border-color: #cfd7df;
+        box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 12px rgba(15, 23, 42, 0.08);
+      }
+      .slack-message-row:hover .slack-message-actions {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(0);
+      }
+      .slack-message-action-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        color: #616061;
+        transition: background-color 120ms ease, color 120ms ease;
+      }
+      .slack-message-action-button:hover {
+        background: #f1f2f4;
+        color: #1d1c1d;
+      }
+      .slack-message-action-button svg {
+        width: 16px;
+        height: 16px;
+      }
+      .slack-message-attachment {
+        display: flex;
+        gap: 0;
+        margin-top: 8px;
+        max-width: 680px;
+        overflow: hidden;
+        border: 1px solid #d9dfe6;
+        border-radius: 10px;
+        background: #f8f8f8;
+      }
+      .slack-message-attachment-bar {
+        width: 4px;
+        flex-shrink: 0;
+        background: #8d8c8d;
+      }
+      .slack-message-attachment-body {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 12px 10px 11px;
+      }
+      .slack-message-attachment-meta {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        min-width: 0;
+      }
+      .slack-message-attachment-source {
+        margin-top: 1px;
+        font-size: 12px;
+        line-height: 1.3334;
+        color: #616061;
+      }
+      .slack-message-attachment-author {
+        font-size: 13px;
+        line-height: 1.3334;
+        font-weight: 700;
+        color: #1d1c1d;
+      }
+      .slack-message-attachment-text {
+        margin-top: 6px;
+        font-size: 14px;
+        line-height: 1.4;
+        color: #3f3f46;
+      }
+      .slack-message-attachment-footer {
+        font-size: 11px;
+        color: #7a7f85;
+      }
+      .slack-thread-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .slack-thread-title {
+        font-size: 15px;
+        line-height: 1.2;
+        font-weight: 700;
+        color: #1d1c1d;
+      }
+      .slack-thread-subtitle {
+        margin-top: 2px;
+        font-size: 12px;
+        line-height: 1.3334;
+        color: #616061;
+      }
+      .slack-thread-parent-context {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 16px;
+        border-bottom: 1px solid #e8eaed;
+        background: #fbfbfb;
+      }
+      .slack-thread-parent-context-label {
+        font-size: 12px;
+        line-height: 1.3334;
+        font-weight: 700;
+        color: #1d1c1d;
+      }
+      .slack-thread-parent-context-text {
+        margin-top: 2px;
+        font-size: 13px;
+        line-height: 1.3847;
+        color: #616061;
+      }
+      .slack-message-reactions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 6px;
+      }
+      .slack-thread-summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+        color: #616061;
+        font-size: 12px;
+        line-height: 1.25;
+      }
+      .slack-thread-summary:hover .slack-thread-summary-link {
+        text-decoration: underline;
+      }
+      .slack-thread-summary-avatars {
+        display: inline-flex;
+        align-items: center;
+        margin-right: 2px;
+      }
+      .slack-thread-summary-avatars > * {
+        margin-left: -4px;
+        border: 1.5px solid #ffffff;
+      }
+      .slack-thread-summary-avatars > *:first-child {
+        margin-left: 0;
+      }
+      .slack-thread-summary-link {
+        color: #1264a3;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .slack-thread-summary-meta {
+        color: #616061;
+      }
+      .slack-thread-summary-separator {
+        color: #8d8c8d;
+        font-size: 11px;
+        line-height: 1;
+      }
+      .slack-thread-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px 10px;
+      }
+      .slack-thread-divider-line {
+        flex: 1;
+        height: 1px;
+        background: #dfe3e8;
+      }
+      .slack-date-divider {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 16px 16px 8px;
+      }
+      .slack-date-divider::before {
+        content: "";
+        position: absolute;
+        inset: 50% 0 auto 0;
+        height: 1px;
+        background: #e6e9ed;
+        transform: translateY(-50%);
+      }
+      .slack-date-divider-pill {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border: 1px solid #d9dfe6;
+        border-radius: 999px;
+        background: #ffffff;
+        font-size: 12px;
+        font-weight: 700;
+        color: #1d1c1d;
+        box-shadow: none;
+      }
+      .slack-date-divider-label {
+        display: inline-flex;
+        align-items: center;
+      }
+      .slack-date-divider-caret {
+        font-size: 11px;
+        line-height: 1;
+        color: #616061;
+        transform: translateY(-1px);
+      }
+      .slack-new-messages-pill {
+        position: sticky;
+        top: 12px;
+        z-index: 12;
+        display: inline-flex;
+        align-self: center;
+        align-items: center;
+        gap: 10px;
+        margin: 0 auto 14px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: #1d6fdc;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+        box-shadow: 0 10px 24px rgba(29, 111, 220, 0.22);
+      }
+      .slack-link-unfurl {
+        margin-top: 10px;
+        max-width: 620px;
+        overflow: hidden;
+        border: 1px solid #d8dee6;
+        border-left: 4px solid #d1d5db;
+        border-radius: 0 14px 14px 0;
+        background: #ffffff;
+      }
+      .slack-link-unfurl-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px 0;
+        font-size: 12px;
+        color: #5e6a78;
+      }
+      .slack-link-unfurl-title {
+        display: block;
+        padding: 4px 16px 0;
+        color: #1264a3;
+        font-size: 16px;
+        font-weight: 500;
+        text-decoration: none;
+      }
+      .slack-link-unfurl-title:hover {
+        text-decoration: underline;
+      }
+      .slack-link-unfurl-desc {
+        padding: 4px 16px 0;
+        color: #1f2937;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+      .slack-link-unfurl-preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 148px;
+        margin: 12px 16px 16px;
+        border: 1px solid #dde3ea;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #fbfcfe 0%, #f4f7fb 100%);
+        color: #8090a5;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body
+    class="flex flex-row h-screen overflow-hidden bg-white text-gray-900 relative"
+  >
+    <!-- Topbar -->
+    <header
+      class="absolute top-0 w-full h-10 slack-topbar flex items-center justify-center px-4 z-40 border-b border-[#522653]"
+    >
+      <div class="flex-1"></div>
+      <!-- Search box -->
+      <div class="flex-2 w-96 max-w-2xl relative" id="search-container">
+        <div class="bg-[#5d2c5d] hover:bg-[#683368] focus-within:bg-[#4a1a4a] focus-within:shadow-lg rounded border border-[#683368] focus-within:border-[#9a7a9a] flex items-center h-6 px-2 text-sm text-[#cfc3cf] w-full cursor-text relative shadow-sm transition-colors">
+          <svg class="w-3.5 h-3.5 mr-1.5 flex-shrink-0 text-[#cfc3cf] search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input
+            id="global-search-input"
+            type="text"
+            placeholder="Search {{ workspace.name if workspace else 'Workspace' }}"
+            class="flex-1 bg-transparent outline-none text-[#cfc3cf] placeholder-[#cfc3cf] focus:text-white focus:placeholder-gray-400 text-[13px] min-w-0"
+            autocomplete="off"
+            onkeydown="handleSearchKey(event)"
+            oninput="onSearchInput()"
+            onfocus="openSearchDropdown()"
+          />
+          <button id="search-clear-btn" onclick="clearSearch()" class="hidden text-gray-400 hover:text-gray-600 ml-1 flex-shrink-0">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Search dropdown overlay -->
+        <div id="search-dropdown" class="hidden absolute left-0 right-0 top-8 bg-white rounded-lg shadow-2xl border border-gray-200 z-[999] overflow-hidden" style="min-width:420px;">
+          <!-- "Search in current channel" hint -->
+          <div class="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border-b border-gray-100 text-[13px] text-gray-600">
+            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+            </svg>
+            <span>Search across people, channels, files, and more</span>
+            <span class="ml-auto text-xs bg-gray-200 text-gray-600 rounded px-1.5 py-0.5 font-mono">Enter</span>
+          </div>
+          <!-- Recent searches -->
+          <div id="search-recents" class="py-1"></div>
+        </div>
+      </div>
+      <div class="flex-1"></div>
+    </header>
+
+    <!-- Workspace Rail -->
+    <nav
+      class="slack-workspace-rail relative w-[68px] pt-12 flex flex-col items-center flex-shrink-0 z-50 h-full border-r border-[#522653]"
+    >
+      <!-- Home -->
+      <a
+        href="/"
+        class="rail-icon {% if request.url.path == '/' or request.url.path.startswith('/channel') %}active{% endif %}"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+          ></path>
+        </svg>
+        <span>Home</span>
+      </a>
+      <!-- DMs -->
+      <a
+        href="/dms"
+        class="rail-icon {% if request.url.path.startswith('/dms') %}active{% endif %}"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+          ></path>
+        </svg>
+        <span>DMs</span>
+      </a>
+      <!-- Activity -->
+      <a
+        href="/activity"
+        class="rail-icon {% if request.url.path.startswith('/activity') %}active{% endif %}"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+          ></path>
+        </svg>
+        <span>Activity</span>
+      </a>
+      <div class="mt-auto mb-4 flex flex-col items-center relative">
+        <!-- Plus Button -->
+        <div
+          onclick="
+            document.getElementById('plus-menu').classList.toggle('hidden');
+            document.getElementById('profile-menu').classList.add('hidden');
+          "
+          class="w-10 h-10 rounded-full bg-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.2)] text-[#cfc3cf] flex items-center justify-center cursor-pointer mb-2"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            ></path>
+          </svg>
+        </div>
+
+        <!-- Plus Post Menu (Hidden by default) -->
+        <div
+          id="plus-menu"
+          class="hidden absolute bottom-16 left-14 w-72 bg-white rounded-xl shadow-2xl border border-gray-100 py-3 z-50 text-sm text-gray-800"
+        >
+          <div class="px-4 pb-2 text-base font-bold text-gray-900">Create</div>
+          <!-- Message -->
+          <a href="/new" onclick="document.getElementById('plus-menu').classList.add('hidden')"
+            class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer group">
+            <div class="w-9 h-9 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+            </div>
+            <div>
+              <div class="font-semibold text-gray-900 text-sm">Message</div>
+              <div class="text-xs text-gray-500">Start a conversation in a DM or channel</div>
+            </div>
+          </a>
+          <!-- Channel -->
+          <div onclick="document.getElementById('plus-menu').classList.add('hidden'); openCreateChannelModal()"
+            class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer group">
+            <div class="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+            </div>
+            <div>
+              <div class="font-semibold text-gray-900 text-sm">Channel</div>
+              <div class="text-xs text-gray-500">Start a group conversation by topic</div>
+            </div>
+          </div>
+          <!-- Invite people -->
+          <div onclick="document.getElementById('plus-menu').classList.add('hidden'); openInvitePeopleModal()"
+            class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer group">
+            <div class="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+            </div>
+            <div>
+              <div class="font-semibold text-gray-900 text-sm">Invite people</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Button -->
+        <div
+          onclick="
+            document.getElementById('profile-menu').classList.toggle('hidden');
+            document.getElementById('plus-menu').classList.add('hidden');
+          "
+          class="w-10 h-10 cursor-pointer relative shadow-sm"
+        >
+          {{ slack_avatar(user=user, size='w-10 h-10', rounded='rounded-lg', text='text-sm', container_extra='shadow-sm') }}
+          <!-- Status indicator dot -->
+          <div id="presence-dot"
+            class="absolute -bottom-1 -right-1 w-3 h-3 {% if user and user.presence == 'away' %}bg-transparent border-gray-400{% else %}bg-green-400 border-[#350D36]{% endif %} border-2 rounded-full"
+          ></div>
+        </div>
+
+        <!-- Profile Menu (Hidden by default) -->
+        <div
+          id="profile-menu"
+          class="hidden absolute bottom-2 left-14 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50 text-sm text-gray-800 tracking-wide"
+        >
+          <div class="px-4 flex items-center mb-2">
+            <div class="mr-3 flex-shrink-0">
+              {{ slack_avatar(user=user, size='w-10 h-10', rounded='rounded-lg', text='text-lg') }}
+            </div>
+            <div class="flex-col overflow-hidden">
+              <div class="font-bold truncate">
+                {{ user.real_name if user else 'User' }}
+              </div>
+              <div id="profile-menu-presence-label" class="text-xs text-gray-500 truncate">
+                {{ 'Active' if (not user or user.presence != 'away') else 'Away'
+                }}
+              </div>
+            </div>
+          </div>
+          <div class="border-t border-gray-100 my-1"></div>
+          <div
+            class="px-4 py-1.5 hover:bg-blue-500 hover:text-white cursor-pointer"
+            onclick="document.getElementById('profile-menu').classList.add('hidden'); openStatusModal();"
+          >
+            Update your status
+          </div>
+          <div id="presence-toggle-btn"
+            class="px-4 py-1.5 hover:bg-blue-500 hover:text-white cursor-pointer"
+            onclick="togglePresence()"
+          >
+            Set yourself as {{ 'away' if (not user or user.presence != 'away') else 'active' }}
+          </div>
+          <div class="border-t border-gray-100 my-1"></div>
+          <div
+            class="px-4 py-1.5 hover:bg-blue-500 hover:text-white cursor-pointer"
+            onclick="document.getElementById('profile-menu').classList.add('hidden'); openProfilePanel('{{ user.id if user else '' }}')"
+          >
+            Profile
+          </div>
+          <div class="border-t border-gray-100 my-1"></div>
+          <div
+            class="px-4 py-1.5 hover:bg-blue-500 hover:text-white cursor-pointer"
+          >
+            Sign out of {{ workspace.name if workspace else 'Workspace' }}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Sidebar (Home + channels only) -->
+    {% set _path = request.url.path %}
+    {% set _show_sidebar = _path == '/' or _path.startswith('/channel') or _path.startswith('/new') or _path.startswith('/threads') or _path.startswith('/drafts') or _path.startswith('/directories') or _path.startswith('/app/') %}
+    <nav
+      class="slack-sidebar w-64 pt-10 flex flex-col z-0 border-r border-[#522653] h-full flex-shrink-0 {{ '' if _show_sidebar else 'hidden' }}"
+    >
+      <div
+        class="px-4 py-3 pb-3 hover:bg-[#350D36] cursor-pointer border-b border-[#522653] flex justify-between items-center group"
+      >
+        <div class="flex items-center overflow-hidden flex-1">
+          <h1 class="font-black text-white text-base leading-tight truncate">
+            {{ workspace.name if workspace else 'Mock Slack' }}
+          </h1>
+        </div>
+        <div class="flex items-center flex-shrink-0 opacity-100">
+          <a
+            href="/new"
+            class="w-8 h-8 rounded-full bg-white text-[#350D36] flex items-center justify-center shadow-sm"
+            title="New Message"
+          >
+            <svg
+              class="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              ></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto pt-3 custom-scroll pb-6">
+        <!-- Top Links -->
+        <ul class="text-sm space-y-[2px] mb-4">
+          <li>
+            <a
+              href="/threads"
+              class="slack-sidebar-channel block px-4 py-1 flex items-center justify-between group"
+            >
+              <div class="flex items-center w-full">
+                <svg
+                  class="w-4 h-4 mr-2 opacity-70"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                  ></path>
+                </svg>
+                <span class="truncate flex-grow">Threads</span>
+              </div>
+            </a>
+          </li>
+          <li>
+            <a
+              href="/drafts"
+              class="slack-sidebar-channel block px-4 py-1 flex items-center justify-between {% if request.url.path.startswith('/drafts') %}active{% endif %}"
+            >
+              <div class="flex items-center min-w-0">
+                <svg
+                  class="w-4 h-4 mr-2 opacity-70"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  ></path>
+                </svg>
+                <span class="truncate">Drafts &amp; sent</span>
+              </div>
+              <span id="drafts-count-badge" class="hidden bg-white text-[#3F0E40] text-[10px] font-bold px-2 py-0.5 rounded-full leading-none ml-2"></span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="/directories"
+              class="slack-sidebar-channel block px-4 py-1 flex items-center"
+            >
+              <svg
+                class="w-4 h-4 mr-2 opacity-70"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                ></path>
+              </svg>
+              <span class="truncate">Directories</span>
+            </a>
+          </li>
+        </ul>
+
+        <!-- Starred Section -->
+        <div
+          class="px-4 flex items-center justify-between group cursor-pointer mb-1 mt-4"
+        >
+          <h2 class="text-sm font-semibold opacity-70">Starred</h2>
+        </div>
+        <ul id="starred-channels-list" class="text-sm space-y-[2px] mb-4">
+          <li id="starred-empty-state">
+            <span
+              class="slack-sidebar-channel block px-4 py-1 flex items-center text-gray-400 italic"
+            >
+              <span class="truncate">No starred items</span>
+            </span>
+          </li>
+        </ul>
+
+        <div
+          class="px-4 flex items-center justify-between group cursor-pointer mb-1"
+        >
+          <h2 class="text-sm font-semibold opacity-70">Channels</h2>
+        </div>
+
+        <ul id="sidebar-channels-list" class="text-sm space-y-[2px] mb-6">
+          {% for ch in channels %} {% if not ch.is_im and not ch.is_mpim %}
+          <li data-channel-list-item="{{ ch.id }}">
+            <a
+              href="/channel/{{ ch.id }}"
+              class="slack-sidebar-channel block px-4 py-1 flex items-center {% if current_channel and current_channel.id == ch.id %}active{% endif %}"
+            >
+              <span class="opacity-70 mr-2 text-lg leading-none">{% if ch.is_private %}🔒{% else %}#{% endif %}</span>
+              <span class="truncate">{{ ch.name }}</span>
+            </a>
+          </li>
+          {% endif %} {% endfor %}
+        </ul>
+
+        <div
+          class="px-4 flex items-center justify-between group cursor-pointer mb-1"
+        >
+          <h2 class="text-sm font-semibold opacity-70">Direct messages</h2>
+        </div>
+
+        <ul class="text-sm space-y-[2px] mb-6">
+          {% for ch in channels %} {% if ch.is_im or ch.is_mpim %}
+          {% set dm_label = dm_names[ch.id] if dm_names and ch.id in dm_names else (ch.name or 'Direct Message') %}
+          {% set dm_user = dm_users[ch.id] if dm_users and ch.id in dm_users else None %}
+          <li data-channel-list-item="{{ ch.id }}">
+            <a
+              href="/channel/{{ ch.id }}"
+              class="slack-sidebar-channel block px-4 py-1 flex items-center justify-between group {% if current_channel and current_channel.id == ch.id %}active{% endif %}"
+            >
+              <div class="flex items-center w-full min-w-0">
+                <div class="mr-2 flex-shrink-0">
+                  {{ slack_avatar(user=dm_user, label=dm_label, size='w-5 h-5', rounded='rounded-md', text='text-[10px]') }}
+                </div>
+                <span class="truncate flex-grow text-[13px]">{{ dm_label }}</span>
+              </div>
+            </a>
+          </li>
+          {% endif %} {% endfor %}
+        </ul>
+
+        <div class="mb-10"></div>
+      </div>
+
+    </nav>
+
+    <!-- Main Content -->
+    <main
+      class="flex-1 pt-10 flex flex-col h-full bg-white min-w-0"
+      id="main-content"
+    >
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Profile Panel (global split view, works on any page) -->
+    <div id="profile-panel"
+      class="hidden w-[360px] flex-shrink-0 border-l border-gray-200 bg-white flex-col overflow-hidden pt-10">
+    </div>
+
+    <div id="status-modal" class="hidden fixed inset-0 z-[110] items-center justify-center">
+      <div class="absolute inset-0 bg-black/50" onclick="closeStatusModal()"></div>
+      <div class="relative mx-4 w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div class="mb-5 flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-gray-900">Update your status</h2>
+            <p class="mt-1 text-sm text-gray-500">This updates your Slack profile status.</p>
+          </div>
+          <button type="button" onclick="closeStatusModal()" class="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <form id="status-form" class="space-y-4">
+          <div>
+            <label for="status-emoji-input" class="mb-1.5 block text-sm font-medium text-gray-800">Emoji</label>
+            <input
+              id="status-emoji-input"
+              name="status_emoji"
+              type="text"
+              maxlength="16"
+              placeholder="😀"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-[#1264a3] focus:ring-2 focus:ring-[#1264a3]/15"
+            />
+          </div>
+
+          <div>
+            <label for="status-text-input" class="mb-1.5 block text-sm font-medium text-gray-800">Status</label>
+            <input
+              id="status-text-input"
+              name="status_text"
+              type="text"
+              maxlength="100"
+              placeholder="What should people know?"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none transition focus:border-[#1264a3] focus:ring-2 focus:ring-[#1264a3]/15"
+            />
+          </div>
+
+          <p id="status-form-error" class="hidden text-sm text-red-600"></p>
+
+          <div class="flex items-center justify-between gap-3 pt-2">
+            <button
+              type="button"
+              onclick="clearStatusForm()"
+              class="rounded-md px-3 py-2 text-sm font-medium text-[#1264a3] hover:bg-[#1264a3]/10"
+            >
+              Clear status
+            </button>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                onclick="closeStatusModal()"
+                class="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                id="status-submit-button"
+                type="submit"
+                class="rounded-md bg-[#1264a3] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0f5488]"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="delete-message-modal" class="hidden fixed inset-0 z-[120] items-center justify-center">
+      <div class="absolute inset-0 bg-black/50" onclick="closeDeleteMessageModal()"></div>
+      <div class="relative mx-4 w-full max-w-2xl rounded-2xl bg-white shadow-2xl">
+        <div class="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+          <h2 class="text-[15px] font-bold text-gray-900">Delete message</h2>
+          <button type="button" onclick="closeDeleteMessageModal()" class="rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="px-6 py-5">
+          <p class="text-[15px] text-gray-700">Are you sure you want to delete this message? This cannot be undone.</p>
+          <div class="mt-5 rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+            <div class="flex items-start gap-3">
+              <div id="delete-message-avatar-shell" class="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-[#611f69] text-sm font-semibold text-white">
+                <img id="delete-message-avatar-image" src="" alt="" class="hidden h-full w-full object-cover" />
+                <span id="delete-message-avatar-fallback">?</span>
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-baseline gap-2">
+                  <span id="delete-message-sender" class="truncate text-[15px] font-bold text-gray-900">Unknown</span>
+                  <span id="delete-message-time" class="text-xs text-gray-500"></span>
+                </div>
+                <p id="delete-message-text" class="mt-1 whitespace-pre-wrap break-words text-[15px] text-gray-700"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4">
+          <button
+            type="button"
+            onclick="closeDeleteMessageModal()"
+            class="rounded-xl border border-gray-300 px-5 py-2 text-[15px] font-medium text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            id="delete-message-confirm-button"
+            type="button"
+            onclick="confirmDeleteMessage()"
+            class="rounded-xl bg-[#e01e5a] px-5 py-2 text-[15px] font-semibold text-white shadow-[0_0_0_3px_rgba(29,155,240,0.22)] hover:bg-[#c61a4f] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const mockSlackSidebarChannels = [
+        {% for ch in channels %}
+        {% set is_direct = ch.is_im or ch.is_mpim %}
+        {% set item_name = dm_names[ch.id] if is_direct and dm_names and ch.id in dm_names else (ch.name or 'Direct Message') %}
+        {% set item_user = dm_users[ch.id] if is_direct and dm_users and ch.id in dm_users else None %}
+        {
+          id: {{ ch.id|tojson }},
+          name: {{ item_name|tojson }},
+          isDirect: {{ is_direct|tojson }},
+          isPrivate: {{ (false if is_direct else ch.is_private)|tojson }},
+          avatarUrl: {{ ((item_user.avatar_url if item_user and item_user.avatar_url and item_user.avatar_url != '/static/profile_picture.jpg' else '') if is_direct else '')|tojson }},
+          avatarInitial: {{ ((item_name[0].upper() if item_name else '?') if is_direct else '#')|tojson }},
+        },
+        {% endfor %}
+      ];
+      const mockSlackCurrentUser = {
+        id: {{ (user.id if user else "")|tojson }},
+        presence: {{ (user.presence if user else "active")|tojson }},
+        statusText: {{ (user.status_text if user else "")|tojson }},
+        statusEmoji: {{ (user.status_emoji if user else "")|tojson }},
+      };
+      const MOCK_SLACK_STARRED_CHANNELS_KEY = "mock_slack_starred_channels";
+      const MOCK_SLACK_DRAFTS_KEY = "mock_slack_drafts";
+      const MOCK_SLACK_SCHEDULED_KEY = "mock_slack_scheduled";
+      const MOCK_SLACK_SENT_KEY = "mock_slack_sent";
+
+      function getStarredChannelIds() {
+        try {
+          const value = localStorage.getItem(MOCK_SLACK_STARRED_CHANNELS_KEY);
+          const parsed = value ? JSON.parse(value) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function setStarredChannelIds(ids) {
+        localStorage.setItem(MOCK_SLACK_STARRED_CHANNELS_KEY, JSON.stringify(ids));
+      }
+
+      function getStoredItems(key) {
+        try {
+          const value = localStorage.getItem(key);
+          const parsed = value ? JSON.parse(value) : [];
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function setStoredItems(key, items) {
+        localStorage.setItem(key, JSON.stringify(items));
+      }
+
+      function getDrafts() {
+        const drafts = getStoredItems(MOCK_SLACK_DRAFTS_KEY);
+        let changed = false;
+        const normalized = drafts.map((item) => {
+          if (item.id) return item;
+          changed = true;
+          return { ...item, id: makeStoredItemId("draft") };
+        });
+        if (changed) {
+          setStoredItems(MOCK_SLACK_DRAFTS_KEY, normalized);
+        }
+        return normalized;
+      }
+
+      function getDraftForChannel(channelId) {
+        return getDrafts().find((item) => item.channelId === channelId) || null;
+      }
+
+      function getDraftById(draftId) {
+        return getDrafts().find((item) => item.id === draftId) || null;
+      }
+
+      function setDrafts(items) {
+        setStoredItems(MOCK_SLACK_DRAFTS_KEY, items);
+      }
+
+      function getScheduledItems() {
+        const items = getStoredItems(MOCK_SLACK_SCHEDULED_KEY);
+        let changed = false;
+        const normalized = items.map((item) => {
+          if (item.id) return item;
+          changed = true;
+          return { ...item, id: makeStoredItemId("scheduled") };
+        });
+        if (changed) {
+          setStoredItems(MOCK_SLACK_SCHEDULED_KEY, normalized);
+        }
+        return normalized;
+      }
+
+      function setScheduledItems(items) {
+        setStoredItems(MOCK_SLACK_SCHEDULED_KEY, items);
+      }
+
+      function getSentItems() {
+        const items = getStoredItems(MOCK_SLACK_SENT_KEY);
+        let changed = false;
+        const normalized = items.map((item) => {
+          if (item.id) return item;
+          changed = true;
+          return { ...item, id: makeStoredItemId("sent") };
+        });
+        if (changed) {
+          setStoredItems(MOCK_SLACK_SENT_KEY, normalized);
+        }
+        return normalized;
+      }
+
+      function setSentItems(items) {
+        setStoredItems(MOCK_SLACK_SENT_KEY, items);
+      }
+
+      function makeStoredItemId(prefix) {
+        return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      }
+
+      function upsertDraft(draft) {
+        const draftItem = { id: draft.id || makeStoredItemId("draft"), ...draft };
+        const drafts = [draftItem, ...getDrafts().filter((item) => item.id !== draftItem.id)];
+        setDrafts(drafts);
+        renderDraftsBadge();
+        if (window.renderDraftsView) window.renderDraftsView();
+      }
+
+      function removeDraft(draftId) {
+        const drafts = getDrafts().filter((item) => item.id !== draftId);
+        setDrafts(drafts);
+        renderDraftsBadge();
+        if (window.renderDraftsView) window.renderDraftsView();
+      }
+
+      function addScheduledItem(item) {
+        const scheduledItem = { id: item.id || makeStoredItemId("scheduled"), ...item };
+        const scheduled = [scheduledItem, ...getScheduledItems().filter((entry) => entry.id !== scheduledItem.id)].slice(0, 25);
+        setScheduledItems(scheduled);
+        if (window.renderDraftsView) window.renderDraftsView();
+      }
+
+      function removeScheduledItem(id) {
+        const scheduled = getScheduledItems().filter((item) => item.id !== id);
+        setScheduledItems(scheduled);
+        if (window.renderDraftsView) window.renderDraftsView();
+      }
+
+      function addSentItem(item) {
+        const sentItem = { id: item.id || makeStoredItemId("sent"), ...item };
+        const sent = [sentItem, ...getSentItems().filter((entry) => entry.id !== sentItem.id)].slice(0, 50);
+        setSentItems(sent);
+        if (window.renderDraftsView) window.renderDraftsView();
+      }
+
+      function removeSentItem(id) {
+        const sent = getSentItems().filter((item) => item.id !== id);
+        setSentItems(sent);
+        if (window.renderDraftsView) window.renderDraftsView();
+      }
+
+      function renderDraftsBadge() {
+        const badge = document.getElementById("drafts-count-badge");
+        if (!badge) return;
+        const count = getDrafts().length;
+        badge.textContent = String(count);
+        badge.classList.toggle("hidden", count === 0);
+      }
+
+      function isChannelStarred(channelId) {
+        return getStarredChannelIds().includes(channelId);
+      }
+
+      function renderStarredAvatar(channel) {
+        if (!channel.isDirect) {
+          return `<span class="mr-2 text-lg leading-none opacity-70">${channel.isPrivate ? "🔒" : "#"}</span>`;
+        }
+
+        if (channel.avatarUrl) {
+          return `
+            <span class="mr-2 flex h-5 w-5 flex-shrink-0 overflow-hidden rounded-md bg-gray-200">
+              <img src="${channel.avatarUrl}" alt="${escapeHtml(channel.name)}" class="h-full w-full object-cover" />
+            </span>
+          `;
+        }
+
+        return `
+          <span class="mr-2 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md bg-white/15 text-[10px] font-semibold uppercase text-current">
+            ${escapeHtml(channel.avatarInitial || '?')}
+          </span>
+        `;
+      }
+
+      function renderStarredChannels() {
+        const list = document.getElementById("starred-channels-list");
+        const emptyState = document.getElementById("starred-empty-state");
+        if (!list || !emptyState) return;
+
+        list.querySelectorAll("[data-starred-channel]").forEach((node) => node.remove());
+
+        const channelById = new Map(mockSlackSidebarChannels.map((channel) => [channel.id, channel]));
+        const starredChannels = getStarredChannelIds()
+          .map((id) => channelById.get(id))
+          .filter(Boolean);
+
+        emptyState.classList.toggle("hidden", starredChannels.length > 0);
+
+        for (const channel of starredChannels) {
+          const li = document.createElement("li");
+          li.dataset.starredChannel = channel.id;
+
+          const link = document.createElement("a");
+          link.href = `/channel/${channel.id}`;
+          const isActive = window.location.pathname === `/channel/${channel.id}`;
+          link.className = `slack-sidebar-channel block px-4 py-1 flex items-center ${isActive ? "active" : ""}`;
+          link.innerHTML = `
+            <svg class="w-3.5 h-3.5 mr-2 ${isActive ? "text-white" : "text-yellow-400"}" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.2 3.69a1 1 0 00.95.69h3.878c.969 0 1.371 1.24.588 1.81l-3.138 2.28a1 1 0 00-.364 1.118l1.199 3.69c.3.921-.755 1.688-1.538 1.118l-3.138-2.28a1 1 0 00-1.176 0l-3.138 2.28c-.783.57-1.838-.197-1.539-1.118l1.2-3.69a1 1 0 00-.364-1.118L2.383 9.117c-.783-.57-.38-1.81.588-1.81h3.878a1 1 0 00.951-.69l1.2-3.69z"></path>
+            </svg>
+            ${renderStarredAvatar(channel)}
+            <span class="truncate">${escapeHtml(channel.name)}</span>
+          `;
+
+          li.appendChild(link);
+          list.appendChild(li);
+        }
+
+        syncRegularChannelList(starredChannels.map((channel) => channel.id));
+      }
+
+      function syncRegularChannelList(starredIds) {
+        document.querySelectorAll("[data-channel-list-item]").forEach((node) => {
+          node.classList.toggle("hidden", starredIds.includes(node.dataset.channelListItem));
+        });
+      }
+
+      let mockSlackActiveEmojiButton = null;
+
+      function closeSlackReactionPickers() {
+        document.querySelectorAll(".emoji-picker").forEach((picker) => picker.classList.add("hidden"));
+        mockSlackActiveEmojiButton = null;
+      }
+
+      function toggleSlackReactionPicker(button) {
+        if (window.event) {
+          window.event.stopPropagation();
+        }
+        if (!button) return;
+        const picker = button.parentElement?.querySelector(".emoji-picker");
+        if (!picker) return;
+        const isOpen = !picker.classList.contains("hidden");
+        closeSlackReactionPickers();
+        if (!isOpen) {
+          picker.classList.remove("hidden");
+          mockSlackActiveEmojiButton = button;
+        }
+      }
+
+      async function submitSlackReaction(channelId, ts, emojiName, action = "add") {
+        try {
+          const response = await fetch(`/channel/${channelId}/react`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ts, emoji_name: emojiName, action }),
+          });
+          if (!response.ok) {
+            throw new Error(`reaction update failed (${response.status})`);
+          }
+          window.location.reload();
+        } catch (error) {
+          console.error("reaction update failed", error);
+        }
+      }
+
+      function removeSlackReaction(channelId, ts, emojiName) {
+        submitSlackReaction(channelId, ts, emojiName, "remove");
+      }
+
+      function parseSlackButtonJson(rawValue, fallback = "") {
+        if (!rawValue) return fallback;
+        try {
+          return JSON.parse(rawValue);
+        } catch (error) {
+          return fallback;
+        }
+      }
+
+      function isSameCalendarDay(left, right) {
+        return left.getFullYear() === right.getFullYear()
+          && left.getMonth() === right.getMonth()
+          && left.getDate() === right.getDate();
+      }
+
+      function formatSlackMessageTimestamp(ts) {
+        const numericTs = Number.parseFloat(ts);
+        if (Number.isNaN(numericTs)) return "";
+        return new Date(numericTs * 1000).toLocaleTimeString([], {
+          hour: "numeric",
+          minute: "2-digit",
+        });
+      }
+
+      function formatDeleteMessageTimestamp(ts) {
+        const numericTs = Number.parseFloat(ts);
+        if (Number.isNaN(numericTs)) return "";
+        const date = new Date(numericTs * 1000);
+        const timeLabel = formatSlackMessageTimestamp(ts);
+        const now = new Date();
+        if (isSameCalendarDay(date, now)) return `Today at ${timeLabel}`;
+        return `${date.toLocaleDateString([], { month: "short", day: "numeric" })} at ${timeLabel}`;
+      }
+
+      function getDeleteMessageState() {
+        if (!window.__mockSlackDeleteMessageState) {
+          window.__mockSlackDeleteMessageState = {
+            channelId: "",
+            ts: "",
+            text: "",
+            senderName: "",
+            avatarUrl: "",
+            avatarLabel: "?",
+          };
+        }
+        return window.__mockSlackDeleteMessageState;
+      }
+
+      function setDeleteMessagePreview(payload) {
+        const avatarImage = document.getElementById("delete-message-avatar-image");
+        const avatarFallback = document.getElementById("delete-message-avatar-fallback");
+        const sender = document.getElementById("delete-message-sender");
+        const time = document.getElementById("delete-message-time");
+        const text = document.getElementById("delete-message-text");
+
+        if (sender) sender.textContent = payload.senderName || "Unknown";
+        if (time) time.textContent = formatDeleteMessageTimestamp(payload.ts);
+        if (text) text.textContent = payload.text || "";
+
+        const avatarLabel = (payload.avatarLabel || payload.senderName || "?").trim().charAt(0).toUpperCase() || "?";
+        if (avatarFallback) avatarFallback.textContent = avatarLabel;
+
+        if (avatarImage) {
+          if (payload.avatarUrl) {
+            avatarImage.src = payload.avatarUrl;
+            avatarImage.alt = payload.senderName || "Message author";
+            avatarImage.classList.remove("hidden");
+            if (avatarFallback) avatarFallback.classList.add("hidden");
+          } else {
+            avatarImage.src = "";
+            avatarImage.alt = "";
+            avatarImage.classList.add("hidden");
+            if (avatarFallback) avatarFallback.classList.remove("hidden");
+          }
+        }
+      }
+
+      function openDeleteMessageModal(payload) {
+        const state = getDeleteMessageState();
+        Object.assign(state, payload);
+        setDeleteMessagePreview(state);
+        const confirmButton = document.getElementById("delete-message-confirm-button");
+        if (confirmButton) {
+          confirmButton.disabled = false;
+          confirmButton.textContent = "Delete";
+        }
+        const modal = document.getElementById("delete-message-modal");
+        if (!modal) return;
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      }
+
+      function closeDeleteMessageModal() {
+        const modal = document.getElementById("delete-message-modal");
+        if (!modal) return;
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      }
+
+      function openDeleteMessageModalFromButton(button, channelId, ts) {
+        if (!button) return;
+        openDeleteMessageModal({
+          channelId,
+          ts,
+          text: parseSlackButtonJson(button.dataset.messageText, ""),
+          senderName: parseSlackButtonJson(button.dataset.senderName, "Unknown"),
+          avatarUrl: parseSlackButtonJson(button.dataset.avatarUrl, ""),
+          avatarLabel: parseSlackButtonJson(button.dataset.avatarLabel, "?"),
+        });
+      }
+
+      function openPreparedDeleteMessageModal() {
+        if (!window.__mockSlackPreparedDeleteMessage) return;
+        openDeleteMessageModal(window.__mockSlackPreparedDeleteMessage);
+      }
+
+      async function confirmDeleteMessage() {
+        const state = getDeleteMessageState();
+        if (!state.channelId || !state.ts) return;
+        const confirmButton = document.getElementById("delete-message-confirm-button");
+        if (confirmButton) {
+          confirmButton.disabled = true;
+          confirmButton.textContent = "Deleting...";
+        }
+        try {
+          const response = await fetch(`/channel/${state.channelId}/message/delete`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ts: state.ts }),
+          });
+          if (!response.ok) {
+            throw new Error(`delete failed (${response.status})`);
+          }
+          window.location.reload();
+        } catch (error) {
+          console.error("deleteMessage failed", error);
+          if (confirmButton) {
+            confirmButton.disabled = false;
+            confirmButton.textContent = "Delete";
+          }
+        }
+      }
+
+      function setElementText(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+      }
+
+      function updatePresenceUi(presence) {
+        const normalizedPresence = presence === "away" ? "away" : "active";
+        const isAway = normalizedPresence === "away";
+        mockSlackCurrentUser.presence = normalizedPresence;
+
+        const menuDot = document.getElementById("presence-dot");
+        if (menuDot) {
+          menuDot.classList.remove("bg-green-400", "border-[#350D36]", "bg-transparent", "border-gray-400");
+          menuDot.classList.add(isAway ? "bg-transparent" : "bg-green-400");
+          menuDot.classList.add(isAway ? "border-gray-400" : "border-[#350D36]");
+        }
+
+        setElementText("profile-menu-presence-label", isAway ? "Away" : "Active");
+
+        const toggleButton = document.getElementById("presence-toggle-btn");
+        if (toggleButton) {
+          toggleButton.textContent = `Set yourself as ${isAway ? "active" : "away"}`;
+        }
+
+        const panelDot = document.getElementById("profile-panel-presence-dot");
+        if (panelDot) {
+          panelDot.classList.remove("bg-green-500", "bg-transparent", "border-gray-400", "border-2");
+          if (isAway) {
+            panelDot.classList.add("bg-transparent", "border-gray-400", "border-2");
+          } else {
+            panelDot.classList.add("bg-green-500");
+          }
+        }
+
+        setElementText("profile-panel-presence-label", isAway ? "Away, notifications snoozed" : "Active, notifications snoozed");
+      }
+
+      function updateStatusUi(statusText, statusEmoji) {
+        const normalizedText = (statusText || "").trim();
+        const normalizedEmoji = (statusEmoji || "").trim();
+        mockSlackCurrentUser.statusText = normalizedText;
+        mockSlackCurrentUser.statusEmoji = normalizedEmoji;
+
+        const statusRow = document.getElementById("profile-panel-status-row");
+        if (!statusRow) return;
+
+        const hasStatus = normalizedText.length > 0;
+        statusRow.classList.toggle("hidden", !hasStatus);
+        if (!hasStatus) return;
+
+        setElementText("profile-panel-status-emoji", normalizedEmoji || "💬");
+        setElementText("profile-panel-status-text", normalizedText);
+      }
+
+      function getStatusModalElements() {
+        return {
+          modal: document.getElementById("status-modal"),
+          form: document.getElementById("status-form"),
+          emojiInput: document.getElementById("status-emoji-input"),
+          textInput: document.getElementById("status-text-input"),
+          error: document.getElementById("status-form-error"),
+          submitButton: document.getElementById("status-submit-button"),
+        };
+      }
+
+      function setStatusFormError(message) {
+        const { error } = getStatusModalElements();
+        if (!error) return;
+        error.textContent = message || "";
+        error.classList.toggle("hidden", !message);
+      }
+
+      window.openStatusModal = function () {
+        const { modal, emojiInput, textInput } = getStatusModalElements();
+        if (!modal) return;
+        if (emojiInput) emojiInput.value = mockSlackCurrentUser.statusEmoji || "";
+        if (textInput) textInput.value = mockSlackCurrentUser.statusText || "";
+        setStatusFormError("");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        if (textInput) textInput.focus();
+      };
+
+      window.closeStatusModal = function () {
+        const { modal } = getStatusModalElements();
+        if (!modal) return;
+        setStatusFormError("");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+      };
+
+      window.clearStatusForm = function () {
+        const { emojiInput, textInput } = getStatusModalElements();
+        if (emojiInput) emojiInput.value = "";
+        if (textInput) textInput.value = "";
+      };
+
+      window.togglePresence = async function () {
+        const nextPresence = mockSlackCurrentUser.presence === "away" ? "auto" : "away";
+        try {
+          const response = await fetch("/api/users.setPresence", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ presence: nextPresence }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`presence update failed (${response.status})`);
+          }
+
+          updatePresenceUi(nextPresence);
+          const profileMenu = document.getElementById("profile-menu");
+          if (profileMenu) profileMenu.classList.add("hidden");
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      function syncChannelStarButton() {
+        const button = document.getElementById("channel-star-button");
+        const icon = document.getElementById("channel-star-outline");
+        if (!button || !icon) return;
+
+        const starred = isChannelStarred(button.dataset.channelId);
+        button.setAttribute("aria-pressed", String(starred));
+        button.classList.toggle("text-yellow-500", starred);
+        button.classList.toggle("text-gray-400", !starred);
+        icon.setAttribute("fill", starred ? "currentColor" : "none");
+      }
+
+      function toggleChannelStar() {
+        const button = document.getElementById("channel-star-button");
+        if (!button || !window.toggleSidebarStar) return;
+        window.toggleSidebarStar(button.dataset.channelId);
+      }
+
+      function openThreadPanel(channelId, ts) {
+        const panel = document.getElementById("thread-panel");
+        if (!panel || typeof htmx === "undefined") {
+          window.location.href = `/channel/${channelId}/thread/${ts}`;
+          return;
+        }
+        panel.classList.remove("hidden");
+        panel.classList.add("flex");
+        htmx.ajax("GET", `/channel/${channelId}/thread/${ts}/panel`, {
+          target: "#thread-panel",
+          swap: "innerHTML",
+        });
+      }
+
+      function closeThreadPanel() {
+        const panel = document.getElementById("thread-panel");
+        if (!panel) return;
+        panel.classList.add("hidden");
+        panel.classList.remove("flex");
+        panel.innerHTML = "";
+      }
+
+      window.toggleSidebarStar = function (channelId) {
+        const ids = getStarredChannelIds();
+        const nextIds = ids.includes(channelId)
+          ? ids.filter((id) => id !== channelId)
+          : [...ids, channelId];
+        setStarredChannelIds(nextIds);
+        renderStarredChannels();
+        syncChannelStarButton();
+      };
+
+      window.upsertDraft = upsertDraft;
+      window.removeDraft = removeDraft;
+      window.addScheduledItem = addScheduledItem;
+      window.removeScheduledItem = removeScheduledItem;
+      window.addSentItem = addSentItem;
+      window.renderDraftsBadge = renderDraftsBadge;
+      window.getDraftForChannel = getDraftForChannel;
+      window.getDraftById = getDraftById;
+
+      function getDraftsUiState() {
+        if (!window.__mockSlackDraftsUiState) {
+          window.__mockSlackDraftsUiState = {
+            editMode: false,
+            selectedKeys: [],
+            scheduleTargetDraftId: null,
+          };
+        }
+        return window.__mockSlackDraftsUiState;
+      }
+
+      function formatDraftTime(timestamp) {
+        if (!timestamp) return "";
+        return new Date(timestamp).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      }
+
+      function getOrdinalSuffix(day) {
+        if (day >= 11 && day <= 13) return "th";
+        const lastDigit = day % 10;
+        if (lastDigit === 1) return "st";
+        if (lastDigit === 2) return "nd";
+        if (lastDigit === 3) return "rd";
+        return "th";
+      }
+
+      function formatScheduledLabel(timestamp) {
+        if (!timestamp) return "";
+        const date = new Date(timestamp);
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(now.getDate() + 1);
+        const timeLabel = date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        if (isSameCalendarDay(date, now)) return `Today at ${timeLabel}`;
+        if (isSameCalendarDay(date, tomorrow)) return `Tomorrow at ${timeLabel}`;
+        return date.toLocaleString([], {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        });
+      }
+
+      function formatSentDayLabel(timestamp) {
+        if (!timestamp) return "";
+        const date = new Date(timestamp);
+        const now = new Date();
+        if (isSameCalendarDay(date, now)) return "Today";
+        const day = date.getDate();
+        return `${date.toLocaleDateString([], { weekday: "long", month: "long" })} ${day}${getOrdinalSuffix(day)}`;
+      }
+
+      function showDraftToast(message) {
+        if (typeof window.showToast === "function") {
+          window.showToast(message);
+          return;
+        }
+        const toast = document.createElement("div");
+        toast.textContent = message;
+        toast.className = "fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-gray-900 px-4 py-2 text-sm text-white shadow-lg";
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = "0";
+          setTimeout(() => toast.remove(), 250);
+        }, 1800);
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#39;");
+      }
+
+      function getDraftItemKey(item) {
+        return `draft:${item.id}`;
+      }
+
+      function getScheduledItemKey(item) {
+        return `scheduled:${item.id}`;
+      }
+
+      function getSentItemKey(item) {
+        return `sent:${item.id}`;
+      }
+
+      function getConversationBadgeHtml(item) {
+        if (item.kind === "thread") {
+          return `
+            <svg class="h-4 w-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+            </svg>
+          `;
+        }
+        return `<span class="text-[20px] font-semibold leading-none text-gray-700">#</span>`;
+      }
+
+      function getConversationTitle(item) {
+        if (item.kind === "thread") {
+          return `Thread in # ${item.channelName || "channel"}`;
+        }
+        return `# ${item.channelName || "channel"}`;
+      }
+
+      async function sendDraftToChannel(item) {
+        const response = await fetch(`/channel/${item.channelId}/message`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+          },
+          body: new URLSearchParams({ text: item.text || "" }).toString(),
+        });
+        if (!response.ok) {
+          throw new Error(`send failed (${response.status})`);
+        }
+      }
+
+      window.renderDraftsView = function () {
+        const page = document.getElementById("drafts-page");
+        if (!page) return;
+
+        const uiState = getDraftsUiState();
+        const drafts = getDrafts();
+        const scheduled = getScheduledItems().slice().sort((left, right) => {
+          return new Date(left.scheduledFor || left.updatedAt || 0) - new Date(right.scheduledFor || right.updatedAt || 0);
+        });
+        const sent = getSentItems();
+        const draftsTab = document.getElementById("drafts-tab-drafts");
+        const scheduledTab = document.getElementById("drafts-tab-scheduled");
+        const sentTab = document.getElementById("drafts-tab-sent");
+        const scheduledCount = document.getElementById("drafts-tab-scheduled-count");
+        const list = document.getElementById("drafts-items");
+        const empty = document.getElementById("drafts-empty");
+        const count = document.getElementById("drafts-tab-count");
+        const editButton = document.getElementById("drafts-edit-button");
+        const deleteButton = document.getElementById("drafts-delete-button");
+        const doneButton = document.getElementById("drafts-done-button");
+        const selectAllRow = document.getElementById("drafts-select-all-row");
+        const selectAllCheckbox = document.getElementById("drafts-select-all-checkbox");
+        const selectAllLabel = document.getElementById("drafts-select-all-label");
+        const scheduleModal = document.getElementById("drafts-schedule-modal");
+        const scheduleForm = document.getElementById("drafts-schedule-form");
+        const scheduleClose = document.getElementById("drafts-schedule-close");
+        const scheduleCancel = document.getElementById("drafts-schedule-cancel");
+        const scheduleDateButton = document.getElementById("drafts-schedule-date-button");
+        const scheduleDateLabel = document.getElementById("drafts-schedule-date-label");
+        const scheduleCalendar = document.getElementById("drafts-schedule-calendar");
+        const scheduleMonthLabel = document.getElementById("drafts-schedule-month-label");
+        const scheduleCalendarGrid = document.getElementById("drafts-schedule-calendar-grid");
+        const scheduleMonthPrev = document.getElementById("drafts-schedule-month-prev");
+        const scheduleMonthNext = document.getElementById("drafts-schedule-month-next");
+        const scheduleMonthPrevYear = document.getElementById("drafts-schedule-month-prev-year");
+        const scheduleMonthNextYear = document.getElementById("drafts-schedule-month-next-year");
+        const scheduleTimeButton = document.getElementById("drafts-schedule-time-button");
+        const scheduleTimeLabel = document.getElementById("drafts-schedule-time-label");
+        const scheduleTimeMenu = document.getElementById("drafts-schedule-time-menu");
+
+        count.textContent = String(drafts.length);
+        if (scheduledCount) {
+          scheduledCount.textContent = String(scheduled.length);
+        }
+
+        let activeTab = page.dataset.activeTab || "drafts";
+        const currentItems = () => {
+          if (activeTab === "scheduled") return scheduled;
+          if (activeTab === "sent") return sent;
+          return drafts;
+        };
+
+        const getItemKey = (item) => {
+          if (activeTab === "scheduled") return getScheduledItemKey(item);
+          if (activeTab === "sent") return getSentItemKey(item);
+          return getDraftItemKey(item);
+        };
+
+        const rerender = () => window.renderDraftsView();
+
+        function getDateKey(date) {
+          const year = date.getFullYear();
+          const month = `${date.getMonth() + 1}`.padStart(2, "0");
+          const day = `${date.getDate()}`.padStart(2, "0");
+          return `${year}-${month}-${day}`;
+        }
+
+        function parseDateKey(value) {
+          if (!value) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return today;
+          }
+          const [year, month, day] = value.split("-").map((item) => parseInt(item, 10));
+          return new Date(year, month - 1, day);
+        }
+
+        function getMonthKey(date) {
+          return `${date.getFullYear()}-${`${date.getMonth() + 1}`.padStart(2, "0")}`;
+        }
+
+        function parseMonthKey(value) {
+          const [year, month] = value.split("-").map((item) => parseInt(item, 10));
+          return new Date(year, month - 1, 1);
+        }
+
+        function formatButtonDateLabel(value) {
+          const selectedDate = parseDateKey(value);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const tomorrow = new Date(today);
+          tomorrow.setDate(today.getDate() + 1);
+          if (getDateKey(selectedDate) === getDateKey(today)) return "Today";
+          if (getDateKey(selectedDate) === getDateKey(tomorrow)) return "Tomorrow";
+          return selectedDate.toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" });
+        }
+
+        function formatTimeValue(value) {
+          const [hours, minutes] = value.split(":").map((item) => parseInt(item, 10));
+          const date = new Date();
+          date.setHours(hours, minutes, 0, 0);
+          return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+        }
+
+        function buildTimeSlots() {
+          const slots = [];
+          for (let hour = 0; hour < 24; hour += 1) {
+            for (let minute = 0; minute < 60; minute += 15) {
+              slots.push(`${`${hour}`.padStart(2, "0")}:${`${minute}`.padStart(2, "0")}`);
+            }
+          }
+          return slots;
+        }
+
+        function ensureSchedulePickerState() {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (!uiState.schedulePicker) {
+            uiState.schedulePicker = {
+              selectedDate: getDateKey(today),
+              visibleMonth: getMonthKey(today),
+              selectedTime: "17:00",
+              calendarOpen: false,
+              timeMenuOpen: false,
+            };
+          }
+          return uiState.schedulePicker;
+        }
+
+        function closeSchedulePickers() {
+          const picker = ensureSchedulePickerState();
+          picker.calendarOpen = false;
+          picker.timeMenuOpen = false;
+          if (scheduleCalendar) scheduleCalendar.classList.add("hidden");
+          if (scheduleTimeMenu) scheduleTimeMenu.classList.add("hidden");
+        }
+
+        function renderSchedulePicker() {
+          if (!scheduleDateLabel || !scheduleTimeLabel || !scheduleCalendarGrid || !scheduleMonthLabel || !scheduleTimeMenu) return;
+          const picker = ensureSchedulePickerState();
+          const selectedDate = parseDateKey(picker.selectedDate);
+          const visibleMonth = parseMonthKey(picker.visibleMonth);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          scheduleDateLabel.textContent = formatButtonDateLabel(picker.selectedDate);
+          scheduleTimeLabel.textContent = formatTimeValue(picker.selectedTime);
+          scheduleMonthLabel.textContent = visibleMonth.toLocaleDateString([], { month: "long", year: "numeric" });
+          scheduleCalendar.classList.toggle("hidden", !picker.calendarOpen);
+          scheduleTimeMenu.classList.toggle("hidden", !picker.timeMenuOpen);
+
+          scheduleCalendarGrid.innerHTML = "";
+          const firstVisibleDay = new Date(visibleMonth);
+          firstVisibleDay.setDate(1 - visibleMonth.getDay());
+
+          for (let index = 0; index < 42; index += 1) {
+            const day = new Date(firstVisibleDay);
+            day.setDate(firstVisibleDay.getDate() + index);
+            const dayKey = getDateKey(day);
+            const inMonth = day.getMonth() === visibleMonth.getMonth();
+            const isSelected = dayKey === picker.selectedDate;
+            const isPast = day < today;
+            const cell = document.createElement("button");
+            cell.type = "button";
+            cell.textContent = String(day.getDate());
+            cell.disabled = isPast;
+            cell.className = [
+              "flex h-12 items-center justify-center rounded-lg border text-[15px] transition-colors",
+              inMonth ? "border-gray-200 bg-white" : "border-transparent bg-transparent text-gray-300",
+              !isPast && !isSelected ? "hover:border-gray-300 hover:bg-gray-50" : "",
+              isSelected ? "border-[#1264a3] bg-[#1264a3] text-white shadow-sm" : "",
+              isPast ? "cursor-not-allowed text-gray-300 opacity-60" : "",
+            ].join(" ").trim();
+            cell.onclick = () => {
+              picker.selectedDate = dayKey;
+              picker.visibleMonth = getMonthKey(day);
+              picker.calendarOpen = false;
+              renderSchedulePicker();
+            };
+            scheduleCalendarGrid.appendChild(cell);
+          }
+
+          const timeSlots = buildTimeSlots();
+          scheduleTimeMenu.innerHTML = "";
+          let activeTimeButton = null;
+          timeSlots.forEach((slot) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = `flex w-full items-center justify-between px-4 py-2 text-left text-[16px] ${slot === picker.selectedTime ? "bg-[#1264a3] text-white" : "text-gray-800 hover:bg-gray-50"}`;
+            button.innerHTML = `
+              <span>${formatTimeValue(slot)}</span>
+              <span class="${slot === picker.selectedTime ? "opacity-100" : "opacity-0"}">&#10003;</span>
+            `;
+            button.onclick = () => {
+              picker.selectedTime = slot;
+              picker.timeMenuOpen = false;
+              renderSchedulePicker();
+            };
+            if (slot === picker.selectedTime) {
+              activeTimeButton = button;
+            }
+            scheduleTimeMenu.appendChild(button);
+          });
+
+          if (picker.timeMenuOpen && activeTimeButton) {
+            requestAnimationFrame(() => {
+              activeTimeButton.scrollIntoView({ block: "nearest" });
+            });
+          }
+        }
+
+        function setEditMode(enabled) {
+          uiState.editMode = enabled;
+          uiState.selectedKeys = [];
+          rerender();
+        }
+
+        function closeScheduleModal() {
+          if (!scheduleModal) return;
+          uiState.scheduleTargetDraftId = null;
+          closeSchedulePickers();
+          scheduleModal.classList.add("hidden");
+          scheduleModal.classList.remove("flex");
+        }
+
+        function openScheduleModal(draftId) {
+          if (!scheduleModal) return;
+          uiState.scheduleTargetDraftId = draftId;
+          const picker = ensureSchedulePickerState();
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          picker.selectedDate = getDateKey(today);
+          picker.visibleMonth = getMonthKey(today);
+          picker.selectedTime = "17:00";
+          picker.calendarOpen = false;
+          picker.timeMenuOpen = false;
+          scheduleModal.classList.remove("hidden");
+          scheduleModal.classList.add("flex");
+          renderSchedulePicker();
+        }
+
+        function updateTabStyles(tab) {
+          draftsTab.classList.toggle("border-b-2", tab === "drafts");
+          draftsTab.classList.toggle("border-gray-900", tab === "drafts");
+          draftsTab.classList.toggle("text-gray-900", tab === "drafts");
+          scheduledTab.classList.toggle("border-b-2", tab === "scheduled");
+          scheduledTab.classList.toggle("border-gray-900", tab === "scheduled");
+          scheduledTab.classList.toggle("text-gray-900", tab === "scheduled");
+          sentTab.classList.toggle("border-b-2", tab === "sent");
+          sentTab.classList.toggle("border-gray-900", tab === "sent");
+          sentTab.classList.toggle("text-gray-900", tab === "sent");
+        }
+
+        function syncBulkControls(items) {
+          if (!selectAllRow || !selectAllCheckbox || !selectAllLabel) return;
+          const keys = items.map((item) => getItemKey(item));
+          const selected = new Set(uiState.selectedKeys);
+          const selectedCount = keys.filter((key) => selected.has(key)).length;
+          if (uiState.editMode) {
+            selectAllRow.classList.remove("hidden");
+            selectAllRow.classList.add("flex");
+          } else {
+            selectAllRow.classList.add("hidden");
+            selectAllRow.classList.remove("flex");
+          }
+          selectAllCheckbox.checked = keys.length > 0 && selectedCount === keys.length;
+          selectAllCheckbox.indeterminate = selectedCount > 0 && selectedCount < keys.length;
+          selectAllLabel.textContent = "Select all";
+          if (deleteButton) {
+            deleteButton.disabled = selectedCount === 0;
+            deleteButton.textContent = selectedCount > 0 ? `Delete ${selectedCount}` : "Delete";
+          }
+          if (editButton) {
+            editButton.classList.toggle("hidden", uiState.editMode);
+          }
+          if (doneButton) {
+            doneButton.classList.toggle("hidden", !uiState.editMode);
+          }
+          if (deleteButton) {
+            deleteButton.classList.toggle("hidden", !uiState.editMode);
+          }
+        }
+
+        async function handleDraftSend(item) {
+          try {
+            await sendDraftToChannel(item);
+            removeDraft(item.id);
+            addSentItem({
+              channelId: item.channelId,
+              channelName: item.channelName,
+              channelUrl: item.channelUrl || `/channel/${item.channelId}`,
+              kind: item.kind || "channel",
+              text: item.text,
+              sentAt: new Date().toISOString(),
+            });
+            showDraftToast(`Sent to #${item.channelName || "channel"}`);
+          } catch (error) {
+            showDraftToast("Failed to send draft");
+          }
+        }
+
+        function createSelectionInput(key) {
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.checked = uiState.selectedKeys.includes(key);
+          input.className = "h-4 w-4 rounded border-gray-300 text-[#6d4b74] focus:ring-[#6d4b74]";
+          input.addEventListener("click", (event) => event.stopPropagation());
+          input.addEventListener("change", () => {
+            const selected = new Set(uiState.selectedKeys);
+            if (input.checked) {
+              selected.add(key);
+            } else {
+              selected.delete(key);
+            }
+            uiState.selectedKeys = Array.from(selected);
+            rerender();
+          });
+          return input;
+        }
+
+        function createRowElement(item, tab) {
+          const key = tab === "scheduled"
+            ? getScheduledItemKey(item)
+            : tab === "sent"
+              ? getSentItemKey(item)
+              : getDraftItemKey(item);
+          const wrapper = document.createElement("div");
+          wrapper.className = uiState.editMode ? "flex items-center gap-3" : "group";
+
+          if (uiState.editMode) {
+            wrapper.appendChild(createSelectionInput(key));
+          }
+
+          const row = document.createElement(uiState.editMode ? "div" : "a");
+          if (!uiState.editMode) {
+            row.href = item.channelUrl || `/channel/${item.channelId}`;
+          }
+          row.className = `relative block flex-1 rounded-[18px] border border-gray-200 bg-white px-4 py-4 shadow-sm ${uiState.editMode ? "" : "hover:border-gray-300 hover:bg-gray-50"}`;
+
+          const timeLabel = tab === "scheduled"
+            ? formatDraftTime(item.scheduledFor)
+            : formatDraftTime(item.updatedAt || item.sentAt);
+          const subLabel = tab === "scheduled"
+            ? `Scheduled for ${formatScheduledLabel(item.scheduledFor)}`
+            : escapeHtml(item.text || "");
+
+          row.innerHTML = `
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex min-w-0 gap-3">
+                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gray-100">${getConversationBadgeHtml(item)}</div>
+                <div class="min-w-0">
+                  <div class="truncate text-[15px] font-semibold text-gray-900">${escapeHtml(getConversationTitle(item))}</div>
+                  <div class="mt-1 whitespace-pre-wrap break-words text-[14px] text-gray-700">${subLabel}</div>
+                </div>
+              </div>
+              <div class="flex-shrink-0 pl-3 text-[13px] text-gray-500">${timeLabel}</div>
+            </div>
+          `;
+
+          if (tab === "drafts" && !uiState.editMode) {
+            const actionTray = document.createElement("div");
+            actionTray.className = "absolute right-4 top-1/2 hidden -translate-y-1/2 items-center overflow-hidden rounded-xl border border-gray-200 bg-white shadow-md group-hover:flex";
+
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "p-3 text-gray-500 hover:bg-gray-50 hover:text-gray-700";
+            deleteButton.innerHTML = `
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            `;
+            deleteButton.addEventListener("click", (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              removeDraft(item.id);
+              showDraftToast("Draft deleted");
+            });
+
+            const editAction = document.createElement("button");
+            editAction.type = "button";
+            editAction.className = "border-l border-gray-200 p-3 text-gray-500 hover:bg-gray-50 hover:text-gray-700";
+            editAction.innerHTML = `
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            `;
+            editAction.addEventListener("click", (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              const targetUrl = new URL(item.channelUrl || `/channel/${item.channelId}`, window.location.origin);
+              targetUrl.searchParams.set("draft_id", item.id);
+              targetUrl.searchParams.set("draft_action", "edit");
+              window.location.href = targetUrl.toString();
+            });
+
+            const scheduleAction = document.createElement("button");
+            scheduleAction.type = "button";
+            scheduleAction.className = "border-l border-gray-200 p-3 text-gray-500 hover:bg-gray-50 hover:text-gray-700";
+            scheduleAction.innerHTML = `
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            `;
+            scheduleAction.addEventListener("click", (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              openScheduleModal(item.id);
+            });
+
+            const sendAction = document.createElement("button");
+            sendAction.type = "button";
+            sendAction.className = "border-l border-gray-200 p-3 text-gray-500 hover:bg-gray-50 hover:text-gray-700";
+            sendAction.innerHTML = `
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 12h12m0 0l-4-4m4 4l-4 4"/>
+              </svg>
+            `;
+            sendAction.addEventListener("click", async (event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              await handleDraftSend(item);
+            });
+
+            actionTray.append(deleteButton, editAction, scheduleAction, sendAction);
+            row.appendChild(actionTray);
+          }
+
+          wrapper.appendChild(row);
+          return wrapper;
+        }
+
+        function renderSentGroups(items) {
+          list.className = "space-y-6";
+          const groups = new Map();
+          const sortedItems = items.slice().sort((left, right) => new Date(right.sentAt || 0) - new Date(left.sentAt || 0));
+
+          for (const item of sortedItems) {
+            const label = formatSentDayLabel(item.sentAt);
+            if (!groups.has(label)) {
+              groups.set(label, []);
+            }
+            groups.get(label).push(item);
+          }
+
+          for (const [label, groupItems] of groups.entries()) {
+            const section = document.createElement("section");
+            const heading = document.createElement("h3");
+            heading.className = "px-4 text-[15px] font-semibold text-gray-800";
+            heading.textContent = label;
+            section.appendChild(heading);
+
+            const box = document.createElement("div");
+            box.className = "mt-3 overflow-hidden rounded-[18px] border border-gray-200 bg-white shadow-sm";
+
+            groupItems.forEach((item, index) => {
+              const row = document.createElement(uiState.editMode ? "div" : "a");
+              if (!uiState.editMode) {
+                row.href = item.channelUrl || `/channel/${item.channelId}`;
+              }
+              row.className = `flex items-start gap-3 px-4 py-4 ${index < groupItems.length - 1 ? "border-b border-gray-100" : ""} ${uiState.editMode ? "" : "hover:bg-gray-50"}`;
+
+              if (uiState.editMode) {
+                row.prepend(createSelectionInput(getSentItemKey(item)));
+              }
+
+              const content = document.createElement("div");
+              content.className = "flex min-w-0 flex-1 items-start justify-between gap-4";
+              content.innerHTML = `
+                <div class="flex min-w-0 gap-3">
+                  <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-gray-100">${getConversationBadgeHtml(item)}</div>
+                  <div class="min-w-0">
+                    <div class="truncate text-[15px] font-semibold text-gray-900">${escapeHtml(getConversationTitle(item))}</div>
+                    <div class="mt-1 whitespace-pre-wrap break-words text-[14px] text-gray-700">${escapeHtml(item.text || "")}</div>
+                  </div>
+                </div>
+                <div class="flex-shrink-0 pl-3 text-[13px] text-gray-500">${formatDraftTime(item.sentAt)}</div>
+              </div>
+              `;
+              row.appendChild(content);
+              box.appendChild(row);
+            });
+
+            section.appendChild(box);
+            list.appendChild(section);
+          }
+        }
+
+        function renderFlatItems(items, tab) {
+          list.className = "space-y-3";
+          items.forEach((item) => {
+            list.appendChild(createRowElement(item, tab));
+          });
+        }
+
+        function renderActiveTab(tab) {
+          activeTab = tab;
+          page.dataset.activeTab = tab;
+          updateTabStyles(tab);
+
+          const items = currentItems();
+          syncBulkControls(items);
+          list.innerHTML = "";
+
+          let emptyText = "No drafts yet.";
+          if (tab === "scheduled") {
+            emptyText = "No scheduled messages.";
+          } else if (tab === "sent") {
+            emptyText = "No sent messages yet.";
+          }
+
+          if (items.length === 0) {
+            empty.textContent = emptyText;
+            empty.classList.remove("hidden");
+            return;
+          }
+
+          empty.classList.add("hidden");
+          if (tab === "sent") {
+            renderSentGroups(items);
+            return;
+          }
+          renderFlatItems(items, tab);
+        }
+
+        draftsTab.onclick = () => renderActiveTab("drafts");
+        scheduledTab.onclick = () => renderActiveTab("scheduled");
+        sentTab.onclick = () => renderActiveTab("sent");
+
+        if (editButton) {
+          editButton.onclick = () => setEditMode(true);
+        }
+        if (doneButton) {
+          doneButton.onclick = () => setEditMode(false);
+        }
+        if (deleteButton) {
+          deleteButton.onclick = () => {
+            const selected = new Set(uiState.selectedKeys);
+            if (!selected.size) return;
+            if (activeTab === "drafts") {
+              setDrafts(drafts.filter((item) => !selected.has(getDraftItemKey(item))));
+              renderDraftsBadge();
+            } else if (activeTab === "scheduled") {
+              setScheduledItems(scheduled.filter((item) => !selected.has(getScheduledItemKey(item))));
+            } else {
+              setSentItems(sent.filter((item) => !selected.has(getSentItemKey(item))));
+            }
+            uiState.selectedKeys = [];
+            rerender();
+          };
+        }
+        if (selectAllCheckbox) {
+          selectAllCheckbox.onchange = () => {
+            const items = currentItems();
+            if (selectAllCheckbox.checked) {
+              uiState.selectedKeys = items.map((item) => getItemKey(item));
+            } else {
+              uiState.selectedKeys = [];
+            }
+            rerender();
+          };
+        }
+        if (scheduleClose) {
+          scheduleClose.onclick = closeScheduleModal;
+        }
+        if (scheduleCancel) {
+          scheduleCancel.onclick = closeScheduleModal;
+        }
+        if (scheduleDateButton) {
+          scheduleDateButton.onclick = () => {
+            const picker = ensureSchedulePickerState();
+            picker.calendarOpen = !picker.calendarOpen;
+            picker.timeMenuOpen = false;
+            renderSchedulePicker();
+          };
+        }
+        if (scheduleTimeButton) {
+          scheduleTimeButton.onclick = () => {
+            const picker = ensureSchedulePickerState();
+            picker.timeMenuOpen = !picker.timeMenuOpen;
+            picker.calendarOpen = false;
+            renderSchedulePicker();
+          };
+        }
+        if (scheduleMonthPrev) {
+          scheduleMonthPrev.onclick = () => {
+            const picker = ensureSchedulePickerState();
+            const visibleMonth = parseMonthKey(picker.visibleMonth);
+            visibleMonth.setMonth(visibleMonth.getMonth() - 1);
+            picker.visibleMonth = getMonthKey(visibleMonth);
+            renderSchedulePicker();
+          };
+        }
+        if (scheduleMonthNext) {
+          scheduleMonthNext.onclick = () => {
+            const picker = ensureSchedulePickerState();
+            const visibleMonth = parseMonthKey(picker.visibleMonth);
+            visibleMonth.setMonth(visibleMonth.getMonth() + 1);
+            picker.visibleMonth = getMonthKey(visibleMonth);
+            renderSchedulePicker();
+          };
+        }
+        if (scheduleMonthPrevYear) {
+          scheduleMonthPrevYear.onclick = () => {
+            const picker = ensureSchedulePickerState();
+            const visibleMonth = parseMonthKey(picker.visibleMonth);
+            visibleMonth.setFullYear(visibleMonth.getFullYear() - 1);
+            picker.visibleMonth = getMonthKey(visibleMonth);
+            renderSchedulePicker();
+          };
+        }
+        if (scheduleMonthNextYear) {
+          scheduleMonthNextYear.onclick = () => {
+            const picker = ensureSchedulePickerState();
+            const visibleMonth = parseMonthKey(picker.visibleMonth);
+            visibleMonth.setFullYear(visibleMonth.getFullYear() + 1);
+            picker.visibleMonth = getMonthKey(visibleMonth);
+            renderSchedulePicker();
+          };
+        }
+        if (scheduleModal) {
+          scheduleModal.onclick = (event) => {
+            if (event.target === scheduleModal) {
+              closeScheduleModal();
+              return;
+            }
+            if (
+              scheduleCalendar &&
+              scheduleDateButton &&
+              !scheduleCalendar.contains(event.target) &&
+              !scheduleDateButton.contains(event.target)
+            ) {
+              ensureSchedulePickerState().calendarOpen = false;
+            }
+            if (
+              scheduleTimeMenu &&
+              scheduleTimeButton &&
+              !scheduleTimeMenu.contains(event.target) &&
+              !scheduleTimeButton.contains(event.target)
+            ) {
+              ensureSchedulePickerState().timeMenuOpen = false;
+            }
+            renderSchedulePicker();
+          };
+        }
+        if (scheduleForm) {
+          scheduleForm.onsubmit = (event) => {
+            event.preventDefault();
+            const draft = window.getDraftById
+              ? window.getDraftById(uiState.scheduleTargetDraftId)
+              : null;
+            if (!draft) {
+              closeScheduleModal();
+              return;
+            }
+            const picker = ensureSchedulePickerState();
+            const scheduledDate = parseDateKey(picker.selectedDate);
+            const [hours, minutes] = (picker.selectedTime || "17:00").split(":").map((value) => parseInt(value, 10));
+            scheduledDate.setHours(hours, minutes, 0, 0);
+            addScheduledItem({
+              channelId: draft.channelId,
+              channelName: draft.channelName,
+              channelUrl: draft.channelUrl || `/channel/${draft.channelId}`,
+              kind: draft.kind || "channel",
+              text: draft.text,
+              scheduledFor: scheduledDate.toISOString(),
+              updatedAt: new Date().toISOString(),
+            });
+            removeDraft(draft.id);
+            closeScheduleModal();
+            page.dataset.activeTab = "scheduled";
+            showDraftToast(`Scheduled for ${formatScheduledLabel(scheduledDate.toISOString())}`);
+            rerender();
+          };
+        }
+
+        renderSchedulePicker();
+        renderActiveTab(activeTab);
+      };
+
+      renderStarredChannels();
+      syncChannelStarButton();
+      renderDraftsBadge();
+      updatePresenceUi(mockSlackCurrentUser.presence);
+      updateStatusUi(mockSlackCurrentUser.statusText, mockSlackCurrentUser.statusEmoji);
+
+      const statusFormElements = getStatusModalElements();
+      if (statusFormElements.form) {
+        statusFormElements.form.addEventListener("submit", async function (event) {
+          event.preventDefault();
+          const { emojiInput, textInput, submitButton } = getStatusModalElements();
+          const statusEmoji = emojiInput ? emojiInput.value.trim() : "";
+          const statusText = textInput ? textInput.value.trim() : "";
+
+          if (!mockSlackCurrentUser.id) {
+            setStatusFormError("Current user is unavailable.");
+            return;
+          }
+
+          setStatusFormError("");
+          if (submitButton) {
+            submitButton.disabled = true;
+            submitButton.textContent = "Saving...";
+          }
+
+          try {
+            const response = await fetch("/api/users.profile.set", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                user: mockSlackCurrentUser.id,
+                profile: {
+                  status_text: statusText,
+                  status_emoji: statusEmoji,
+                },
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error(`status update failed (${response.status})`);
+            }
+
+            updateStatusUi(statusText, statusEmoji);
+            closeStatusModal();
+          } catch (error) {
+            console.error(error);
+            setStatusFormError("Could not update your status.");
+          } finally {
+            if (submitButton) {
+              submitButton.disabled = false;
+              submitButton.textContent = "Save";
+            }
+          }
+        });
+      }
+
+      window.addEventListener("storage", () => {
+        renderDraftsBadge();
+        renderStarredChannels();
+        syncChannelStarButton();
+        if (window.renderDraftsView) window.renderDraftsView();
+      });
+
+      document.addEventListener("keydown", function (event) {
+        if (event.key !== "Escape") return;
+        closeSlackReactionPickers();
+        closeDeleteMessageModal();
+        const statusModal = document.getElementById("status-modal");
+        if (statusModal && !statusModal.classList.contains("hidden")) {
+          closeStatusModal();
+        }
+      });
+
+      document.body.addEventListener("click", function (e) {
+        if (!e.target.closest(".emoji-picker") && !e.target.closest("[data-emoji-picker-toggle]")) {
+          closeSlackReactionPickers();
+        }
+        // Close menus if clicking outside
+        const pm = document.getElementById("profile-menu");
+        const plu = document.getElementById("plus-menu");
+        if (
+          pm &&
+          !pm.classList.contains("hidden") &&
+          !pm.parentElement.contains(e.target)
+        ) {
+          pm.classList.add("hidden");
+        }
+        if (
+          plu &&
+          !plu.classList.contains("hidden") &&
+          !plu.parentElement.contains(e.target)
+        ) {
+          plu.classList.add("hidden");
+        }
+      });
+    </script>
+
+  <!-- Create Channel Modal -->
+  <div id="create-channel-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeCreateChannelModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6">
+
+      <!-- Step 1 -->
+      <div id="create-channel-step1">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="text-xl font-bold text-gray-900">Create a channel</h2>
+          <button onclick="closeCreateChannelModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="mb-5">
+          <label class="block text-sm font-semibold text-gray-900 mb-1.5">Name</label>
+          <div class="relative">
+            <div id="channel-name-border" class="flex items-center border border-blue-500 rounded-md overflow-visible ring-1 ring-blue-500">
+              <span class="pl-3 pr-1 text-gray-500 font-medium text-sm">#</span>
+              <input id="channel-name-input" type="text" maxlength="80" placeholder="e.g. plan-budget"
+                class="flex-1 py-2.5 pr-3 text-sm outline-none bg-transparent"
+                oninput="updateChannelNameCount(this); clearChannelNameError()"
+                onkeydown="if(event.key==='Enter') advanceToChannelStep2()" />
+              <span id="channel-name-count" class="pr-3 text-xs text-gray-400">80</span>
+            </div>
+            <p id="channel-name-error" class="hidden mt-1.5 text-xs text-red-600 flex items-start gap-1">
+              <svg class="w-3.5 h-3.5 mt-0.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10" stroke-width="2"/><path stroke-linecap="round" stroke-width="2" d="M12 8v4m0 4h.01"/></svg>
+              <span id="channel-name-error-text"></span>
+            </p>
+            <!-- Suggestions dropdown -->
+            <div id="channel-suggestions" class="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 hidden">
+              <div class="px-3 py-2 text-xs text-gray-500 hover:bg-gray-50 cursor-pointer" onclick="applyChannelSuggestion('help')">
+                <span class="font-medium text-gray-800">help</span> - For questions, assistance, and resources on a topic
+              </div>
+              <div class="px-3 py-2 text-xs text-gray-500 hover:bg-gray-50 cursor-pointer" onclick="applyChannelSuggestion('proj')">
+                <span class="font-medium text-gray-800">proj</span> - For collaboration on and discussion about a project
+              </div>
+              <div class="px-3 py-2 text-xs text-gray-500 hover:bg-gray-50 cursor-pointer" onclick="applyChannelSuggestion('team')">
+                <span class="font-medium text-gray-800">team</span> - For updates and work from a department or team
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+          <span class="text-sm text-gray-500">Step 1 of 2</span>
+          <button onclick="advanceToChannelStep2()"
+            class="px-5 py-2 bg-gray-200 text-gray-500 rounded-md text-sm font-semibold hover:bg-[#4A154B] hover:text-white transition-colors"
+            id="create-channel-next-btn">
+            Next
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div id="create-channel-step2" class="hidden">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-xl font-bold text-gray-900">Create a channel</h2>
+          <button onclick="closeCreateChannelModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <p id="channel-step2-name" class="text-sm text-gray-500 mb-5"></p>
+        <div class="mb-6">
+          <p class="text-sm font-semibold text-gray-900 mb-3">Visibility</p>
+          <label class="flex items-center gap-3 mb-2 cursor-pointer">
+            <input type="radio" name="channel-visibility" value="public" checked
+              class="w-4 h-4 accent-[#4A154B]" />
+            <span class="text-sm text-gray-900">Public — anyone in <strong>mock-slack</strong></span>
+          </label>
+          <label class="flex items-start gap-3 cursor-pointer">
+            <input type="radio" name="channel-visibility" value="private"
+              class="w-4 h-4 mt-0.5 accent-[#4A154B]" />
+            <span>
+              <span class="text-sm text-gray-900">Private — only specific people</span><br/>
+              <span class="text-xs text-gray-500">Can only be viewed or joined by invitation</span>
+            </span>
+          </label>
+        </div>
+        <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+          <span class="text-sm text-gray-500">Step 2 of 2</span>
+          <div class="flex gap-2">
+            <button onclick="backToChannelStep1()"
+              class="px-4 py-2 border border-gray-300 rounded-md text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+              Back
+            </button>
+            <button onclick="submitCreateChannel()"
+              class="px-5 py-2 bg-[#4A154B] text-white rounded-md text-sm font-semibold hover:bg-[#611f69] transition-colors">
+              Create
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Add People to Channel Modal -->
+  <div id="add-people-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="skipAddPeople()"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+      <div class="p-6 pb-4">
+        <div class="flex items-center justify-between mb-1">
+          <h2 class="text-lg font-bold text-gray-900" id="add-people-title">Add people to # channel</h2>
+          <button onclick="skipAddPeople()" class="text-gray-400 hover:text-gray-600 p-1 rounded">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <p class="text-sm text-gray-500 mb-4" id="add-people-subtitle"># channel</p>
+        <!-- Search / chips input -->
+        <div id="add-people-input-wrap"
+          class="flex flex-wrap items-center gap-1.5 min-h-[44px] border border-blue-500 ring-1 ring-blue-500 rounded-md px-3 py-2 cursor-text"
+          onclick="document.getElementById('add-people-search').focus()">
+          <!-- chips rendered here by JS -->
+          <input id="add-people-search" type="text" placeholder="ex. Nathalie, or james@acme.com"
+            class="flex-1 min-w-[160px] text-sm outline-none bg-transparent"
+            oninput="filterAddPeopleUsers(this.value)"
+            onkeydown="handleAddPeopleKey(event)" />
+        </div>
+        <!-- Dropdown suggestions -->
+        <div id="add-people-dropdown" class="hidden mt-1 border border-gray-200 rounded-md shadow-lg bg-white max-h-48 overflow-y-auto z-10 relative"></div>
+        <!-- Action button -->
+        <div class="flex justify-end mt-4">
+          <button id="add-people-btn" onclick="submitAddPeople()"
+            class="px-5 py-2 border border-gray-300 rounded-md text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+            Skip for now
+          </button>
+        </div>
+      </div>
+      <!-- Footer tip -->
+      <div class="bg-gray-50 border-t border-gray-100 px-6 py-3 flex items-start gap-2.5">
+        <span class="text-base mt-0.5">💡</span>
+        <p class="text-xs text-gray-600">
+          <strong>Working with external people?</strong> Use Slack Connect to invite them to a specific channel — it's free for them to join. Simply type their email above.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invite People Modal -->
+  <div id="invite-people-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/50" onclick="closeInvitePeopleModal()"></div>
+    <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden">
+
+      <!-- Step 1: Form -->
+      <div id="invite-form-view" class="p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h2 class="text-xl font-bold text-gray-900">Invite people to mock-slack</h2>
+          <button onclick="closeInvitePeopleModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <!-- Send to -->
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-sm font-semibold text-gray-900">Send to</label>
+            <span class="text-xs text-gray-500">Or add from: <span class="font-medium text-gray-700">Google Workspace</span></span>
+          </div>
+          <textarea id="invite-email-input" rows="3" placeholder="name@andrew.cmu.edu"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
+        </div>
+        <!-- Invite as -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-900 mb-1.5">Invite as</label>
+          <div class="relative">
+            <select id="invite-role-select" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm appearance-none bg-white outline-none focus:ring-1 focus:ring-blue-500">
+              <option>Member</option>
+              <option>Guest</option>
+              <option>Coworker</option>
+            </select>
+            <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+          </div>
+        </div>
+        <!-- Add to team channels -->
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-900 mb-0.5">Add to team channels <span class="font-normal text-gray-400">(optional)</span></label>
+          <p class="text-xs text-gray-500 mb-1.5">Make sure your teammates are in the right conversations from the get go.</p>
+          <input type="text" placeholder="Search channels"
+            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500" />
+        </div>
+        <!-- Add a message -->
+        <div id="invite-add-message-row" class="mb-5 border border-gray-200 rounded-md px-3 py-2 flex items-center gap-2 text-sm text-gray-500 cursor-pointer hover:bg-gray-50"
+          onclick="expandInviteMessage()">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+          Add a message
+        </div>
+        <!-- Actions -->
+        <div class="flex justify-end">
+          <button onclick="submitInvitePeople()"
+            class="px-5 py-2 bg-[#4A154B] text-white rounded-md text-sm font-semibold hover:bg-[#611f69] transition-colors">
+            Send
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Success -->
+      <div id="invite-success-view" class="hidden">
+        <!-- Hero illustration -->
+        <div class="bg-[#F5F0EB] flex items-center justify-center relative" style="height:220px;">
+          <button onclick="closeInvitePeopleModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 p-1 rounded z-10">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+          <!-- Simple SVG illustration of people collaborating -->
+          <svg viewBox="0 0 320 200" class="w-72 h-44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Screen/monitor -->
+            <rect x="100" y="30" width="160" height="110" rx="8" fill="#3D1A4B" opacity="0.9"/>
+            <rect x="108" y="40" width="144" height="90" rx="4" fill="#5B2D80"/>
+            <!-- List items on screen -->
+            <rect x="130" y="55" width="16" height="16" rx="8" fill="#7EC8A4"/>
+            <rect x="152" y="60" width="80" height="6" rx="3" fill="white" opacity="0.6"/>
+            <rect x="130" y="79" width="16" height="16" rx="8" fill="#E8A87C"/>
+            <rect x="152" y="84" width="60" height="6" rx="3" fill="white" opacity="0.6"/>
+            <rect x="130" y="103" width="16" height="16" rx="8" fill="#7EC8A4"/>
+            <rect x="152" y="108" width="70" height="6" rx="3" fill="white" opacity="0.6"/>
+            <!-- Person left -->
+            <circle cx="82" cy="85" r="20" fill="#7EC8A4" opacity="0.3"/>
+            <circle cx="82" cy="70" r="14" fill="#C8A882"/>
+            <rect x="66" y="90" width="32" height="40" rx="8" fill="#4A90D9"/>
+            <!-- Person right -->
+            <circle cx="258" cy="85" r="20" fill="#E8C4A0" opacity="0.3"/>
+            <circle cx="258" cy="70" r="14" fill="#F5CBA7"/>
+            <rect x="242" y="90" width="32" height="40" rx="8" fill="#E8C4A0"/>
+            <!-- Person center/front -->
+            <circle cx="168" cy="145" r="18" fill="#8B6914" opacity="0.2"/>
+            <circle cx="168" cy="128" r="16" fill="#5D4037"/>
+            <rect x="148" y="150" width="40" height="45" rx="8" fill="#4CAF50"/>
+          </svg>
+        </div>
+        <!-- Content -->
+        <div class="p-6">
+          <h2 class="text-xl font-bold text-gray-900 mb-4" id="invite-success-title">You've invited 1 person</h2>
+          <!-- Invited row -->
+          <div class="flex items-center justify-between py-3 border-b border-gray-100 mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              </div>
+              <div>
+                <div id="invite-success-email" class="text-sm font-medium text-gray-900"></div>
+                <div class="text-xs text-gray-500">Expires in 31 days</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 text-xs text-gray-500">
+              <span id="invite-success-role">Invited as a member</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+          </div>
+          <!-- Message preview -->
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-900 mb-1.5">Message</label>
+            <div id="invite-success-message" class="w-full border border-gray-200 rounded-md px-3 py-2.5 text-sm text-gray-600 bg-gray-50 min-h-[48px]"></div>
+          </div>
+          <!-- Actions -->
+          <div class="flex items-center justify-end gap-3">
+            <button onclick="openInviteMorePeople()"
+              class="px-4 py-2 border border-gray-300 rounded-md text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+              Invite More People
+            </button>
+            <button onclick="closeInvitePeopleModal()"
+              class="px-4 py-2 bg-[#4A154B] text-white rounded-md text-sm font-semibold hover:bg-[#611f69] transition-colors">
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function showChannelNameError(msg) {
+      const border = document.getElementById('channel-name-border');
+      const err = document.getElementById('channel-name-error');
+      const errText = document.getElementById('channel-name-error-text');
+      border.classList.remove('border-blue-500', 'ring-blue-500');
+      border.classList.add('border-red-500', 'ring-red-500');
+      errText.textContent = msg;
+      err.classList.remove('hidden');
+    }
+    function clearChannelNameError() {
+      const border = document.getElementById('channel-name-border');
+      const err = document.getElementById('channel-name-error');
+      border.classList.remove('border-red-500', 'ring-red-500');
+      border.classList.add('border-blue-500', 'ring-blue-500');
+      err.classList.add('hidden');
+    }
+    function openCreateChannelModal() {
+      document.getElementById('create-channel-modal').classList.remove('hidden');
+      document.getElementById('create-channel-step1').classList.remove('hidden');
+      document.getElementById('create-channel-step2').classList.add('hidden');
+      document.getElementById('channel-name-input').value = '';
+      document.getElementById('channel-name-count').textContent = '80';
+      document.getElementById('channel-suggestions').classList.add('hidden');
+      clearChannelNameError();
+      setTimeout(() => document.getElementById('channel-name-input').focus(), 50);
+    }
+    function closeCreateChannelModal() {
+      document.getElementById('create-channel-modal').classList.add('hidden');
+    }
+    function updateChannelNameCount(input) {
+      const remaining = 80 - input.value.length;
+      document.getElementById('channel-name-count').textContent = remaining;
+      const sugg = document.getElementById('channel-suggestions');
+      sugg.classList.toggle('hidden', input.value.length > 0);
+    }
+    function applyChannelSuggestion(prefix) {
+      const input = document.getElementById('channel-name-input');
+      input.value = prefix + '-';
+      updateChannelNameCount(input);
+      input.focus();
+    }
+    function advanceToChannelStep2() {
+      const name = document.getElementById('channel-name-input').value.trim();
+      if (!name) return;
+      document.getElementById('channel-step2-name').textContent = '# ' + name;
+      document.getElementById('create-channel-step1').classList.add('hidden');
+      document.getElementById('create-channel-step2').classList.remove('hidden');
+    }
+    function backToChannelStep1() {
+      document.getElementById('create-channel-step2').classList.add('hidden');
+      document.getElementById('create-channel-step1').classList.remove('hidden');
+      setTimeout(() => document.getElementById('channel-name-input').focus(), 50);
+    }
+    const _currentUserId = "{{ user.id if user else '' }}";
+    let _newChannelId = null;
+    let _newChannelName = '';
+    let _newChannelPrivate = false;
+    let _addPeopleUsers = []; // all workspace users
+    let _selectedPeople = []; // {id, name, avatar}
+
+    async function submitCreateChannel() {
+      const name = document.getElementById('channel-name-input').value.trim();
+      if (!name) return;
+      const isPrivate = document.querySelector('input[name="channel-visibility"]:checked').value === 'private';
+      try {
+        const res = await fetch('/api/conversations.create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, is_private: isPrivate })
+        });
+        const data = await res.json();
+        if (data.ok) {
+          _newChannelId = data.channel.id;
+          _newChannelName = name;
+          _newChannelPrivate = isPrivate;
+          closeCreateChannelModal();
+          openAddPeopleModal(data.channel.id, name, isPrivate);
+        } else if (data.error === 'name_taken') {
+          backToChannelStep1();
+          showChannelNameError('That name is already taken by a channel, username, or user group in mock-slack.');
+        } else {
+          backToChannelStep1();
+          showChannelNameError('Something went wrong. Please try again.');
+        }
+      } catch(e) {
+        alert('Failed to create channel.');
+      }
+    }
+
+    async function openAddPeopleModal(channelId, name, isPrivate) {
+      _newChannelId = channelId;
+      _newChannelName = name;
+      _newChannelPrivate = isPrivate;
+      _selectedPeople = [];
+      const lock = isPrivate ? '🔒 ' : '# ';
+      document.getElementById('add-people-title').textContent = 'Add people to ' + lock + name;
+      document.getElementById('add-people-subtitle').textContent = lock + name;
+      document.getElementById('add-people-search').value = '';
+      document.getElementById('add-people-dropdown').classList.add('hidden');
+      renderAddPeopleChips();
+      document.getElementById('add-people-modal').classList.remove('hidden');
+      // Fetch users for autocomplete
+      try {
+        const r = await fetch('/api/users.list');
+        const d = await r.json();
+        _addPeopleUsers = (d.members || []).filter(u => !u.is_bot && u.id !== 'USLACKBOT' && u.id !== _currentUserId);
+      } catch(e) { _addPeopleUsers = []; }
+      setTimeout(() => document.getElementById('add-people-search').focus(), 50);
+    }
+
+    function renderAddPeopleChips() {
+      const wrap = document.getElementById('add-people-input-wrap');
+      // Remove existing chips
+      wrap.querySelectorAll('.people-chip').forEach(c => c.remove());
+      const input = document.getElementById('add-people-search');
+      _selectedPeople.forEach(p => {
+        const chip = document.createElement('div');
+        chip.className = 'people-chip flex items-center gap-1 bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5 text-xs font-medium text-blue-800';
+        chip.innerHTML = (p.avatar ? `<img src="${p.avatar}" class="w-4 h-4 rounded-md object-cover"/>` : '') +
+          `<span>${p.name}</span>` +
+          `<button onclick="removeAddPerson('${p.id}')" class="ml-0.5 text-blue-400 hover:text-blue-700 leading-none">&times;</button>`;
+        wrap.insertBefore(chip, input);
+      });
+      // Update action button
+      const btn = document.getElementById('add-people-btn');
+      if (_selectedPeople.length > 0) {
+        btn.textContent = 'Add';
+        btn.className = 'px-5 py-2 bg-[#4A154B] text-white rounded-md text-sm font-semibold hover:bg-[#611f69] transition-colors';
+      } else {
+        btn.textContent = 'Skip for now';
+        btn.className = 'px-5 py-2 border border-gray-300 rounded-md text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors';
+      }
+    }
+
+    function filterAddPeopleUsers(query) {
+      const dd = document.getElementById('add-people-dropdown');
+      if (!query.trim()) { dd.classList.add('hidden'); return; }
+      const q = query.toLowerCase();
+      const matches = _addPeopleUsers.filter(u =>
+        u.id !== _currentUserId &&
+        !_selectedPeople.find(s => s.id === u.id) &&
+        ((u.real_name || '').toLowerCase().includes(q) || (u.name || '').toLowerCase().includes(q))
+      ).slice(0, 6);
+      if (!matches.length) { dd.classList.add('hidden'); return; }
+      dd.innerHTML = matches.map(u => `
+        <div onclick="selectAddPerson('${u.id}','${(u.real_name||u.name).replace(/'/g,"\\'")}','${u.profile?.image_48||u.avatar_url||''}')"
+          class="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer text-sm">
+          ${u.profile?.image_48 || u.avatar_url ? `<img src="${u.profile?.image_48||u.avatar_url}" class="w-6 h-6 rounded-md object-cover"/>` : '<div class="w-6 h-6 rounded-md bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">' + (u.real_name||u.name)[0].toUpperCase() + '</div>'}
+          <span class="font-medium">${u.real_name||u.name}</span>
+          <span class="text-gray-400 text-xs">@${u.name}</span>
+        </div>`).join('');
+      dd.classList.remove('hidden');
+    }
+
+    function selectAddPerson(id, name, avatar) {
+      if (!_selectedPeople.find(p => p.id === id)) {
+        _selectedPeople.push({id, name, avatar});
+        renderAddPeopleChips();
+      }
+      document.getElementById('add-people-search').value = '';
+      document.getElementById('add-people-dropdown').classList.add('hidden');
+      document.getElementById('add-people-search').focus();
+    }
+
+    function removeAddPerson(id) {
+      _selectedPeople = _selectedPeople.filter(p => p.id !== id);
+      renderAddPeopleChips();
+    }
+
+    function handleAddPeopleKey(e) {
+      if (e.key === 'Escape') { document.getElementById('add-people-dropdown').classList.add('hidden'); }
+    }
+
+    async function submitAddPeople() {
+      if (_selectedPeople.length === 0) { skipAddPeople(); return; }
+      try {
+        await fetch('/api/conversations.invite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel: _newChannelId, users: _selectedPeople.map(p => p.id).join(',') })
+        });
+      } catch(e) {}
+      document.getElementById('add-people-modal').classList.add('hidden');
+      window.location.href = '/channel/' + _newChannelId + '?new=1';
+    }
+
+    function skipAddPeople() {
+      document.getElementById('add-people-modal').classList.add('hidden');
+      if (_newChannelId) window.location.href = '/channel/' + _newChannelId + '?new=1';
+    }
+    // Show suggestions on focus if empty
+    document.addEventListener('DOMContentLoaded', function() {
+      const inp = document.getElementById('channel-name-input');
+      if (inp) {
+        inp.addEventListener('focus', function() {
+          if (!this.value) document.getElementById('channel-suggestions').classList.remove('hidden');
+        });
+        inp.addEventListener('blur', function() {
+          setTimeout(() => document.getElementById('channel-suggestions').classList.add('hidden'), 150);
+        });
+      }
+    });
+
+    function openInvitePeopleModal() {
+      document.getElementById('invite-people-modal').classList.remove('hidden');
+      document.getElementById('invite-form-view').classList.remove('hidden');
+      document.getElementById('invite-success-view').classList.add('hidden');
+      document.getElementById('invite-email-input').value = '';
+      // Reset add message row
+      const msgRow = document.getElementById('invite-add-message-row');
+      if (msgRow) {
+        msgRow.innerHTML = '<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg> Add a message';
+        msgRow.onclick = expandInviteMessage;
+      }
+      setTimeout(() => document.getElementById('invite-email-input').focus(), 50);
+    }
+    function closeInvitePeopleModal() {
+      document.getElementById('invite-people-modal').classList.add('hidden');
+    }
+    function expandInviteMessage() {
+      const row = document.getElementById('invite-add-message-row');
+      row.innerHTML = '<textarea id="invite-message-text" class="w-full text-sm outline-none resize-none" rows="2" placeholder="Write a message..."></textarea>';
+      row.onclick = null;
+      document.getElementById('invite-message-text').focus();
+    }
+    function submitInvitePeople() {
+      const email = document.getElementById('invite-email-input').value.trim();
+      if (!email) { alert('Please enter an email address.'); return; }
+      const role = document.getElementById('invite-role-select').value;
+      const msgEl = document.getElementById('invite-message-text');
+      const message = msgEl ? msgEl.value.trim() : '';
+
+      // Show success view
+      document.getElementById('invite-form-view').classList.add('hidden');
+      document.getElementById('invite-success-view').classList.remove('hidden');
+      const emails = email.split(/[\n,;]+/).map(e => e.trim()).filter(Boolean);
+      document.getElementById('invite-success-title').textContent = 'You\'ve invited ' + emails.length + ' person' + (emails.length > 1 ? 's' : '');
+      document.getElementById('invite-success-email').textContent = emails[0];
+      document.getElementById('invite-success-role').textContent = 'Invited as a ' + role.toLowerCase();
+      document.getElementById('invite-success-message').textContent = message || 'Join me on mock-slack to collaborate.';
+    }
+    function openInviteMorePeople() {
+      document.getElementById('invite-form-view').classList.remove('hidden');
+      document.getElementById('invite-success-view').classList.add('hidden');
+      document.getElementById('invite-email-input').value = '';
+      setTimeout(() => document.getElementById('invite-email-input').focus(), 50);
+    }
+
+    // ── Profile Panel ─────────────────────────────────────────────────────────
+    function openProfilePanel(userId) {
+      const panel = document.getElementById('profile-panel');
+      panel.classList.remove('hidden');
+      panel.classList.add('flex');
+      htmx.ajax('GET', `/user/${userId}/profile/panel`, {target: '#profile-panel', swap: 'innerHTML'});
+    }
+    function closeProfilePanel() {
+      const panel = document.getElementById('profile-panel');
+      panel.classList.add('hidden');
+      panel.classList.remove('flex');
+      panel.innerHTML = '';
+    }
+
+    // ── Inline Channel Panel ───────────────────────────────────────────────────
+    function loadInlineChannel(channelId, highlightTs) {
+      if (!channelId) return;
+      document.querySelectorAll('.inline-empty-state').forEach(function(el) {
+        el.classList.add('hidden');
+        el.classList.remove('flex');
+      });
+      var url = '/channel/' + channelId + '/inline';
+      if (highlightTs) url += '?highlight=' + highlightTs;
+      var panel = document.getElementById('chat-right-panel');
+      if (!panel) return;
+      fetch(url).then(function(r) { return r.text(); }).then(function(html) {
+        panel.innerHTML = html;
+        if (typeof htmx !== 'undefined') htmx.process(panel);
+      });
+    }
+    function closeInlineChannel() {
+      var panel = document.getElementById('chat-right-panel');
+      if (panel) panel.innerHTML = '';
+      document.querySelectorAll('.inline-empty-state').forEach(function(el) {
+        el.classList.remove('hidden');
+        el.classList.add('flex');
+      });
+    }
+
+    // ── Global search ────────────────────────────────────────────────────────
+    var _searchOpen = false;
+
+    function openSearchDropdown() {
+      _searchOpen = true;
+      document.getElementById('search-dropdown').classList.remove('hidden');
+      renderSearchRecents();
+    }
+
+    function closeSearchDropdown() {
+      _searchOpen = false;
+      document.getElementById('search-dropdown').classList.add('hidden');
+    }
+
+    function onSearchInput() {
+      var val = document.getElementById('global-search-input').value;
+      document.getElementById('search-clear-btn').classList.toggle('hidden', !val);
+    }
+
+    function clearSearch() {
+      var inp = document.getElementById('global-search-input');
+      inp.value = '';
+      inp.focus();
+      document.getElementById('search-clear-btn').classList.add('hidden');
+      renderSearchRecents();
+    }
+
+    function handleSearchKey(e) {
+      if (e.key === 'Enter') {
+        var q = document.getElementById('global-search-input').value.trim();
+        if (!q) return;
+        saveRecentSearch(q);
+        closeSearchDropdown();
+        window.location.href = '/search?q=' + encodeURIComponent(q);
+      } else if (e.key === 'Escape') {
+        closeSearchDropdown();
+        document.getElementById('global-search-input').blur();
+      }
+    }
+
+    function applyRecentSearch(q) {
+      if (!q) return;
+      var input = document.getElementById('global-search-input');
+      if (!input) return;
+      input.value = q;
+      input.defaultValue = q;
+      input.focus();
+      if (typeof input.setSelectionRange === 'function') {
+        input.setSelectionRange(q.length, q.length);
+      }
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    function submitSearchQuery(q) {
+      if (!q) return;
+      saveRecentSearch(q);
+      closeSearchDropdown();
+      window.location.href = '/search?q=' + encodeURIComponent(q);
+    }
+
+    function saveRecentSearch(q) {
+      try {
+        var recents = JSON.parse(localStorage.getItem('slack_search_recents') || '[]');
+        recents = recents.filter(function(r) { return r !== q; });
+        recents.unshift(q);
+        localStorage.setItem('slack_search_recents', JSON.stringify(recents.slice(0, 8)));
+      } catch(e) {}
+    }
+
+    function renderSearchRecents() {
+      var container = document.getElementById('search-recents');
+      if (!container) return;
+      try {
+        var recents = JSON.parse(localStorage.getItem('slack_search_recents') || '[]');
+        if (!recents.length) {
+          container.innerHTML = '<div class="px-4 py-3 text-[13px] text-gray-400">No recent searches</div>';
+          return;
+        }
+        container.innerHTML = '<div class="px-4 pt-2 pb-1 text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Recent searches</div>' +
+          recents.map(function(q) {
+            return '<button type="button" data-recent-search="' + q.replace(/"/g, '&quot;') + '" class="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-50 text-left text-[14px] text-gray-800">' +
+              '<svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>' +
+              '<span>' + q.replace(/</g,'&lt;') + '</span>' +
+              '</button>';
+          }).join('');
+      } catch(e) {}
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!document.getElementById('search-container').contains(e.target)) {
+        closeSearchDropdown();
+      }
+    });
+
+    document.addEventListener('mousedown', function(e) {
+      var button = e.target.closest('[data-recent-search]');
+      if (!button) return;
+      e.preventDefault();
+      e.stopPropagation();
+      applyRecentSearch(button.getAttribute('data-recent-search'));
+    });
+
+    // Pre-fill search input if we're on a search results page
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      var q = params.get('q');
+      if (q && document.getElementById('global-search-input')) {
+        document.getElementById('global-search-input').value = q;
+        document.getElementById('search-clear-btn').classList.remove('hidden');
+      }
+    })();
+
+    function initializeSlackComposers(root) {
+      var scope = root || document;
+      scope.querySelectorAll('[data-slack-composer]').forEach(function(shell) {
+        if (shell.dataset.composerInitialized === 'true') return;
+        shell.dataset.composerInitialized = 'true';
+
+        var textarea = shell.querySelector('[data-composer-input]');
+        var sendButton = shell.querySelector('[data-send-button]');
+        var formatToolbar = shell.querySelector('[data-format-toolbar]');
+        var formatToggle = shell.querySelector('[data-format-toggle]');
+        var form = shell.closest('form');
+        var targetInputId = shell.getAttribute('data-target-input-id');
+        var targetInput = targetInputId ? document.getElementById(targetInputId) : null;
+        if (!textarea) return;
+
+        function resizeComposer() {
+          textarea.style.height = 'auto';
+          textarea.style.height = Math.min(Math.max(textarea.scrollHeight, 22), 220) + 'px';
+        }
+
+        function updateFormatToolbarState() {
+          var composerFormatExpanded = shell.dataset.formatExpanded !== 'false';
+          if (formatToolbar) {
+            formatToolbar.classList.toggle('is-collapsed', !composerFormatExpanded);
+            formatToolbar.setAttribute('aria-hidden', composerFormatExpanded ? 'false' : 'true');
+          }
+          if (formatToggle) {
+            formatToggle.setAttribute('aria-pressed', composerFormatExpanded ? 'true' : 'false');
+            formatToggle.classList.toggle('is-active', composerFormatExpanded);
+          }
+        }
+
+        function updateComposerState() {
+          var basePlaceholder = textarea.dataset.placeholderBase || shell.getAttribute('data-placeholder-base') || 'Write a message';
+          if (targetInput) {
+            var targetValue = targetInput.value.trim();
+            textarea.placeholder = targetValue ? ('Message ' + targetValue) : basePlaceholder;
+          } else {
+            textarea.placeholder = basePlaceholder;
+          }
+
+          if (!sendButton) return;
+          var hasText = textarea.value.trim().length > 0;
+          sendButton.disabled = !hasText;
+          sendButton.classList.toggle('is-disabled', !hasText);
+        }
+
+        textarea.addEventListener('input', resizeComposer);
+        textarea.addEventListener('input', updateComposerState);
+        if (formatToggle) {
+          formatToggle.addEventListener('click', function() {
+            shell.dataset.formatExpanded = shell.dataset.formatExpanded === 'false' ? 'true' : 'false';
+            updateFormatToolbarState();
+          });
+        }
+        textarea.addEventListener('keydown', function(event) {
+          if (event.key !== 'Enter' || event.shiftKey || !form) return;
+          if (sendButton && sendButton.disabled) return;
+          event.preventDefault();
+          if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+          } else {
+            form.submit();
+          }
+        });
+
+        if (targetInput) {
+          targetInput.addEventListener('input', updateComposerState);
+        }
+        if (form) {
+          form.addEventListener('reset', function() {
+            setTimeout(function() {
+              resizeComposer();
+              updateComposerState();
+            }, 0);
+          });
+        }
+
+        resizeComposer();
+        updateFormatToolbarState();
+        updateComposerState();
+      });
+    }
+
+    window.initializeSlackComposers = initializeSlackComposers;
+    initializeSlackComposers(document);
+    document.body.addEventListener('htmx:afterSwap', function(event) {
+      initializeSlackComposers(event.target || document);
+    });
+  </script>
+  </body>
+</html>

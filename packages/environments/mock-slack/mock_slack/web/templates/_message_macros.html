@@ -1,0 +1,40 @@
+{% macro render_link_unfurl(link_preview) %}
+{% if link_preview %}
+<div class="slack-link-unfurl">
+  <div class="slack-link-unfurl-meta">
+    <span>{{ link_preview.domain }}</span>
+  </div>
+  <a class="slack-link-unfurl-title" href="{{ link_preview.url }}" target="_blank" rel="noopener noreferrer">
+    {{ link_preview.title }}
+  </a>
+  {% if link_preview.description %}
+  <div class="slack-link-unfurl-desc">{{ link_preview.description }}</div>
+  {% endif %}
+  <div class="slack-link-unfurl-preview">{{ link_preview.domain }}</div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro render_attachments(attachments) %}
+{% if attachments %}
+  {% for att in attachments %}
+  <div class="slack-message-attachment">
+    <div class="slack-message-attachment-bar"></div>
+    <div class="slack-message-attachment-body">
+      <div class="slack-message-attachment-meta">
+        <div class="w-7 h-7 rounded bg-indigo-100 flex-shrink-0 flex items-center justify-center text-indigo-700 font-semibold text-[11px]">
+          {{ (att.author_name or '?')[0].upper() }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="slack-message-attachment-author">{{ att.author_name or 'Unknown' }}</div>
+          {% if att.footer %}
+          <div class="slack-message-attachment-source">{{ att.footer }}</div>
+          {% endif %}
+        </div>
+      </div>
+      <p class="slack-message-attachment-text break-words whitespace-pre-wrap">{{ att.text or '' }}</p>
+    </div>
+  </div>
+  {% endfor %}
+{% endif %}
+{% endmacro %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}GDrive API Explorer{% endblock %}
+{% block content %}
+<div class="p-6 space-y-5">
+    <div>
+        <h1 class="font-google-sans text-2xl text-gray-800">API Explorer</h1>
+        <p class="text-gray-500 mt-1">Copy-ready Drive API routes using IDs from current seed data.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-3">
+        <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="text-xs uppercase tracking-wide text-gray-500">Sample file</div>
+            <code class="block mt-2 text-xs break-all">{{ sample_file_id }}</code>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="text-xs uppercase tracking-wide text-gray-500">Sample folder</div>
+            <code class="block mt-2 text-xs break-all">{{ sample_folder_id }}</code>
+        </div>
+        <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="text-xs uppercase tracking-wide text-gray-500">Sample permission</div>
+            <code class="block mt-2 text-xs break-all">{{ sample_permission_id }}</code>
+        </div>
+    </div>
+
+    <section class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div class="px-4 py-3 border-b border-gray-100 font-google-sans text-lg">Common Endpoints</div>
+        <div class="divide-y divide-gray-100">
+            {% for label, method, path in endpoints %}
+            <div class="px-4 py-3 flex flex-wrap items-center gap-3">
+                <span class="w-36 text-gray-700">{{ label }}</span>
+                <span class="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-medium">{{ method }}</span>
+                <code class="text-xs bg-gray-100 rounded px-2 py-1 break-all">{{ path }}</code>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="bg-[#f8fafd] border border-gray-200 rounded-xl p-4">
+        <h2 class="font-google-sans text-lg mb-2">Example</h2>
+        <pre class="overflow-x-auto text-xs bg-gray-900 text-gray-100 rounded-lg p-3">curl -s http://127.0.0.1:9003/drive/v3/files/{{ sample_file_id }} | jq</pre>
+    </section>
+</div>
+{% endblock %}

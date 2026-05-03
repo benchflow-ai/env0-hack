@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .files-nav-item {
+    display: flex; align-items: center; gap: 8px; padding: 5px 12px;
+    border-radius: 6px; font-size: 14px; color: #374151; cursor: pointer;
+    text-decoration: none; transition: background .1s;
+  }
+  .files-nav-item:hover { background: #f3f4f6; }
+  .files-nav-item.active { background: #e0e7ff; color: #3730a3; font-weight: 600; }
+  .file-tab {
+    padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
+    border: 1px solid #e5e7eb; background: white; color: #374151; cursor: pointer;
+    transition: all .1s;
+  }
+  .file-tab.active { background: #1d1d1d; color: white; border-color: #1d1d1d; }
+  .file-tab:not(.active):hover { background: #f9fafb; }
+  .file-row { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid #f3f4f6; transition: background .1s; cursor: pointer; }
+  .file-row:hover { background: #f9fafb; }
+  .file-row:hover .file-actions { opacity: 1; }
+  .file-actions { opacity: 0; display: flex; gap: 4px; transition: opacity .15s; }
+  .filetype-badge {
+    width: 36px; height: 36px; border-radius: 8px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; letter-spacing: -0.5px;
+  }
+  .feed-section { display: none; }
+  .feed-section.active { display: block; }
+  .file-card { border-radius: 10px; border: 1px solid #e5e7eb; overflow: hidden; background: white; transition: box-shadow .15s, transform .15s; cursor: pointer; flex-shrink: 0; width: 200px; }
+  .file-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.08); transform: translateY(-1px); }
+</style>
+
+<div class="flex h-full overflow-hidden">
+
+  <!-- ── Left nav panel ──────────────────────────────────────── -->
+  <div class="w-[260px] flex-shrink-0 flex flex-col border-r border-gray-200 bg-white h-full pt-2 px-2">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-2 pb-3 border-b border-gray-100 mb-2">
+      <h2 class="font-bold text-[17px] text-gray-900">Files</h2>
+      <!-- Upload button -->
+      <form action="/files/upload" method="POST" enctype="multipart/form-data" id="upload-form">
+        <label title="Upload file"
+          class="w-7 h-7 rounded flex items-center justify-center text-gray-500 hover:bg-gray-100 cursor-pointer">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          <input type="file" name="file" class="hidden" onchange="this.form.submit()">
+        </label>
+      </form>
+    </div>
+
+    <!-- Nav items -->
+    <a href="#" onclick="showSection('all'); setNavActive(this)" class="files-nav-item active mb-0.5">
+      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+      All files
+    </a>
+    <a href="#" onclick="showSection('canvases'); setNavActive(this)" class="files-nav-item mb-0.5">
+      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+      </svg>
+      Canvases
+    </a>
+    <a href="#" onclick="showSection('lists'); setNavActive(this)" class="files-nav-item mb-3">
+      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+      </svg>
+      Lists
+    </a>
+
+    <!-- Starred -->
+    <div class="px-2 mb-1">
+      <p class="text-[13px] font-semibold text-gray-700 mb-1">Starred</p>
+      <p class="text-[12px] text-gray-400">Click the ⭐ star on any file to add it here.</p>
+    </div>
+  </div>
+
+  <!-- ── Right content area ──────────────────────────────────── -->
+  <div class="flex-1 flex flex-col h-full overflow-hidden bg-gray-50">
+
+    <!-- All files section -->
+    <div id="section-all" class="feed-section active flex flex-col h-full">
+      <!-- Header -->
+      <div class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 flex-shrink-0">
+        <h3 class="font-bold text-[17px] text-gray-900">All files</h3>
+        <button onclick="document.querySelector('#upload-form input').click()"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-green-600 text-white rounded text-[13px] font-semibold hover:bg-green-700 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          New
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scroll px-6 py-4">
+        <!-- Search bar -->
+        <div class="flex items-center gap-2 bg-white border border-gray-300 rounded-lg px-3 py-2 mb-5 focus-within:border-blue-400 focus-within:ring-1 focus-within:ring-blue-200">
+          <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input type="text" placeholder="Search files" id="file-search"
+            class="flex-1 text-[14px] focus:outline-none placeholder-gray-400 bg-transparent"
+            oninput="filterFiles(this.value)"/>
+        </div>
+
+        <!-- File list tabs -->
+        <div class="flex items-center gap-2 mb-4">
+          <button class="file-tab active" onclick="switchFileTab('tab-all', this)">All</button>
+          <button class="file-tab" onclick="switchFileTab('tab-mine', this)">Created by you</button>
+          <button class="file-tab" onclick="switchFileTab('tab-shared', this)">Shared with you</button>
+        </div>
+
+        <!-- ALL tab -->
+        <div id="tab-all" class="feed-section active">
+          {% if all_files %}
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            {% for f in all_files %}
+            {% set ch = channel_map.get(f.channel_id) %}
+            {% set actor = user_map.get(f.user_id) %}
+            <div class="file-row file-entry"
+              data-name="{{ f.name|lower }} {{ (f.title or '')|lower }} {{ (actor.real_name or actor.name if actor else '')|lower }}">
+              <!-- File type icon -->
+              <div class="filetype-badge
+                {% if f.filetype == 'markdown' %}bg-blue-50 text-blue-600
+                {% elif f.filetype == 'json' %}bg-amber-50 text-amber-600
+                {% elif f.filetype == 'pdf' %}bg-red-50 text-red-600
+                {% elif f.filetype in ['png','jpg','jpeg','gif'] %}bg-green-50 text-green-600
+                {% else %}bg-gray-100 text-gray-500{% endif %}">
+                {{ f.filetype[:2].upper() if f.filetype else '??' }}
+              </div>
+              <!-- Details -->
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-[14px] text-gray-900 truncate">{{ f.title or f.name }}</span>
+                </div>
+                <div class="text-[12px] text-gray-400 mt-0.5">
+                  {{ actor.real_name or actor.name if actor else 'Unknown' }}
+                  · Shared in {% if ch %}{% if ch.is_im %}{{ ch.name }}{% else %}#{{ ch.name }}{% endif %}{% else %}Unknown{% endif %}
+                  · {{ f.created_at.strftime('%b %-d') if f.created_at else '' }}
+                  · {{ (f.size // 1024) if f.size and f.size >= 1024 else (f.size or 0) }}{{ 'KB' if f.size and f.size >= 1024 else 'B' }}
+                </div>
+              </div>
+              <!-- Actions -->
+              <div class="file-actions items-center">
+                <a href="/channel/{{ ch.id if ch else '#' }}" title="Go to channel"
+                  class="p-1.5 rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                </a>
+                {% if actor and actor.id == user.id %}
+                <button onclick="deleteFile('{{ f.id }}', this)" title="Delete"
+                  class="p-1.5 rounded text-gray-400 hover:bg-red-50 hover:text-red-500">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="flex flex-col items-center justify-center py-24 text-center">
+            <svg class="w-14 h-14 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <p class="text-[14px] font-semibold text-gray-400">No files yet</p>
+            <p class="text-[12px] text-gray-300 mt-1">Upload a file to get started.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- MINE tab -->
+        <div id="tab-mine" class="feed-section">
+          {% if my_files %}
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            {% for f in my_files %}
+            {% set ch = channel_map.get(f.channel_id) %}
+            <div class="file-row">
+              <div class="filetype-badge
+                {% if f.filetype == 'markdown' %}bg-blue-50 text-blue-600
+                {% elif f.filetype == 'json' %}bg-amber-50 text-amber-600
+                {% elif f.filetype == 'pdf' %}bg-red-50 text-red-600
+                {% else %}bg-gray-100 text-gray-500{% endif %}">
+                {{ f.filetype[:2].upper() if f.filetype else '??' }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-[14px] text-gray-900 truncate">{{ f.title or f.name }}</div>
+                <div class="text-[12px] text-gray-400 mt-0.5">
+                  Shared in {% if ch %}#{{ ch.name }}{% else %}Unknown{% endif %}
+                  · {{ f.created_at.strftime('%b %-d') if f.created_at else '' }}
+                </div>
+              </div>
+              <div class="file-actions items-center">
+                <button onclick="deleteFile('{{ f.id }}', this)" title="Delete"
+                  class="p-1.5 rounded text-gray-400 hover:bg-red-50 hover:text-red-500">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="flex flex-col items-center justify-center py-20 text-center">
+            <p class="text-[14px] text-gray-400">You haven't uploaded any files yet.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- SHARED tab -->
+        <div id="tab-shared" class="feed-section">
+          {% if shared_files %}
+          <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            {% for f in shared_files %}
+            {% set ch = channel_map.get(f.channel_id) %}
+            {% set actor = user_map.get(f.user_id) %}
+            <div class="file-row">
+              <div class="filetype-badge
+                {% if f.filetype == 'markdown' %}bg-blue-50 text-blue-600
+                {% elif f.filetype == 'json' %}bg-amber-50 text-amber-600
+                {% elif f.filetype == 'pdf' %}bg-red-50 text-red-600
+                {% else %}bg-gray-100 text-gray-500{% endif %}">
+                {{ f.filetype[:2].upper() if f.filetype else '??' }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="font-semibold text-[14px] text-gray-900 truncate">{{ f.title or f.name }}</div>
+                <div class="text-[12px] text-gray-400 mt-0.5">
+                  {{ actor.real_name or actor.name if actor else 'Unknown' }}
+                  · {% if ch %}#{{ ch.name }}{% else %}Unknown{% endif %}
+                  · {{ f.created_at.strftime('%b %-d') if f.created_at else '' }}
+                </div>
+              </div>
+              <div class="file-actions items-center">
+                <a href="/channel/{{ ch.id if ch else '#' }}"
+                  class="p-1.5 rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="flex flex-col items-center justify-center py-20 text-center">
+            <p class="text-[14px] text-gray-400">No files shared with you yet.</p>
+          </div>
+          {% endif %}
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Canvases placeholder -->
+    <div id="section-canvases" class="feed-section flex flex-col h-full">
+      <div class="px-6 py-4 bg-white border-b border-gray-200 flex-shrink-0">
+        <h3 class="font-bold text-[17px] text-gray-900">Canvases</h3>
+      </div>
+      <div class="flex flex-col items-center justify-center flex-1 text-center">
+        <svg class="w-14 h-14 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+            d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+        </svg>
+        <p class="text-[14px] font-semibold text-gray-400">No canvases yet</p>
+      </div>
+    </div>
+
+    <!-- Lists placeholder -->
+    <div id="section-lists" class="feed-section flex flex-col h-full">
+      <div class="px-6 py-4 bg-white border-b border-gray-200 flex-shrink-0">
+        <h3 class="font-bold text-[17px] text-gray-900">Lists</h3>
+      </div>
+      <div class="flex flex-col items-center justify-center flex-1 text-center">
+        <svg class="w-14 h-14 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+        </svg>
+        <p class="text-[14px] font-semibold text-gray-400">No lists yet</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Delete confirmation toast -->
+<div id="delete-toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[13px] px-4 py-2 rounded-lg shadow-lg z-50">
+  File deleted
+</div>
+
+<script>
+  function showSection(name) {
+    document.querySelectorAll('.feed-section[id^="section-"]').forEach(s => s.classList.remove('active'));
+    document.getElementById('section-' + name).classList.add('active');
+  }
+  function setNavActive(el) {
+    document.querySelectorAll('.files-nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    return false;
+  }
+  function switchFileTab(tabId, btn) {
+    document.querySelectorAll('.file-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('#section-all .feed-section').forEach(s => s.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+  }
+  function filterFiles(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('.file-entry').forEach(row => {
+      row.style.display = row.dataset.name.includes(q) ? '' : 'none';
+    });
+  }
+  function deleteFile(fileId, btn) {
+    if (!confirm('Delete this file?')) return;
+    fetch('/files/delete', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: 'file_id=' + encodeURIComponent(fileId)
+    }).then(r => r.json()).then(data => {
+      if (data.ok) {
+        btn.closest('.file-row').remove();
+        const toast = document.getElementById('delete-toast');
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2000);
+      }
+    });
+  }
+</script>
+{% endblock %}

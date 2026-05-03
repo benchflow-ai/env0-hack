@@ -1,0 +1,138 @@
+{
+  "files": [
+    {
+      "exportLinks": {
+        "application/rtf": "https://docs.google.com/feeds/download/documents/export/Export?id=1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY&exportFormat=rtf",
+        "application/vnd.oasis.opendocument.text": "https://docs.google.com/feeds/download/documents/export/Export?id=1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY&exportFormat=odt",
+        "text/html": "https://docs.google.com/feeds/download/documents/export/Export?id=1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY&exportFormat=html",
+        "application/pdf": "https://docs.google.com/feeds/download/documents/export/Export?id=1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY&exportFormat=pdf",
+        "text/x-markdown": "https://docs.google.com/feeds/download/documents/export/Export?id=1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY&exportFormat=markdown",
+        "text/markdown": "https://docs.google.com/feeds/download/documents/export/Export?id=1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY&exportFormat=markdown",
+        "application/epub+zip": "https://docs.google.com/feeds/download/documents/export/Export?id=1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY&exportFormat=epub",
+        "application/zip": "https://docs.google.com/feeds/download/documents/export/Export?id=1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY&exportFormat=zip",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "https://docs.google.com/feeds/download/documents/export/Export?id=1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY&exportFormat=docx",
+        "text/plain": "https://docs.google.com/feeds/download/documents/export/Export?id=1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY&exportFormat=txt"
+      },
+      "parents": [
+        "0AOKMUqAiDHl9Uk9PVA"
+      ],
+      "lastModifyingUser": {
+        "displayName": "Mediar Acc1",
+        "kind": "drive#user",
+        "me": true,
+        "permissionId": "06560596394248937550",
+        "emailAddress": "mediar.acc1@gmail.com",
+        "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocKkQ0GqGopU53d8x9oD2oQ3va9q3oHaVgSVi5LnDzYTwy2Ewg=s64"
+      },
+      "owners": [
+        {
+          "displayName": "Mediar Acc1",
+          "kind": "drive#user",
+          "me": true,
+          "permissionId": "06560596394248937550",
+          "emailAddress": "mediar.acc1@gmail.com",
+          "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocKkQ0GqGopU53d8x9oD2oQ3va9q3oHaVgSVi5LnDzYTwy2Ewg=s64"
+        }
+      ],
+      "permissions": [
+        {
+          "kind": "drive#permission",
+          "id": "06560596394248937550",
+          "type": "user",
+          "emailAddress": "mediar.acc1@gmail.com",
+          "role": "owner",
+          "displayName": "Mediar Acc1",
+          "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocKkQ0GqGopU53d8x9oD2oQ3va9q3oHaVgSVi5LnDzYTwy2Ewg=s64",
+          "deleted": false,
+          "pendingOwner": false
+        }
+      ],
+      "spaces": [
+        "drive"
+      ],
+      "capabilities": {
+        "canAcceptOwnership": false,
+        "canAddChildren": false,
+        "canAddMyDriveParent": false,
+        "canChangeCopyRequiresWriterPermission": true,
+        "canChangeItemDownloadRestriction": true,
+        "canChangeSecurityUpdateEnabled": false,
+        "canChangeViewersCanCopyContent": true,
+        "canComment": true,
+        "canCopy": true,
+        "canDelete": true,
+        "canDisableInheritedPermissions": false,
+        "canDownload": true,
+        "canEdit": true,
+        "canEnableInheritedPermissions": true,
+        "canListChildren": false,
+        "canModifyContent": true,
+        "canModifyContentRestriction": true,
+        "canModifyEditorContentRestriction": true,
+        "canModifyOwnerContentRestriction": true,
+        "canModifyLabels": false,
+        "canMoveChildrenWithinDrive": false,
+        "canMoveItemIntoTeamDrive": true,
+        "canMoveItemOutOfDrive": true,
+        "canMoveItemWithinDrive": true,
+        "canReadLabels": false,
+        "canReadRevisions": true,
+        "canRemoveChildren": false,
+        "canRemoveContentRestriction": false,
+        "canRemoveMyDriveParent": true,
+        "canRename": true,
+        "canShare": true,
+        "canTrash": true,
+        "canUntrash": true
+      },
+      "permissionIds": [
+        "06560596394248937550"
+      ],
+      "linkShareMetadata": {
+        "securityUpdateEligible": false,
+        "securityUpdateEnabled": true
+      },
+      "downloadRestrictions": {
+        "itemDownloadRestriction": {
+          "restrictedForReaders": false,
+          "restrictedForWriters": false
+        },
+        "effectiveDownloadRestrictionWithContext": {
+          "restrictedForReaders": false,
+          "restrictedForWriters": false
+        }
+      },
+      "kind": "drive#file",
+      "id": "1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY",
+      "name": "_fixture_sample_doc",
+      "mimeType": "application/vnd.google-apps.document",
+      "starred": false,
+      "trashed": false,
+      "explicitlyTrashed": false,
+      "version": "12",
+      "webViewLink": "https://docs.google.com/document/d/1De4T6xRolTEItAEYJDRP9FB8seEqI870MEkN7zNShsY/edit?usp=drivesdk",
+      "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/application/vnd.google-apps.document",
+      "hasThumbnail": true,
+      "thumbnailLink": "https://lh3.googleusercontent.com/drive-storage/AJQWtBMZ-tg2oNaCTN9lNJ4EzZh4Xq5Lt8voTtyE5WPEkay8llHSTRr4UncLusFCdzQxt0xX9pfKIvBLPmMl3KrtpNcVSPAXA3hVLsb5hGS-6N4rc1yKNOMxqpKZf3w7w8SV=s220",
+      "thumbnailVersion": "1",
+      "viewedByMe": true,
+      "viewedByMeTime": "2026-03-27T01:38:00.418Z",
+      "createdTime": "2026-03-27T01:34:38.327Z",
+      "modifiedTime": "2026-03-27T01:35:03.983Z",
+      "modifiedByMeTime": "2026-03-27T01:35:03.983Z",
+      "modifiedByMe": true,
+      "shared": false,
+      "ownedByMe": true,
+      "viewersCanCopyContent": true,
+      "copyRequiresWriterPermission": false,
+      "writersCanShare": true,
+      "size": "1024",
+      "quotaBytesUsed": "1024",
+      "isAppAuthorized": true,
+      "inheritedPermissionsDisabled": false
+    }
+  ],
+  "kind": "drive#fileList",
+  "incompleteSearch": false,
+  "_captured_at": "2026-03-27T20:30:08.947770+00:00"
+}

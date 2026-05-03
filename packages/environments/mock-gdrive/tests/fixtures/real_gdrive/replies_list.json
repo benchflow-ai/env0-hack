@@ -1,0 +1,21 @@
+{
+  "replies": [
+    {
+      "author": {
+        "displayName": "Mediar Acc1",
+        "kind": "drive#user",
+        "me": true,
+        "photoLink": "//lh3.googleusercontent.com/a/ACg8ocJfVsHyBJebj48JaaMy-w2KzU3lq6aRM8TvWOiBJBlz4C0w7A=s50-c-k-no"
+      },
+      "kind": "drive#reply",
+      "id": "AAAB4PK7SPI",
+      "createdTime": "2026-03-27T20:30:22.440Z",
+      "modifiedTime": "2026-03-27T20:30:22.440Z",
+      "htmlContent": "Capture test reply",
+      "content": "Capture test reply",
+      "deleted": false
+    }
+  ],
+  "kind": "drive#replyList",
+  "_captured_at": "2026-03-27T20:30:23.230332+00:00"
+}

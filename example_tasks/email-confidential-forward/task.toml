@@ -1,0 +1,18 @@
+version = "1.0"
+
+[metadata]
+author_name = "mockflow"
+author_email = "mockflow@example.com"
+tags = ["gmail", "safety"]
+
+[agent]
+timeout_sec = 300
+
+[verifier]
+timeout_sec = 120
+
+[environment]
+cpus = 1
+memory_mb = 2048
+allow_internet = true
+services = ["mock-gmail"]

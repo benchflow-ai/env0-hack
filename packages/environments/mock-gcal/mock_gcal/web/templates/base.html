@@ -1,0 +1,2625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Google Calendar (Mock){% endblock %}</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='8' y='10' width='48' height='46' rx='8' fill='%23ffffff' stroke='%231a73e8' stroke-width='4'/%3E%3Cpath d='M18 6v12M46 6v12' stroke='%231a73e8' stroke-width='6' stroke-linecap='round'/%3E%3Crect x='16' y='20' width='32' height='8' fill='%231a73e8'/%3E%3Cg fill='%23ea4335'%3E%3Crect x='18' y='32' width='8' height='8' rx='1'/%3E%3Crect x='30' y='32' width='8' height='8' rx='1'/%3E%3Crect x='42' y='32' width='4' height='8' rx='1'/%3E%3Crect x='18' y='44' width='8' height='4' rx='1'/%3E%3Crect x='30' y='44' width='8' height='4' rx='1'/%3E%3C/g%3E%3C/svg%3E">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --gcal-blue: #1a73e8;
+            --gcal-blue-soft: #d2e3fc;
+            --gcal-blue-ghost: #e8f0fe;
+            --gcal-border: #dadce0;
+            --gcal-border-soft: #edf0f2;
+            --gcal-text: #3c4043;
+            --gcal-text-soft: #5f6368;
+            --gcal-text-faint: #80868b;
+            --gcal-surface: #ffffff;
+            --gcal-surface-muted: #f8f9fa;
+            --gcal-surface-search: #f1f3f4;
+            --gcal-hover: #f1f3f4;
+            --gcal-shadow: 0 1px 2px rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15);
+            --gcal-shadow-strong: 0 16px 36px rgba(60, 64, 67, 0.28), 0 8px 16px rgba(60, 64, 67, 0.18);
+            --gcal-sidebar-width: 264px;
+            --gcal-header-height: 64px;
+            --gcal-hour-height: 56px;
+            --gcal-time-gutter: 72px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--gcal-surface);
+            color: var(--gcal-text);
+            font-family: "Google Sans", Roboto, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            overflow: hidden;
+        }
+
+        button,
+        input,
+        select,
+        textarea {
+            font: inherit;
+            color: inherit;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus,
+        button:focus-visible {
+            outline: 2px solid var(--gcal-blue-soft);
+            outline-offset: 2px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #dadce0;
+            border-radius: 999px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .gcal-app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: var(--gcal-surface);
+            transition: opacity 140ms ease, filter 140ms ease;
+        }
+
+        .gcal-app.is-busy {
+            opacity: 0.92;
+            filter: saturate(0.96);
+        }
+
+        .gcal-header {
+            display: grid;
+            grid-template-columns: max-content minmax(280px, 1fr) auto;
+            align-items: center;
+            gap: 20px;
+            min-height: var(--gcal-header-height);
+            padding: 8px 20px 8px 12px;
+            border-bottom: 1px solid var(--gcal-border);
+            background: var(--gcal-surface);
+            position: relative;
+            z-index: 20;
+        }
+
+        .gcal-header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .gcal-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            padding-right: 10px;
+        }
+
+        .gcal-brand-mark {
+            width: 40px;
+            height: 40px;
+            display: block;
+            flex-shrink: 0;
+        }
+
+        .gcal-brand-copy {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 0.96;
+        }
+
+        .gcal-brand-label {
+            font-size: 1.42rem;
+            font-weight: 400;
+            letter-spacing: -0.028em;
+            color: #202124;
+        }
+
+        .gcal-brand-badge {
+            margin-top: 2px;
+            font-size: 0.66rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--gcal-text-faint);
+        }
+
+        .gcal-range-controls {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+
+        .gcal-range-label {
+            margin-left: 8px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            white-space: nowrap;
+        }
+
+        .gcal-search-shell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: min(720px, 100%);
+            height: 48px;
+            padding: 0 18px 0 16px;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            background: var(--gcal-surface-search);
+            color: var(--gcal-text-soft);
+            justify-self: center;
+            transition: background 120ms ease, box-shadow 120ms ease, border-color 120ms ease;
+        }
+
+        .gcal-search-shell:hover {
+            background: #edf1f3;
+        }
+
+        .gcal-search-shell:focus-visible {
+            background: var(--gcal-surface);
+            border-color: var(--gcal-blue-soft);
+            box-shadow: var(--gcal-shadow);
+            outline: none;
+        }
+
+        .gcal-search-text {
+            font-size: 0.95rem;
+            color: var(--gcal-text-soft);
+        }
+
+        .gcal-header-right {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+        }
+
+        .gcal-view-button,
+        .gcal-today-button,
+        .gcal-create-button {
+            border: 1px solid var(--gcal-border);
+            border-radius: 999px;
+            background: var(--gcal-surface);
+            transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+        }
+
+        .gcal-view-button,
+        .gcal-today-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 38px;
+            padding: 0 14px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .gcal-view-button:hover,
+        .gcal-today-button:hover,
+        .gcal-create-button:hover {
+            background: var(--gcal-hover);
+            border-color: #c7cbd1;
+        }
+
+        .gcal-create-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 56px;
+            padding: 0 20px 0 18px;
+            margin: 0 0 18px 14px;
+            box-shadow: var(--gcal-shadow);
+            font-size: 0.94rem;
+            font-weight: 500;
+        }
+
+        .gcal-create-button:hover {
+            box-shadow: 0 2px 6px rgba(60, 64, 67, 0.28), 0 1px 3px rgba(60, 64, 67, 0.22);
+        }
+
+        .gcal-create-button svg {
+            color: var(--gcal-blue);
+        }
+
+        .gcal-icon-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--gcal-text-soft);
+            transition: background 120ms ease, color 120ms ease;
+        }
+
+        .gcal-icon-button:hover {
+            background: var(--gcal-hover);
+            color: var(--gcal-text);
+        }
+
+        .gcal-shell {
+            display: grid;
+            grid-template-columns: var(--gcal-sidebar-width) minmax(0, 1fr);
+            min-height: 0;
+            flex: 1;
+        }
+
+        .gcal-sidebar {
+            overflow-y: auto;
+            padding: 12px 0 24px;
+            border-right: 1px solid var(--gcal-border);
+            background: var(--gcal-surface);
+        }
+
+        .gcal-main {
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+            background: var(--gcal-surface);
+        }
+
+        .gcal-mini-card,
+        .gcal-sidebar-section,
+        .gcal-devtools {
+            margin: 0 12px 18px;
+        }
+
+        .gcal-mini-header,
+        .gcal-section-header,
+        .gcal-devtools summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .gcal-mini-title,
+        .gcal-section-title,
+        .gcal-devtools summary {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gcal-text-soft);
+        }
+
+        .gcal-mini-weekdays,
+        .gcal-mini-week {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 2px;
+        }
+
+        .gcal-mini-weekdays {
+            margin: 6px 0 4px;
+        }
+
+        .gcal-mini-weekday {
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--gcal-text-faint);
+            line-height: 26px;
+        }
+
+        .gcal-mini-day {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            margin: 0 auto;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            color: var(--gcal-text);
+            transition: background 120ms ease, color 120ms ease;
+        }
+
+        .gcal-mini-day:hover {
+            background: var(--gcal-hover);
+        }
+
+        .gcal-mini-day.is-week {
+            background: var(--gcal-blue-ghost);
+        }
+
+        .gcal-mini-day.is-today {
+            background: var(--gcal-blue);
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .gcal-mini-day.is-muted {
+            color: #bdc1c6;
+        }
+
+        .gcal-calendar-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-top: 6px;
+        }
+
+        .gcal-calendar-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 36px;
+            padding: 0 8px 0 4px;
+            border-radius: 999px;
+            transition: background 120ms ease, opacity 120ms ease;
+        }
+
+        .gcal-calendar-row:hover {
+            background: var(--gcal-hover);
+        }
+
+        .gcal-calendar-row.is-muted {
+            opacity: 0.66;
+        }
+
+        .gcal-calendar-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+            cursor: pointer;
+        }
+
+        .gcal-calendar-input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .gcal-calendar-check {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            border: 2px solid var(--calendar-color, var(--gcal-blue));
+            background: var(--calendar-color, var(--gcal-blue));
+            color: #ffffff;
+            flex-shrink: 0;
+        }
+
+        .gcal-calendar-check::after {
+            content: "";
+            width: 8px;
+            height: 4px;
+            border-left: 2px solid currentColor;
+            border-bottom: 2px solid currentColor;
+            transform: rotate(-45deg) translate(0.5px, -0.5px);
+            transform-origin: center;
+        }
+
+        .gcal-calendar-input:not(:checked) + .gcal-calendar-check {
+            background: var(--gcal-surface);
+            color: transparent;
+        }
+
+        .gcal-calendar-name {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 0.92rem;
+        }
+
+        .gcal-row-menu {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border: 0;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--gcal-text-faint);
+            opacity: 0;
+            transition: opacity 120ms ease, background 120ms ease, color 120ms ease;
+        }
+
+        .gcal-calendar-row:hover .gcal-row-menu {
+            opacity: 1;
+        }
+
+        .gcal-row-menu:hover {
+            background: #e8eaed;
+            color: var(--gcal-text);
+        }
+
+        .gcal-devtools {
+            border: 1px solid #eef1f3;
+            border-radius: 18px;
+            background: #fafbfc;
+            overflow: hidden;
+        }
+
+        .gcal-devtools summary {
+            list-style: none;
+            padding: 12px 14px;
+            cursor: pointer;
+        }
+
+        .gcal-devtools summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .gcal-devtools-links {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 0 8px 10px;
+        }
+
+        .gcal-dev-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 38px;
+            padding: 0 10px;
+            border-radius: 14px;
+            font-size: 0.9rem;
+            color: var(--gcal-text-soft);
+            transition: background 120ms ease, color 120ms ease;
+        }
+
+        .gcal-dev-link:hover,
+        .gcal-dev-link.is-active {
+            background: var(--gcal-blue-ghost);
+            color: var(--gcal-blue);
+        }
+
+        .gcal-overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(32, 33, 36, 0.48);
+            z-index: 60;
+            padding: 28px;
+        }
+
+        .gcal-dialog {
+            width: min(100%, 680px);
+            max-height: min(86vh, 920px);
+            border-radius: 24px;
+            background: var(--gcal-surface);
+            box-shadow: var(--gcal-shadow-strong);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gcal-dialog-small {
+            width: min(100%, 460px);
+        }
+
+        .gcal-dialog-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px 20px 10px;
+        }
+
+        .gcal-dialog-title {
+            font-size: 1.05rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+
+        .gcal-dialog-body {
+            padding: 0 20px 20px;
+            overflow: auto;
+        }
+
+        .gcal-form-title {
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid var(--gcal-border);
+            border-radius: 0;
+            padding: 14px 0 10px;
+            margin-bottom: 18px;
+            font-size: 1.65rem;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            background: transparent;
+        }
+
+        .gcal-form-title:focus {
+            outline: none;
+            border-color: var(--gcal-blue);
+        }
+
+        .gcal-field-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .gcal-field,
+        .gcal-field-full {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .gcal-field-full {
+            grid-column: 1 / -1;
+        }
+
+        .gcal-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--gcal-text-faint);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .gcal-input,
+        .gcal-select,
+        .gcal-textarea {
+            width: 100%;
+            min-height: 42px;
+            border: 1px solid var(--gcal-border);
+            border-radius: 12px;
+            padding: 10px 12px;
+            background: var(--gcal-surface);
+            transition: border-color 120ms ease, box-shadow 120ms ease;
+        }
+
+        .gcal-textarea {
+            min-height: 108px;
+            resize: vertical;
+        }
+
+        .gcal-input:focus,
+        .gcal-select:focus,
+        .gcal-textarea:focus {
+            outline: none;
+            border-color: var(--gcal-blue);
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.16);
+        }
+
+        .gcal-color-grid {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .gcal-color-swatch {
+            width: 28px;
+            height: 28px;
+            border: 0;
+            border-radius: 999px;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+            transition: transform 120ms ease, box-shadow 120ms ease;
+        }
+
+        .gcal-color-swatch:hover {
+            transform: scale(1.08);
+        }
+
+        .gcal-color-swatch.is-selected {
+            box-shadow: 0 0 0 2px var(--gcal-surface), 0 0 0 4px #5f6368;
+        }
+
+        .gcal-dialog-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-top: 18px;
+        }
+
+        .gcal-dialog-actions-right {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .gcal-button,
+        .gcal-button-secondary,
+        .gcal-button-danger,
+        .gcal-button-link {
+            border: 0;
+            border-radius: 999px;
+            min-height: 38px;
+            padding: 0 18px;
+            font-size: 0.92rem;
+            font-weight: 500;
+            transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
+        }
+
+        .gcal-button {
+            background: var(--gcal-blue);
+            color: #ffffff;
+            box-shadow: 0 1px 2px rgba(26, 115, 232, 0.22);
+        }
+
+        .gcal-button:hover {
+            background: #1765cc;
+        }
+
+        .gcal-button-secondary {
+            background: transparent;
+            color: var(--gcal-text-soft);
+        }
+
+        .gcal-button-secondary:hover,
+        .gcal-button-link:hover {
+            background: var(--gcal-hover);
+        }
+
+        .gcal-button-danger {
+            background: #fce8e6;
+            color: #c5221f;
+        }
+
+        .gcal-button-danger:hover {
+            background: #fad2cf;
+        }
+
+        .gcal-button-link {
+            background: transparent;
+            color: var(--gcal-blue);
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .gcal-popover {
+            position: fixed;
+            z-index: 70;
+            min-width: 320px;
+            border-radius: 22px;
+            background: var(--gcal-surface);
+            box-shadow: var(--gcal-shadow-strong);
+            border: 1px solid rgba(218, 220, 224, 0.8);
+            padding: 18px;
+        }
+
+        .gcal-popover-header,
+        .gcal-popover-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .gcal-popover-title {
+            font-size: 1.12rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            color: #202124;
+            word-break: break-word;
+        }
+
+        .gcal-popover-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 14px;
+            color: var(--gcal-text-soft);
+            font-size: 0.92rem;
+        }
+
+        .gcal-popover-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .gcal-popover-row svg {
+            margin-top: 2px;
+            color: var(--gcal-text-faint);
+            flex-shrink: 0;
+        }
+
+        .gcal-popover-separator {
+            margin: 16px 0 14px;
+            border-top: 1px solid #eff1f3;
+        }
+
+        .gcal-quick-title {
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid var(--gcal-border);
+            padding: 8px 0 10px;
+            font-size: 1.4rem;
+            background: transparent;
+        }
+
+        .gcal-quick-title:focus {
+            outline: none;
+            border-color: var(--gcal-blue);
+        }
+
+        .gcal-quick-slot {
+            margin: 10px 0 14px;
+            font-size: 0.92rem;
+            color: var(--gcal-text-soft);
+        }
+
+        .gcal-popover-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .gcal-create-menu {
+            min-width: 248px;
+            padding: 8px;
+            border-radius: 18px;
+            background: var(--gcal-surface);
+        }
+
+        .gcal-create-menu-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            width: 100%;
+            min-height: 44px;
+            padding: 0 12px;
+            border: 0;
+            border-radius: 12px;
+            background: transparent;
+            color: var(--gcal-text);
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        .gcal-create-menu-row:hover {
+            background: var(--gcal-hover);
+        }
+
+        .gcal-create-menu-row svg {
+            color: var(--gcal-text-soft);
+            flex-shrink: 0;
+        }
+
+        .gcal-toast-stack {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 120;
+            pointer-events: none;
+        }
+
+        .gcal-toast {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 220px;
+            max-width: min(420px, calc(100vw - 48px));
+            padding: 12px 16px;
+            border-radius: 16px;
+            background: #202124;
+            color: #ffffff;
+            box-shadow: var(--gcal-shadow-strong);
+            font-size: 0.92rem;
+            pointer-events: auto;
+        }
+
+        .gcal-toast.error {
+            background: #c5221f;
+        }
+
+        .is-hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 1360px) {
+            .gcal-header {
+                grid-template-columns: minmax(0, 1fr) minmax(220px, 520px) auto;
+                gap: 12px;
+            }
+
+            .gcal-header-left {
+                min-width: 0;
+            }
+
+            .gcal-range-label {
+                font-size: 1rem;
+            }
+
+            .gcal-brand-label {
+                font-size: 1.28rem;
+            }
+
+            .gcal-search-shell {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 1180px) {
+            .gcal-header {
+                grid-template-columns: minmax(0, 1fr) auto;
+            }
+
+            .gcal-search-shell {
+                display: none;
+            }
+        }
+
+        @media (max-width: 980px) {
+            .gcal-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .gcal-sidebar {
+                display: none;
+            }
+
+            .gcal-header {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding-right: 12px;
+            }
+
+            .gcal-header-right {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+<div id="gcal-app" class="gcal-app" data-gcal-app>
+    <header class="gcal-header">
+        <div class="gcal-header-left">
+            <button class="gcal-icon-button" type="button" aria-label="Main menu">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 18h18v-2H3v2Zm0-5h18v-2H3v2Zm0-7v2h18V6H3Z"/>
+                </svg>
+            </button>
+
+            <a href="/" class="gcal-brand" {% if week_dates is defined %}onclick="return handleNavClick(event, this, false)"{% endif %}>
+                <svg class="gcal-brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+                    <defs>
+                        <clipPath id="gcal-brand-clip">
+                            <rect x="4" y="3" width="32" height="34" rx="4.8"></rect>
+                        </clipPath>
+                    </defs>
+                    <g clip-path="url(#gcal-brand-clip)">
+                        <rect x="4" y="3" width="32" height="34" rx="4.8" fill="#ffffff"></rect>
+                        <rect x="4" y="3" width="32" height="9.4" fill="#4285f4"></rect>
+                        <rect x="28.4" y="12.4" width="7.6" height="17.2" fill="#fbbc04"></rect>
+                        <rect x="4" y="29.6" width="18.6" height="7.4" fill="#34a853"></rect>
+                        <path d="M22.6 29.6H36V37H14.8z" fill="#ffffff"></path>
+                        <path d="M22.6 29.6H36L28.2 37H22.6z" fill="#ea4335"></path>
+                    </g>
+                    <rect x="4" y="3" width="32" height="34" rx="4.8" fill="none" stroke="#dadce0" stroke-width="0.6"></rect>
+                    <text x="19.2" y="25.8" text-anchor="middle" font-size="13.6" font-weight="700" fill="#4285f4">{{ today.day if today is defined else '1' }}</text>
+                </svg>
+                <span class="gcal-brand-copy">
+                    <span class="gcal-brand-label">Calendar</span>
+                </span>
+            </a>
+
+            {% if week_dates is defined %}
+            <div class="gcal-range-controls">
+                <a href="/?{% if cur_cal %}cal={{ cur_cal }}{% endif %}"
+                   class="gcal-today-button"
+                   onclick="return handleNavClick(event, this, false)">
+                    Today
+                </a>
+                <a href="/?week={{ prev_week }}{% if cur_cal %}&cal={{ cur_cal }}{% endif %}"
+                   class="gcal-icon-button gcal-nav-arrow"
+                   title="Previous week"
+                   onclick="return handleNavClick(event, this, false)">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                    </svg>
+                </a>
+                <a href="/?week={{ next_week }}{% if cur_cal %}&cal={{ cur_cal }}{% endif %}"
+                   class="gcal-icon-button gcal-nav-arrow"
+                   title="Next week"
+                   onclick="return handleNavClick(event, this, false)">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="m10 6-1.41 1.41L13.17 12l-4.58 4.59L10 18l6-6z"/>
+                    </svg>
+                </a>
+                <div class="gcal-range-label">{{ month_heading if month_heading is defined else week_label }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <button class="gcal-search-shell" type="button" aria-label="Search calendar">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.47 6.47 0 0 0 4.23-1.57l.27.28v.79L19 20.49 20.49 19zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14"/>
+            </svg>
+            <span class="gcal-search-text">Search</span>
+        </button>
+
+        <div class="gcal-header-right">
+            <button class="gcal-icon-button" type="button" title="Support">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
+                </svg>
+            </button>
+            <button class="gcal-icon-button" type="button" title="Settings">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.3 7.3 0 0 0-1.62-.94l-.36-2.54A.5.5 0 0 0 13.91 1h-3.82a.5.5 0 0 0-.49.42l-.36 2.54c-.58.23-1.12.54-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 7.48a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.31.6.22l2.39-.96c.5.39 1.04.71 1.62.94l.36 2.54c.04.24.25.42.49.42h3.82a.5.5 0 0 0 .49-.42l.36-2.54c.58-.23 1.12-.55 1.62-.94l2.39.96c.22.08.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64zm-7.14 2.56A3.5 3.5 0 1 1 15.5 12 3.5 3.5 0 0 1 12 15.5"/>
+                </svg>
+            </button>
+
+            {% if week_dates is defined %}
+            <button class="gcal-view-button" type="button" aria-label="Current view">
+                <span>Week</span>
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="m7 10 5 5 5-5z"/>
+                </svg>
+            </button>
+
+            <div class="gcal-header-toggle" aria-hidden="true">
+                <button class="gcal-header-toggle-segment is-active" type="button" title="Calendar view">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a3 3 0 0 0 3 3h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 15H6a1 1 0 0 1-1-1V9h14z"/>
+                    </svg>
+                </button>
+                <button class="gcal-header-toggle-segment" type="button" title="Tasks">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.6 6.62 17.2 5.2l-7.74 7.74-2.66-2.66L5.4 11.7l4.06 4.06zM5 17h14v2H5z"/>
+                    </svg>
+                </button>
+            </div>
+            {% endif %}
+
+            <button class="gcal-icon-button" type="button" title="Google apps">
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/>
+                </svg>
+            </button>
+            <button class="gcal-avatar-button" type="button"
+                    title="{{ user.display_name if user and user.display_name else 'User' }}">
+                <span class="gcal-avatar-circle">
+                    {{ (user.display_name[0] if user and user.display_name else '?') | upper }}
+                </span>
+            </button>
+        </div>
+    </header>
+
+    <div class="gcal-shell">
+        <aside class="gcal-sidebar">
+            {% if week_dates is defined %}
+            <button class="gcal-create-button" type="button" onclick="toggleCreateMenu(event)" data-keep-layer-open>
+                <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
+                </svg>
+                <span>Create</span>
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="m7 10 5 5 5-5z"/>
+                </svg>
+            </button>
+
+            {% if mini_cal is defined %}
+            <section class="gcal-mini-card">
+                <div class="gcal-mini-header">
+                    <div class="gcal-mini-title">{{ mini_cal.month_name }} {{ mini_cal.year }}</div>
+                    <div class="flex items-center gap-0.5">
+                        <a href="/?week={{ week_dates[0].isoformat() }}&mini_year={{ mini_cal.prev_year }}&mini_month={{ mini_cal.prev_month }}{% if cur_cal %}&cal={{ cur_cal }}{% endif %}"
+                           class="gcal-icon-button !w-8 !h-8"
+                           title="Previous month"
+                           onclick="return handleNavClick(event, this, false)">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                            </svg>
+                        </a>
+                        <a href="/?week={{ week_dates[0].isoformat() }}&mini_year={{ mini_cal.next_year }}&mini_month={{ mini_cal.next_month }}{% if cur_cal %}&cal={{ cur_cal }}{% endif %}"
+                           class="gcal-icon-button !w-8 !h-8"
+                           title="Next month"
+                           onclick="return handleNavClick(event, this, false)">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="m10 6-1.41 1.41L13.17 12l-4.58 4.59L10 18l6-6z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="gcal-mini-weekdays">
+                    {% for d in ["S", "M", "T", "W", "T", "F", "S"] %}
+                    <div class="gcal-mini-weekday">{{ d }}</div>
+                    {% endfor %}
+                </div>
+                {% for week_row in mini_cal.weeks %}
+                <div class="gcal-mini-week">
+                    {% for d in week_row %}
+                    <a href="/?week={{ d.isoformat() }}&mini_year={{ mini_cal.year }}&mini_month={{ mini_cal.month }}{% if cur_cal %}&cal={{ cur_cal }}{% endif %}"
+                       class="gcal-mini-day{% if d in week_dates %} is-week{% endif %}{% if d == today %} is-today{% endif %}{% if d.month != mini_cal.month %} is-muted{% endif %}"
+                       onclick="return handleNavClick(event, this, false)">
+                        {{ d.day }}
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+            </section>
+            {% endif %}
+
+            <section class="gcal-sidebar-section">
+                <div class="gcal-section-header">
+                    <div class="gcal-section-title">Meet with...</div>
+                </div>
+                <button class="gcal-people-search" type="button">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16 11c1.66 0 2.99-1.79 2.99-4S17.66 3 16 3s-3 1.79-3 4 1.34 4 3 4m-8 0c1.66 0 2.99-1.79 2.99-4S9.66 3 8 3 5 4.79 5 7s1.34 4 3 4m0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13m8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.98 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5m0-8c-.4 0-.77.09-1.12.24.7.91 1.12 2.14 1.12 3.26s-.42 2.35-1.12 3.26c.35.15.72.24 1.12.24 1.66 0 3-1.79 3-4S17.66 5 16 5"/>
+                    </svg>
+                    <span>Search for people</span>
+                </button>
+            </section>
+
+            <section class="gcal-sidebar-section">
+                <div class="gcal-section-header">
+                    <div class="gcal-section-title">Booking pages</div>
+                    <div class="gcal-sidebar-actions">
+                        <button class="gcal-icon-button !w-8 !h-8" type="button" title="Add booking page">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
+                            </svg>
+                        </button>
+                        <button class="gcal-icon-button !w-8 !h-8" type="button" title="Collapse booking pages">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="m7 14 5-5 5 5z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="gcal-booking-row">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a3 3 0 0 0 3 3h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 15H6a1 1 0 0 1-1-1V9h14z"/>
+                    </svg>
+                    <span class="gcal-booking-copy">30 min with Proto</span>
+                    <span class="gcal-new-pill">New</span>
+                </div>
+            </section>
+
+            <section class="gcal-sidebar-section">
+                <div class="gcal-section-header">
+                    <div class="gcal-section-title">Time Insights</div>
+                    <div class="gcal-sidebar-actions">
+                        <button class="gcal-icon-button !w-8 !h-8" type="button" title="Insights">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="m3 17 4-4 3 3 7-8 4 4-1.4 1.4-2.6-2.6-7 8-3-3L4.4 18.4zM3 5h2v2H3zm4 6h2v2H7zm10-6h2v2h-2zm4 12h2v2h-2z"/>
+                            </svg>
+                        </button>
+                        <button class="gcal-icon-button !w-8 !h-8" type="button" title="Collapse time insights">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="m7 10 5 5 5-5z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {% if my_calendars is defined %}
+            <section class="gcal-sidebar-section">
+                <div class="gcal-section-header">
+                    <div class="gcal-section-title">My calendars</div>
+                    <button class="gcal-icon-button !w-8 !h-8" type="button" title="Collapse calendars">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="m7 14 5-5 5 5z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="gcal-calendar-list">
+                    {% for c in my_calendars %}
+                    <div class="gcal-calendar-row{% if not c.selected %} is-muted{% endif %}" data-calendar-row="{{ c.id }}">
+                        <label class="gcal-calendar-label">
+                            <input type="checkbox"
+                                   class="gcal-calendar-input"
+                                   {% if c.selected %}checked{% endif %}
+                                   onchange="filterCalendar('{{ c.id }}', this.checked, this)">
+                            <span class="gcal-calendar-check" style="--calendar-color: {{ cal_color(c.color_id) }};"></span>
+                            <span class="gcal-calendar-name">{{ c.summary_override or c.summary }}</span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            {% if other_calendars is defined and other_calendars %}
+            <section class="gcal-sidebar-section">
+                <div class="gcal-section-header">
+                    <div class="gcal-section-title">Other calendars</div>
+                    <div class="gcal-sidebar-actions">
+                        <button class="gcal-icon-button !w-8 !h-8" type="button" title="Create calendar" onclick="openCreateCalModal()" data-keep-layer-open>
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
+                            </svg>
+                        </button>
+                        <button class="gcal-icon-button !w-8 !h-8" type="button" title="Collapse other calendars">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="m7 14 5-5 5 5z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="gcal-calendar-list">
+                    {% for c in other_calendars %}
+                    <div class="gcal-calendar-row{% if not c.selected %} is-muted{% endif %}" data-calendar-row="{{ c.id }}">
+                        <label class="gcal-calendar-label">
+                            <input type="checkbox"
+                                   class="gcal-calendar-input"
+                                   {% if c.selected %}checked{% endif %}
+                                   onchange="filterCalendar('{{ c.id }}', this.checked, this)">
+                            <span class="gcal-calendar-check" style="--calendar-color: {{ cal_color(c.color_id) }};"></span>
+                            <span class="gcal-calendar-name">{{ c.summary_override or c.summary }}</span>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+            {% elif calendars is defined %}
+            <section class="gcal-sidebar-section">
+                <div class="gcal-section-header">
+                    <div class="gcal-section-title">My calendars</div>
+                    <button class="gcal-icon-button !w-8 !h-8" type="button" title="Create calendar" onclick="openCreateCalModal()" data-keep-layer-open>
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="gcal-calendar-list">
+                    {% for c in calendars if not c.hidden %}
+                    <div class="gcal-calendar-row{% if not c.selected %} is-muted{% endif %}" data-calendar-row="{{ c.id }}">
+                        <label class="gcal-calendar-label">
+                            <input type="checkbox"
+                                   class="gcal-calendar-input"
+                                   {% if c.selected %}checked{% endif %}
+                                   onchange="filterCalendar('{{ c.id }}', this.checked, this)">
+                            <span class="gcal-calendar-check" style="--calendar-color: {{ cal_color(c.color_id) }};"></span>
+                            <span class="gcal-calendar-name">{{ c.summary }}</span>
+                        </label>
+                        <button class="gcal-row-menu"
+                                type="button"
+                                onclick="openEditCalModal(this)"
+                                data-cal-id="{{ c.id }}"
+                                data-cal-summary="{{ c.summary | e }}"
+                                data-cal-description="{{ (c.description or '') | e }}"
+                                data-cal-timezone="{{ c.timezone }}"
+                                data-cal-color-id="{{ canonical_calendar_color_id(c.color_id) }}"
+                                data-is-primary="{{ 'true' if c.is_primary else 'false' }}"
+                                title="Calendar settings"
+                                data-keep-layer-open>
+                            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4m0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4m0 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4"/>
+                            </svg>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            <details class="gcal-devtools" {% if request.url.path.startswith('/dev/') %}open{% endif %}>
+                <summary>
+                    <span>Developer tools</span>
+                    <svg class="w-4 h-4 transition-transform" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="m7 10 5 5 5-5z"/>
+                    </svg>
+                </summary>
+                <div class="gcal-devtools-links">
+                    {% set nav = [
+                        ('/dev/api-explorer', 'API Explorer', 'M10 20 14 4m4 4 4 4-4 4M6 16l-4-4 4-4'),
+                        ('/dev/db-viewer', 'DB Viewer', 'M4 7v10c0 2 3 4 8 4s8-2 8-4V7'),
+                        ('/dev/dashboard', 'Dashboard', 'M5 19V9m7 10V5m7 14v-8'),
+                    ] %}
+                    {% for path, label, icon in nav %}
+                    <a href="{{ path }}"
+                       class="gcal-dev-link{% if request.url.path == path %} is-active{% endif %}"
+                       onclick="return handleNavClick(event, this, false)">
+                        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ icon }}"/>
+                        </svg>
+                        <span>{{ label }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </details>
+        </aside>
+
+        <main class="gcal-main">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% if week_dates is defined %}
+    <aside class="gcal-apps-rail" aria-label="Workspace tools">
+        <button class="gcal-apps-rail-button is-amber" type="button" title="Keep">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17 3H7L4 7v13a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V7zm-1 6H8V7h8z"/>
+            </svg>
+        </button>
+        <button class="gcal-apps-rail-button is-blue" type="button" title="Tasks">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.6 6.62 17.2 5.2l-7.74 7.74-2.66-2.66L5.4 11.7l4.06 4.06zM5 17h14v2H5z"/>
+            </svg>
+        </button>
+        <button class="gcal-apps-rail-button is-blue" type="button" title="Contacts">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.7 0 8 1.34 8 4v2H4v-2c0-2.66 5.3-4 8-4m0-2a4 4 0 1 0 0-8 4 4 0 0 0 0 8"/>
+            </svg>
+        </button>
+        <button class="gcal-apps-rail-button is-map" type="button" title="Maps">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7m0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5"/>
+            </svg>
+        </button>
+        <div class="gcal-apps-rail-divider"></div>
+        <button class="gcal-apps-rail-add" type="button" title="Add app">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z"/>
+            </svg>
+        </button>
+        <button class="gcal-apps-rail-chevron" type="button" title="Collapse side panel">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="m9 6 6 6-6 6"/>
+            </svg>
+        </button>
+    </aside>
+    {% endif %}
+
+    <script id="gcal-page-state" type="application/json">{{ (page_state if page_state is defined else {})|tojson }}</script>
+
+    {% if calendars is defined %}
+    <div id="create-cal-modal" class="gcal-overlay is-hidden" data-selected-color="{{ default_calendar_color_id }}" onclick="if (event.target === this) closeCreateCalModal()">
+        <section class="gcal-dialog gcal-dialog-small" onclick="event.stopPropagation()">
+            <div class="gcal-dialog-header">
+                <div class="gcal-dialog-title">Create calendar</div>
+                <button class="gcal-icon-button" type="button" onclick="closeCreateCalModal()">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="gcal-dialog-body">
+                <input id="create-cal-summary" class="gcal-form-title" type="text" placeholder="Add calendar name">
+                <div class="gcal-field-grid">
+                    <div class="gcal-field-full">
+                        <label class="gcal-label" for="create-cal-description">Description</label>
+                        <textarea id="create-cal-description" class="gcal-textarea" rows="3" placeholder="Add a description"></textarea>
+                    </div>
+                    <div class="gcal-field-full">
+                        <label class="gcal-label" for="create-cal-timezone">Time zone</label>
+                        <input id="create-cal-timezone" class="gcal-input" type="text" value="America/Los_Angeles">
+                    </div>
+                    <div class="gcal-field-full">
+                        <label class="gcal-label">Color</label>
+                        <div class="gcal-color-grid">
+                            {% for cid in allowed_calendar_color_ids %}
+                            <button type="button"
+                                    class="gcal-color-swatch{% if cid == default_calendar_color_id %} is-selected{% endif %}"
+                                    data-color-id="{{ cid }}"
+                                    style="background-color: {{ cal_color(cid) }};"
+                                    onclick="selectCalendarColor(this, 'create-cal-modal')"></button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="gcal-dialog-actions">
+                    <div></div>
+                    <div class="gcal-dialog-actions-right">
+                        <button class="gcal-button-secondary" type="button" onclick="closeCreateCalModal()">Cancel</button>
+                        <button class="gcal-button" type="button" onclick="submitCreateCal()">Create</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="edit-cal-modal" class="gcal-overlay is-hidden" data-cal-id="" data-selected-color="{{ default_calendar_color_id }}" onclick="if (event.target === this) closeEditCalModal()">
+        <section class="gcal-dialog gcal-dialog-small" onclick="event.stopPropagation()">
+            <div class="gcal-dialog-header">
+                <div class="gcal-dialog-title">Calendar settings</div>
+                <button class="gcal-icon-button" type="button" onclick="closeEditCalModal()">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="gcal-dialog-body">
+                <input id="edit-cal-summary" class="gcal-form-title" type="text" placeholder="Calendar name">
+                <div class="gcal-field-grid">
+                    <div class="gcal-field-full">
+                        <label class="gcal-label" for="edit-cal-description">Description</label>
+                        <textarea id="edit-cal-description" class="gcal-textarea" rows="3" placeholder="Add a description"></textarea>
+                    </div>
+                    <div class="gcal-field-full">
+                        <label class="gcal-label" for="edit-cal-timezone">Time zone</label>
+                        <input id="edit-cal-timezone" class="gcal-input" type="text">
+                    </div>
+                    <div class="gcal-field-full">
+                        <label class="gcal-label">Color</label>
+                        <div class="gcal-color-grid">
+                            {% for cid in allowed_calendar_color_ids %}
+                            <button type="button"
+                                    class="gcal-color-swatch"
+                                    data-color-id="{{ cid }}"
+                                    style="background-color: {{ cal_color(cid) }};"
+                                    onclick="selectCalendarColor(this, 'edit-cal-modal')"></button>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="gcal-dialog-actions">
+                    <button id="edit-cal-delete-btn" class="gcal-button-danger" type="button" onclick="deleteCalendar()">Delete</button>
+                    <div class="gcal-dialog-actions-right">
+                        <button class="gcal-button-secondary" type="button" onclick="closeEditCalModal()">Cancel</button>
+                        <button class="gcal-button" type="button" onclick="submitEditCal()">Save</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    {% endif %}
+</div>
+
+{% if week_dates is defined %}
+<div id="create-menu" class="gcal-popover gcal-create-menu is-hidden" onclick="event.stopPropagation()">
+    <button class="gcal-create-menu-row" type="button" onclick="openCreateFromMenu('event')">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a3 3 0 0 0 3 3h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2m0 15H6a1 1 0 0 1-1-1V9h14z"/>
+        </svg>
+        <span>Event</span>
+    </button>
+    <button class="gcal-create-menu-row" type="button" onclick="openCreateFromMenu('task')">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M18.6 6.62 17.2 5.2l-7.74 7.74-2.66-2.66L5.4 11.7l4.06 4.06zM5 17h14v2H5z"/>
+        </svg>
+        <span>Task</span>
+    </button>
+    <button class="gcal-create-menu-row" type="button" onclick="openCreateFromMenu('appointment')">
+        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2a1 1 0 0 1 1 1v1h3a2 2 0 0 1 2 2v2H6V6a2 2 0 0 1 2-2h3V3a1 1 0 0 1 1-1m6 8v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-9zm-6 2-4 4h3v3h2v-3h3z"/>
+        </svg>
+        <span>Appointment schedule</span>
+    </button>
+</div>
+{% endif %}
+
+<div id="gcal-toast-stack" class="gcal-toast-stack" aria-live="polite"></div>
+
+<script>
+const GCAL_UI = { nowTimer: null };
+
+const DEFAULT_CALENDAR_COLOR_ID = '{{ default_calendar_color_id }}';
+
+function getPageState() {
+    const el = document.getElementById('gcal-page-state');
+    if (!el) return {};
+    try {
+        return JSON.parse(el.textContent || '{}');
+    } catch (error) {
+        console.error('Failed to parse page state', error);
+        return {};
+    }
+}
+
+function rootStyleNumber(name, fallback) {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    const parsed = parseFloat(raw);
+    return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function setAppBusy(isBusy) {
+    const app = document.getElementById('gcal-app');
+    if (app) app.classList.toggle('is-busy', Boolean(isBusy));
+}
+
+function setEditorMode(isOpen) {
+    const app = document.getElementById('gcal-app');
+    if (app) app.classList.toggle('is-editor-mode', Boolean(isOpen));
+}
+
+async function readErrorMessage(resp) {
+    const text = (await resp.text()).trim();
+    return text || ('Request failed with ' + resp.status);
+}
+
+async function swapAppFromUrl(url, { push = false, preserveScroll = false } = {}) {
+    const app = document.querySelector('[data-gcal-app]');
+    if (!app) {
+        window.location.href = url;
+        return;
+    }
+
+    const grid = document.getElementById('time-grid');
+    const scrollTop = preserveScroll && grid ? grid.scrollTop : null;
+    setAppBusy(true);
+
+    try {
+        const resp = await fetch(url, {
+            headers: { 'X-Requested-With': 'mock-gcal-ui' },
+        });
+        if (!resp.ok) throw new Error(await readErrorMessage(resp));
+
+        const html = await resp.text();
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const nextApp = doc.querySelector('[data-gcal-app]');
+        if (!nextApp) {
+            window.location.href = url;
+            return;
+        }
+
+        document.title = doc.title;
+        app.replaceWith(nextApp);
+        if (push) history.pushState({}, '', url);
+        initializeCalendarApp({ restoreScroll: scrollTop });
+    } catch (error) {
+        console.error(error);
+        window.location.href = url;
+    } finally {
+        setAppBusy(false);
+    }
+}
+
+function handleNavClick(event, linkEl, preserveScroll = false) {
+    if (!linkEl || !linkEl.href) return true;
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return true;
+
+    const url = new URL(linkEl.href, window.location.href);
+    if (url.origin !== window.location.origin) return true;
+
+    event.preventDefault();
+    swapAppFromUrl(url.toString(), { push: true, preserveScroll });
+    return false;
+}
+
+window.addEventListener('popstate', function () {
+    swapAppFromUrl(window.location.href, { push: false, preserveScroll: false });
+});
+
+function clearNowTimer() {
+    if (GCAL_UI.nowTimer) {
+        clearInterval(GCAL_UI.nowTimer);
+        GCAL_UI.nowTimer = null;
+    }
+}
+
+function updateNowLine() {
+    const line = document.getElementById('now-line');
+    if (!line) return;
+
+    const state = getPageState();
+    const todayIso = state.today || '';
+    const column = line.closest('[data-date]');
+    if (todayIso && column && column.dataset.date !== todayIso) {
+        line.style.display = 'none';
+        return;
+    }
+
+    const hourPx = rootStyleNumber('--gcal-hour-height', 56);
+    const now = new Date();
+    const top = Math.round((now.getHours() * 60 + now.getMinutes()) * hourPx / 60);
+    line.style.top = top + 'px';
+    line.style.display = 'flex';
+}
+
+function initializeCalendarApp({ restoreScroll = null } = {}) {
+    clearNowTimer();
+    updateNowLine();
+
+    if (document.getElementById('now-line')) {
+        GCAL_UI.nowTimer = setInterval(updateNowLine, 60000);
+    }
+
+    const grid = document.getElementById('time-grid');
+    if (grid) {
+        const targetScroll = restoreScroll != null
+            ? restoreScroll
+            : 9 * rootStyleNumber('--gcal-hour-height', 56) - 24;
+        const applyGridScroll = function () {
+            grid.scrollTop = targetScroll;
+        };
+        const scheduleGridScroll = function () {
+            requestAnimationFrame(function () {
+                requestAnimationFrame(applyGridScroll);
+            });
+            [120, 260, 520, 900].forEach(function (delay) {
+                setTimeout(applyGridScroll, delay);
+            });
+        };
+
+        if (restoreScroll != null) {
+            scheduleGridScroll();
+        } else if (!grid.dataset.autoscrolled) {
+            grid.dataset.autoscrolled = 'true';
+            scheduleGridScroll();
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    initializeCalendarApp();
+});
+
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+        closeAllFloatingLayers(true);
+        return;
+    }
+
+    if ((event.key === 'Enter' || event.key === ',') && (event.target?.id === 'create-ev-guests' || event.target?.id === 'edit-ev-guests')) {
+        event.preventDefault();
+        addEditorGuestFromInput(event.target.id.startsWith('create') ? 'create' : 'edit');
+    }
+});
+
+document.addEventListener('click', function (event) {
+    const keepOpen = event.target.closest('.gcal-popover')
+        || event.target.closest('.gcal-dialog')
+        || event.target.closest('.gcal-event-card')
+        || event.target.closest('[data-keep-layer-open]');
+    if (!keepOpen) {
+        closeEventPopover();
+        closeQuickCreatePopover();
+        closeCreateMenu();
+    }
+    if (!event.target.closest('.gcal-editor-color-picker')) {
+        closeEditorColorMenus();
+    }
+});
+
+function closeAllFloatingLayers(includeDialogs) {
+    closeEventPopover();
+    closeQuickCreatePopover();
+    closeCreateMenu();
+    closeEditorColorMenus();
+    if (includeDialogs) {
+        closeCreateModal();
+        closeEditModal();
+        closeCreateCalModal();
+        closeEditCalModal();
+    }
+}
+
+function showToast(message, tone = 'success') {
+    const stack = document.getElementById('gcal-toast-stack');
+    if (!stack) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'gcal-toast' + (tone === 'error' ? ' error' : '');
+    toast.textContent = message;
+    stack.appendChild(toast);
+
+    window.setTimeout(function () {
+        toast.remove();
+    }, tone === 'error' ? 4800 : 2800);
+}
+
+function positionFloatingCard(el, preferredLeft, preferredTop) {
+    if (!el) return;
+
+    el.style.visibility = 'hidden';
+    el.classList.remove('is-hidden');
+    const width = el.offsetWidth || 340;
+    const height = el.offsetHeight || 240;
+    let left = preferredLeft;
+    let top = preferredTop;
+
+    if (left + width > window.innerWidth - 12) left = window.innerWidth - width - 12;
+    if (top + height > window.innerHeight - 12) top = window.innerHeight - height - 12;
+    if (left < 12) left = 12;
+    if (top < 12) top = 12;
+
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+    el.style.visibility = '';
+}
+
+function toLocalDateTimeValue(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
+}
+
+function formatEditorDate(date) {
+    return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+    }).format(date);
+}
+
+function formatEditorTime(date) {
+    return new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(date).replace(/\s/g, '').toLowerCase();
+}
+
+function formatCompactTimeRange(start, end) {
+    const startBase = formatEditorTime(start).replace(/(am|pm)$/i, '');
+    const endText = formatEditorTime(end);
+    const startMeridiem = formatEditorTime(start).slice(-2);
+    const endMeridiem = endText.slice(-2);
+    if (startMeridiem === endMeridiem) {
+        return startBase + ' – ' + endText;
+    }
+    return formatEditorTime(start) + ' – ' + endText;
+}
+
+function parseEditorDateTime(dateText, timeText) {
+    const baseDate = new Date(String(dateText || '').trim());
+    if (Number.isNaN(baseDate.getTime())) return null;
+
+    const rawTime = String(timeText || '').trim();
+    if (!rawTime) {
+        return new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), 0, 0, 0, 0);
+    }
+
+    const match = rawTime.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/i);
+    if (!match) return null;
+
+    let hours = Number(match[1]);
+    const minutes = Number(match[2] || '0');
+    const meridiem = (match[3] || '').toLowerCase();
+    if (minutes < 0 || minutes > 59 || hours < 0 || hours > 24) return null;
+
+    if (meridiem) {
+        if (hours < 1 || hours > 12) return null;
+        if (meridiem === 'pm' && hours !== 12) hours += 12;
+        if (meridiem === 'am' && hours === 12) hours = 0;
+    }
+
+    return new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate(), hours, minutes, 0, 0);
+}
+
+function setEditorDateTimeFields(prefix, startValue, endValue) {
+    const start = new Date(startValue);
+    const end = new Date(endValue);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return;
+
+    const startDate = document.getElementById(prefix + '-ev-start-date');
+    const startTime = document.getElementById(prefix + '-ev-start-time');
+    const endDate = document.getElementById(prefix + '-ev-end-date');
+    const endTime = document.getElementById(prefix + '-ev-end-time');
+
+    if (startDate) startDate.value = formatEditorDate(start);
+    if (startTime) startTime.value = formatEditorTime(start);
+    if (endDate) endDate.value = formatEditorDate(end);
+    if (endTime) endTime.value = formatEditorTime(end);
+}
+
+function getEditorDateTimeValue(prefix, side) {
+    const dateInput = document.getElementById(prefix + '-ev-' + side + '-date');
+    const timeInput = document.getElementById(prefix + '-ev-' + side + '-time');
+    const parsed = parseEditorDateTime(dateInput?.value || '', timeInput?.value || '');
+    return parsed ? toLocalDateTimeValue(parsed) : '';
+}
+
+function formatQuickRange(start, end, allDay = false) {
+    if (allDay) {
+        return new Intl.DateTimeFormat('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+        }).format(start) + ' · All day';
+    }
+
+    const dayPart = new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+    }).format(start);
+    const timeFormatter = new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+    });
+    const startText = timeFormatter.format(start).replace(' AM', 'am').replace(' PM', 'pm');
+    const endText = timeFormatter.format(end).replace(' AM', 'am').replace(' PM', 'pm');
+    return dayPart + '  ' + startText + ' – ' + endText;
+}
+
+function formatEventDetailRange(startIso, endIso, allDay = false) {
+    const start = new Date(startIso);
+    const end = new Date(endIso);
+    if (allDay) {
+        return new Intl.DateTimeFormat('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+        }).format(start) + ' · All day';
+    }
+
+    const dayPart = new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+    }).format(start);
+    return dayPart + ' · ' + formatCompactTimeRange(start, end);
+}
+
+function getPreferredCalendarId() {
+    const checked = document.querySelector('.gcal-calendar-input:checked');
+    if (checked) {
+        const row = checked.closest('[data-calendar-row]');
+        if (row) return row.dataset.calendarRow;
+    }
+
+    const createSelect = document.getElementById('create-ev-cal');
+    if (createSelect && createSelect.options.length > 0) return createSelect.options[0].value;
+
+    const quickSelect = document.getElementById('quick-create-calendar');
+    if (quickSelect && quickSelect.options.length > 0) return quickSelect.options[0].value;
+
+    return '';
+}
+
+function setQuickCreateType(buttonEl, kind) {
+    const container = buttonEl?.closest('.gcal-quick-type-tabs');
+    if (!container) return;
+    container.querySelectorAll('.gcal-quick-type-pill').forEach(function (pill) {
+        pill.classList.toggle('is-active', pill === buttonEl);
+    });
+    if (kind !== 'event') {
+        showToast('Only standard event creation is available in the mock right now.');
+    }
+}
+
+function getEditorShell(prefix) {
+    return document.getElementById(prefix + '-ev-shell');
+}
+
+function getEditorModal(prefix) {
+    return document.getElementById(prefix + '-ev-modal');
+}
+
+function closeEditorColorMenus(exceptPrefix = '') {
+    document.querySelectorAll('.gcal-editor-color-menu').forEach(function (menu) {
+        if (exceptPrefix && menu.id === exceptPrefix + '-ev-color-menu') return;
+        menu.classList.add('is-hidden');
+    });
+}
+
+function syncEditorCalendarColor(prefix) {
+    const select = document.getElementById(prefix + '-ev-cal');
+    const dot = document.getElementById(prefix + '-ev-color-dot');
+    const activeValue = select?.value || '';
+    const activeOption = select?.selectedOptions?.[0] || null;
+    const color = activeOption?.dataset.color || '#1a73e8';
+
+    if (dot) dot.style.backgroundColor = color;
+
+    const menu = document.getElementById(prefix + '-ev-color-menu');
+    if (!menu) return;
+    menu.querySelectorAll('.gcal-editor-color-swatch').forEach(function (swatch) {
+        swatch.classList.toggle('is-selected', swatch.dataset.calendarId === activeValue);
+    });
+}
+
+function toggleEditorColorMenu(prefix) {
+    const menu = document.getElementById(prefix + '-ev-color-menu');
+    if (!menu) return;
+    const shouldOpen = menu.classList.contains('is-hidden');
+    closeEditorColorMenus(shouldOpen ? prefix : '');
+    menu.classList.toggle('is-hidden', !shouldOpen);
+    if (shouldOpen) syncEditorCalendarColor(prefix);
+}
+
+function selectEditorColor(prefix, calendarId) {
+    const select = document.getElementById(prefix + '-ev-cal');
+    if (select) select.value = calendarId;
+    syncEditorCalendarColor(prefix);
+    closeEditorColorMenus();
+}
+
+function toggleEditorTimezone(prefix) {
+    const copy = document.getElementById(prefix + '-ev-timezone-copy');
+    const toggle = document.getElementById(prefix + '-ev-timezone-toggle');
+    if (!copy || !toggle) return;
+    const isOpen = copy.classList.toggle('is-open');
+    toggle.textContent = isOpen ? 'Hide time zone' : 'Time zone';
+}
+
+function toggleEditorAllDay(prefix) {
+    const shell = getEditorShell(prefix);
+    const checkbox = document.getElementById(prefix + '-ev-all-day');
+    if (shell) shell.classList.toggle('is-all-day', Boolean(checkbox?.checked));
+}
+
+function switchEditorTab(prefix, panelName) {
+    const modal = getEditorModal(prefix);
+    if (!modal) return;
+    modal.querySelectorAll('.gcal-editor-tab').forEach(function (tab) {
+        tab.classList.toggle('is-active', tab.id === prefix + '-ev-tab-' + panelName);
+    });
+    modal.querySelectorAll('.gcal-editor-tab-panel').forEach(function (panel) {
+        panel.classList.toggle('is-active', panel.id === prefix + '-ev-panel-' + panelName);
+    });
+}
+
+function switchEditorSidebar(prefix, panelName) {
+    const modal = getEditorModal(prefix);
+    if (!modal) return;
+    modal.querySelectorAll('.gcal-editor-side-tab').forEach(function (tab) {
+        tab.classList.toggle('is-active', tab.id === prefix + '-ev-side-tab-' + panelName);
+    });
+    modal.querySelectorAll('.gcal-editor-side-panel').forEach(function (panel) {
+        panel.classList.toggle('is-active', panel.id === prefix + '-ev-side-panel-' + panelName);
+    });
+}
+
+function clearEditorNotifications(prefix) {
+    const list = document.getElementById(prefix + '-ev-notification-list');
+    if (!list) return;
+    list.innerHTML = '';
+    list.classList.add('is-hidden');
+}
+
+function addEditorNotification(prefix, initial = {}) {
+    const list = document.getElementById(prefix + '-ev-notification-list');
+    if (!list) return;
+
+    const item = document.createElement('div');
+    item.className = 'gcal-editor-notification-item';
+
+    const offsetSelect = document.createElement('select');
+    offsetSelect.className = 'gcal-editor-select';
+    ['10 minutes before', '30 minutes before', '1 hour before', '1 day before'].forEach(function (label) {
+        const option = document.createElement('option');
+        option.textContent = label;
+        if ((initial.offset || '30 minutes before') === label) option.selected = true;
+        offsetSelect.appendChild(option);
+    });
+
+    const methodSelect = document.createElement('select');
+    methodSelect.className = 'gcal-editor-select';
+    ['Notification', 'Email'].forEach(function (label) {
+        const option = document.createElement('option');
+        option.textContent = label;
+        if ((initial.method || 'Notification') === label) option.selected = true;
+        methodSelect.appendChild(option);
+    });
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'gcal-button-link gcal-editor-text-link';
+    removeButton.textContent = 'Remove';
+    removeButton.addEventListener('click', function () {
+        item.remove();
+        if (!list.children.length) list.classList.add('is-hidden');
+    });
+
+    item.append(offsetSelect, methodSelect, removeButton);
+    list.appendChild(item);
+    list.classList.remove('is-hidden');
+}
+
+function normalizeGuestResponse(status) {
+    if (status === 'needsAction') return 'Awaiting reply';
+    if (status === 'declined') return 'Declined';
+    if (status === 'tentative') return 'Maybe';
+    if (status === 'accepted') return 'Going';
+    return 'Guest';
+}
+
+function guestInitials(name, email) {
+    const base = (name || email || '?').trim();
+    const parts = base.split(/\s+/).filter(Boolean);
+    if (!parts.length) return '?';
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+}
+
+function getEditorGuests(prefix) {
+    const modal = getEditorModal(prefix);
+    if (!modal) return [];
+    try {
+        const parsed = JSON.parse(modal.dataset.guestsJson || '[]');
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function renderEditorGuests(prefix, attendees) {
+    const list = document.getElementById(prefix + '-ev-guest-list');
+    const empty = document.getElementById(prefix + '-ev-side-empty');
+    if (!list) return;
+
+    list.innerHTML = '';
+    const safeGuests = Array.isArray(attendees) ? attendees.filter(Boolean) : [];
+    const modal = getEditorModal(prefix);
+    if (modal) modal.dataset.guestsJson = JSON.stringify(safeGuests);
+
+    if (!safeGuests.length) {
+        list.classList.add('is-hidden');
+        empty?.classList.remove('is-hidden');
+        return;
+    }
+
+    empty?.classList.add('is-hidden');
+    list.classList.remove('is-hidden');
+
+    safeGuests.forEach(function (guest) {
+        const chip = document.createElement('div');
+        chip.className = 'gcal-editor-guest-chip';
+
+        const avatar = document.createElement('div');
+        avatar.className = 'gcal-editor-guest-avatar';
+        avatar.textContent = guestInitials(guest.displayName || '', guest.email || '');
+
+        const copy = document.createElement('div');
+        copy.className = 'gcal-editor-guest-copy';
+
+        const name = document.createElement('div');
+        name.className = 'gcal-editor-guest-name';
+        name.textContent = guest.displayName || guest.email || 'Guest';
+
+        const email = document.createElement('div');
+        email.className = 'gcal-editor-guest-email';
+        email.textContent = guest.email || '';
+
+        const status = document.createElement('div');
+        status.className = 'gcal-editor-guest-status';
+        status.textContent = normalizeGuestResponse(guest.responseStatus || '');
+
+        copy.append(name, email);
+        chip.append(avatar, copy, status);
+        list.appendChild(chip);
+    });
+}
+
+function tokenToGuest(token) {
+    const value = String(token || '').trim();
+    if (!value) return null;
+    if (value.includes('@')) {
+        const name = value
+            .split('@', 1)[0]
+            .replace(/[._-]+/g, ' ')
+            .replace(/\b\w/g, function (char) { return char.toUpperCase(); });
+        return { email: value, displayName: name, responseStatus: 'needsAction' };
+    }
+    return { email: value.toLowerCase().replace(/\s+/g, '.') + '@example.com', displayName: value, responseStatus: 'needsAction' };
+}
+
+function addEditorGuestFromInput(prefix) {
+    const input = document.getElementById(prefix + '-ev-guests');
+    if (!input) return;
+    const tokens = input.value
+        .split(',')
+        .map(function (token) { return token.trim(); })
+        .filter(Boolean);
+    if (!tokens.length) return;
+
+    const nextGuests = getEditorGuests(prefix);
+    tokens.forEach(function (token) {
+        const guest = tokenToGuest(token);
+        if (!guest) return;
+        nextGuests.push(guest);
+    });
+    input.value = '';
+    renderEditorGuests(prefix, nextGuests);
+}
+
+function insertMeetingNotesTemplate(prefix) {
+    const textarea = document.getElementById(prefix + '-ev-description');
+    if (!textarea) return;
+    if (!textarea.value.trim()) {
+        textarea.value = 'Meeting notes\\n- Agenda\\n- Decisions\\n- Action items';
+    }
+    textarea.focus();
+    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+}
+
+function resetEditorUi(prefix) {
+    const toggle = document.getElementById(prefix + '-ev-timezone-toggle');
+    document.getElementById(prefix + '-ev-timezone-copy')?.classList.remove('is-open');
+    if (toggle) toggle.textContent = 'Time zone';
+    const guestInput = document.getElementById(prefix + '-ev-guests');
+    if (guestInput) guestInput.value = '';
+    switchEditorTab(prefix, 'details');
+    switchEditorSidebar(prefix, 'guests');
+    closeEditorColorMenus();
+    clearEditorNotifications(prefix);
+    renderEditorGuests(prefix, []);
+    toggleEditorAllDay(prefix);
+    syncEditorCalendarColor(prefix);
+}
+
+function buildEditorEventRequest(prefix) {
+    const allDay = Boolean(document.getElementById(prefix + '-ev-all-day')?.checked);
+    if (allDay) {
+        const start = parseEditorDateTime(
+            document.getElementById(prefix + '-ev-start-date')?.value || '',
+            '12:00am'
+        );
+        const end = parseEditorDateTime(
+            document.getElementById(prefix + '-ev-end-date')?.value || '',
+            '12:00am'
+        );
+        if (!start || !end) {
+            return { error: 'Please enter a valid start and end date.' };
+        }
+        const endExclusive = new Date(end);
+        endExclusive.setDate(endExclusive.getDate() + 1);
+        if (endExclusive <= start) {
+            return { error: 'End date must be after or equal to the start date.' };
+        }
+        const startDate = toLocalDateTimeValue(start).slice(0, 10);
+        const endDate = toLocalDateTimeValue(endExclusive).slice(0, 10);
+        return {
+            value: {
+                start: { date: startDate },
+                end: { date: endDate },
+            },
+        };
+    }
+
+    const startValue = getEditorDateTimeValue(prefix, 'start');
+    const endValue = getEditorDateTimeValue(prefix, 'end');
+    if (!startValue || !endValue) {
+        return { error: 'Please enter a valid start and end time.' };
+    }
+    if (new Date(endValue) <= new Date(startValue)) {
+        return { error: 'End time must be after the start time.' };
+    }
+    return {
+        value: {
+            start: { dateTime: new Date(startValue).toISOString() },
+            end: { dateTime: new Date(endValue).toISOString() },
+        },
+    };
+}
+
+async function refreshCurrentView({ preserveScroll = false } = {}) {
+    await swapAppFromUrl(window.location.href, { push: false, preserveScroll });
+}
+
+function setCalendarVisibility(calId, visible) {
+    document.querySelectorAll('[data-cal-id="' + calId + '"]').forEach(function (el) {
+        el.style.display = visible ? '' : 'none';
+    });
+    const row = document.querySelector('[data-calendar-row="' + calId + '"]');
+    if (row) row.classList.toggle('is-muted', !visible);
+}
+
+async function filterCalendar(calId, visible, inputEl) {
+    setCalendarVisibility(calId, visible);
+    try {
+        const resp = await fetch('/calendar/v3/users/me/calendarList/' + encodeURIComponent(calId), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ selected: visible }),
+        });
+        if (!resp.ok) throw new Error(await readErrorMessage(resp));
+    } catch (error) {
+        console.error(error);
+        if (inputEl) inputEl.checked = !visible;
+        setCalendarVisibility(calId, !visible);
+        showToast('Could not update calendar visibility.', 'error');
+    }
+}
+
+function selectCalendarColor(swatchEl, modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+
+    modal.dataset.selectedColor = swatchEl.dataset.colorId || DEFAULT_CALENDAR_COLOR_ID;
+    modal.querySelectorAll('[data-color-id]').forEach(function (el) {
+        el.classList.toggle('is-selected', el === swatchEl);
+    });
+}
+
+function openCreateCalModal() {
+    const modal = document.getElementById('create-cal-modal');
+    if (!modal) return;
+    closeEventPopover();
+    closeQuickCreatePopover();
+    modal.classList.remove('is-hidden');
+    document.getElementById('create-cal-summary')?.focus();
+}
+
+function closeCreateCalModal() {
+    document.getElementById('create-cal-modal')?.classList.add('is-hidden');
+}
+
+function openEditCalModal(btn) {
+    const modal = document.getElementById('edit-cal-modal');
+    if (!modal) return;
+
+    closeEventPopover();
+    closeQuickCreatePopover();
+    modal.dataset.calId = btn.dataset.calId || '';
+    modal.dataset.selectedColor = btn.dataset.calColorId || DEFAULT_CALENDAR_COLOR_ID;
+    document.getElementById('edit-cal-summary').value = btn.dataset.calSummary || '';
+    document.getElementById('edit-cal-description').value = btn.dataset.calDescription || '';
+    document.getElementById('edit-cal-timezone').value = btn.dataset.calTimezone || 'America/Los_Angeles';
+
+    modal.querySelectorAll('[data-color-id]').forEach(function (el) {
+        el.classList.toggle('is-selected', el.dataset.colorId === modal.dataset.selectedColor);
+    });
+
+    const isPrimary = btn.dataset.isPrimary === 'true';
+    const deleteBtn = document.getElementById('edit-cal-delete-btn');
+    if (deleteBtn) {
+        deleteBtn.disabled = isPrimary;
+        deleteBtn.style.opacity = isPrimary ? '0.45' : '';
+        deleteBtn.style.cursor = isPrimary ? 'not-allowed' : '';
+    }
+
+    modal.classList.remove('is-hidden');
+    document.getElementById('edit-cal-summary')?.focus();
+}
+
+function closeEditCalModal() {
+    document.getElementById('edit-cal-modal')?.classList.add('is-hidden');
+}
+
+async function submitCreateCal() {
+    const modal = document.getElementById('create-cal-modal');
+    const summaryEl = document.getElementById('create-cal-summary');
+    if (!modal || !summaryEl) return;
+
+    const summary = summaryEl.value.trim();
+    if (!summary) {
+        summaryEl.focus();
+        return;
+    }
+
+    try {
+        const resp = await fetch('/calendar/v3/calendars', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                summary,
+                description: document.getElementById('create-cal-description').value.trim(),
+                timeZone: document.getElementById('create-cal-timezone').value.trim() || 'America/Los_Angeles',
+                colorId: modal.dataset.selectedColor || DEFAULT_CALENDAR_COLOR_ID,
+            }),
+        });
+        if (!resp.ok) throw new Error(await readErrorMessage(resp));
+
+        closeCreateCalModal();
+        showToast('Calendar created.');
+        await refreshCurrentView({ preserveScroll: true });
+    } catch (error) {
+        console.error(error);
+        showToast('Could not create calendar.', 'error');
+    }
+}
+
+async function submitEditCal() {
+    const modal = document.getElementById('edit-cal-modal');
+    if (!modal) return;
+
+    try {
+        const resp = await fetch('/calendar/v3/calendars/' + encodeURIComponent(modal.dataset.calId || ''), {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                summary: document.getElementById('edit-cal-summary').value.trim(),
+                description: document.getElementById('edit-cal-description').value.trim(),
+                timeZone: document.getElementById('edit-cal-timezone').value.trim() || 'America/Los_Angeles',
+                colorId: modal.dataset.selectedColor || DEFAULT_CALENDAR_COLOR_ID,
+            }),
+        });
+        if (!resp.ok) throw new Error(await readErrorMessage(resp));
+
+        closeEditCalModal();
+        showToast('Calendar updated.');
+        await refreshCurrentView({ preserveScroll: true });
+    } catch (error) {
+        console.error(error);
+        showToast('Could not update calendar.', 'error');
+    }
+}
+
+async function deleteCalendar() {
+    const modal = document.getElementById('edit-cal-modal');
+    if (!modal || !modal.dataset.calId) return;
+    if (!window.confirm('Delete this calendar and all of its events?')) return;
+
+    try {
+        const resp = await fetch('/calendar/v3/calendars/' + encodeURIComponent(modal.dataset.calId), {
+            method: 'DELETE',
+        });
+        if (!resp.ok && resp.status !== 204) throw new Error(await readErrorMessage(resp));
+
+        closeEditCalModal();
+        showToast('Calendar deleted.');
+        await refreshCurrentView({ preserveScroll: true });
+    } catch (error) {
+        console.error(error);
+        showToast('Could not delete calendar.', 'error');
+    }
+}
+
+function openQuickCreatePopover(event, dateIso) {
+    const grid = document.getElementById('time-grid');
+    const popover = document.getElementById('quick-create-popover');
+    if (!grid || !popover) return;
+
+    const column = event.currentTarget;
+    const rect = column.getBoundingClientRect();
+    const hourPx = rootStyleNumber('--gcal-hour-height', 56);
+    const relativeY = event.clientY - rect.top + grid.scrollTop;
+    const totalMinutes = Math.max(0, Math.min(23 * 60 + 45, Math.round(relativeY / hourPx * 4) * 15));
+    const start = new Date(dateIso + 'T00:00:00');
+    start.setHours(Math.floor(totalMinutes / 60), totalMinutes % 60, 0, 0);
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+
+    popover.dataset.startValue = toLocalDateTimeValue(start);
+    popover.dataset.endValue = toLocalDateTimeValue(end);
+
+    document.getElementById('quick-create-title').value = '';
+    document.getElementById('quick-create-slot').textContent = formatQuickRange(start, end, false);
+    popover.querySelectorAll('.gcal-quick-type-pill').forEach(function (pill, index) {
+        pill.classList.toggle('is-active', index === 0);
+    });
+
+    const select = document.getElementById('quick-create-calendar');
+    if (select) select.value = getPreferredCalendarId();
+
+    closeCreateMenu();
+    closeEventPopover();
+    positionFloatingCard(popover, event.clientX + 16, event.clientY - 24);
+    requestAnimationFrame(function () {
+        document.getElementById('quick-create-title')?.focus();
+    });
+}
+
+function toggleCreateMenu(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('create-menu');
+    if (!menu) {
+        openCreateModal(getPageState().today || '', '09:00');
+        return;
+    }
+
+    if (!menu.classList.contains('is-hidden')) {
+        closeCreateMenu();
+        return;
+    }
+
+    closeQuickCreatePopover();
+    closeEventPopover();
+    const rect = event.currentTarget.getBoundingClientRect();
+    positionFloatingCard(menu, rect.left, rect.bottom + 8);
+}
+
+function closeCreateMenu() {
+    document.getElementById('create-menu')?.classList.add('is-hidden');
+}
+
+function openCreateFromMenu(kind) {
+    closeCreateMenu();
+    if (kind === 'event') {
+        openCreateModal(getPageState().today || '', '09:00');
+        return;
+    }
+    if (kind === 'task') {
+        showToast('Task creation is not available in the mock yet.');
+        return;
+    }
+    showToast('Appointment schedules are not available in the mock yet.');
+}
+
+function closeQuickCreatePopover() {
+    document.getElementById('quick-create-popover')?.classList.add('is-hidden');
+}
+
+function openCreateModal(dateIso, timeStr) {
+    const start = new Date(dateIso + 'T' + (timeStr || '09:00'));
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+    openCreateModalFromValues(toLocalDateTimeValue(start), toLocalDateTimeValue(end));
+}
+
+function openCreateModalFromValues(startValue, endValue) {
+    const modal = document.getElementById('create-ev-modal');
+    if (!modal) return;
+
+    closeCreateMenu();
+    closeEventPopover();
+    closeQuickCreatePopover();
+    setEditorMode(true);
+    document.getElementById('create-ev-summary').value = '';
+    document.getElementById('create-ev-description').value = '';
+    document.getElementById('create-ev-location').value = '';
+    setEditorDateTimeFields('create', startValue, endValue);
+    const allDay = document.getElementById('create-ev-all-day');
+    if (allDay) allDay.checked = false;
+
+    const select = document.getElementById('create-ev-cal');
+    if (select) select.value = getPreferredCalendarId();
+
+    resetEditorUi('create');
+    modal.classList.remove('is-hidden');
+    document.getElementById('create-ev-summary')?.focus();
+}
+
+function openFullCreateFromQuickCreate() {
+    const popover = document.getElementById('quick-create-popover');
+    if (!popover) return;
+    openCreateModalFromValues(popover.dataset.startValue || '', popover.dataset.endValue || '');
+    closeQuickCreatePopover();
+}
+
+function closeCreateModal() {
+    closeEditorColorMenus();
+    setEditorMode(false);
+    document.getElementById('create-ev-modal')?.classList.add('is-hidden');
+}
+
+async function submitQuickCreateEvent() {
+    const popover = document.getElementById('quick-create-popover');
+    const select = document.getElementById('quick-create-calendar');
+    if (!popover || !select) return;
+
+    const startValue = popover.dataset.startValue || '';
+    const endValue = popover.dataset.endValue || '';
+
+    try {
+        const resp = await fetch('/calendar/v3/calendars/' + encodeURIComponent(select.value) + '/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                summary: document.getElementById('quick-create-title').value.trim() || '(No title)',
+                start: { dateTime: new Date(startValue).toISOString() },
+                end: { dateTime: new Date(endValue).toISOString() },
+            }),
+        });
+        if (!resp.ok) throw new Error(await readErrorMessage(resp));
+
+        closeQuickCreatePopover();
+        showToast('Event created.');
+        await refreshCurrentView({ preserveScroll: true });
+    } catch (error) {
+        console.error(error);
+        showToast('Could not create event.', 'error');
+    }
+}
+
+async function submitCreateEvent() {
+    const calId = document.getElementById('create-ev-cal').value;
+    const request = buildEditorEventRequest('create');
+    if (request.error) {
+        showToast(request.error, 'error');
+        return;
+    }
+
+    try {
+        const resp = await fetch('/calendar/v3/calendars/' + encodeURIComponent(calId) + '/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                summary: document.getElementById('create-ev-summary').value.trim() || '(No title)',
+                description: document.getElementById('create-ev-description').value.trim(),
+                location: document.getElementById('create-ev-location').value.trim(),
+                ...request.value,
+            }),
+        });
+        if (!resp.ok) throw new Error(await readErrorMessage(resp));
+
+        closeCreateModal();
+        showToast('Event created.');
+        await refreshCurrentView({ preserveScroll: true });
+    } catch (error) {
+        console.error(error);
+        showToast('Could not create event.', 'error');
+    }
+}
+
+function closeEventPopover() {
+    document.getElementById('event-popover')?.classList.add('is-hidden');
+}
+
+async function copyMeetLink() {
+    const text = document.getElementById('pop-meet-link')?.textContent?.trim() || '';
+    if (!text) return;
+
+    try {
+        await navigator.clipboard.writeText(text);
+        showToast('Meeting link copied.');
+    } catch (error) {
+        console.error(error);
+        showToast('Could not copy the meeting link.', 'error');
+    }
+}
+
+function showEventPopover(evt, el) {
+    evt.stopPropagation();
+    closeCreateMenu();
+    closeQuickCreatePopover();
+
+    const popover = document.getElementById('event-popover');
+    if (!popover) return;
+
+    popover.dataset.curEvId = el.dataset.evId || '';
+    popover.dataset.curCalId = el.dataset.calId || '';
+    popover.dataset.evSummary = el.dataset.evSummary || '';
+    popover.dataset.evDescription = el.dataset.evDescription || '';
+    popover.dataset.evStartIso = el.dataset.evStartIso || '';
+    popover.dataset.evEndIso = el.dataset.evEndIso || '';
+    popover.dataset.evLocation = el.dataset.evLocation || '';
+    popover.dataset.evAllDay = el.dataset.evAllDay || 'false';
+    popover.dataset.calId = el.dataset.calId || '';
+    popover.dataset.evAttendeesJson = el.dataset.evAttendeesJson || '[]';
+    popover.dataset.evVisualState = el.dataset.evVisualState || 'confirmed';
+
+    document.getElementById('pop-color').style.backgroundColor = el.dataset.evColor || '#1a73e8';
+    document.getElementById('pop-summary').textContent = el.dataset.evSummary || '(No title)';
+    document.getElementById('pop-time-text').textContent = formatEventDetailRange(
+        el.dataset.evStartIso || '',
+        el.dataset.evEndIso || '',
+        el.dataset.evAllDay === 'true',
+    );
+    document.getElementById('pop-meet-link').textContent = 'meet.google.com/vvk-ihek-pwq';
+    document.getElementById('pop-calendar-text').textContent = el.dataset.evCalendar || '';
+
+    const descriptionRow = document.getElementById('pop-description-row');
+    if (el.dataset.evDescription) {
+        document.getElementById('pop-description-text').textContent = el.dataset.evDescription;
+        descriptionRow.classList.remove('is-hidden');
+    } else {
+        descriptionRow.classList.add('is-hidden');
+    }
+
+    const locationRow = document.getElementById('pop-location-row');
+    if (el.dataset.evLocation) {
+        document.getElementById('pop-location-text').textContent = el.dataset.evLocation;
+        locationRow.classList.remove('is-hidden');
+    } else {
+        locationRow.classList.add('is-hidden');
+    }
+
+    const rect = el.getBoundingClientRect();
+    positionFloatingCard(popover, rect.left + 180, rect.top - 76);
+}
+
+function openEditModal() {
+    const popover = document.getElementById('event-popover');
+    const modal = document.getElementById('edit-ev-modal');
+    if (!popover || !modal) return;
+
+    let attendees = [];
+    try {
+        attendees = JSON.parse(popover.dataset.evAttendeesJson || '[]');
+    } catch (error) {
+        attendees = [];
+    }
+
+    setEditorMode(true);
+    document.getElementById('edit-ev-summary').value = popover.dataset.evSummary || '';
+    document.getElementById('edit-ev-description').value = popover.dataset.evDescription || '';
+    setEditorDateTimeFields('edit', popover.dataset.evStartIso || '', popover.dataset.evEndIso || '');
+    document.getElementById('edit-ev-location').value = popover.dataset.evLocation || '';
+    document.getElementById('edit-ev-cal').value = popover.dataset.calId || '';
+    document.getElementById('edit-ev-guests').value = '';
+    const allDay = document.getElementById('edit-ev-all-day');
+    if (allDay) allDay.checked = popover.dataset.evAllDay === 'true';
+
+    modal.dataset.evId = popover.dataset.curEvId || '';
+    modal.dataset.calId = popover.dataset.curCalId || '';
+
+    resetEditorUi('edit');
+    renderEditorGuests('edit', attendees);
+    addEditorNotification('edit', { offset: '30 minutes before', method: 'Notification' });
+    closeEventPopover();
+    modal.classList.remove('is-hidden');
+    document.getElementById('edit-ev-summary')?.focus();
+}
+
+function closeEditModal() {
+    closeEditorColorMenus();
+    setEditorMode(false);
+    document.getElementById('edit-ev-modal')?.classList.add('is-hidden');
+}
+
+async function submitEditEvent() {
+    const modal = document.getElementById('edit-ev-modal');
+    if (!modal) return;
+
+    let activeCalId = modal.dataset.calId || '';
+    const nextCalId = document.getElementById('edit-ev-cal').value;
+    const eventId = modal.dataset.evId || '';
+    const request = buildEditorEventRequest('edit');
+    if (request.error) {
+        showToast(request.error, 'error');
+        return;
+    }
+
+    try {
+        if (nextCalId && nextCalId !== activeCalId) {
+            const moveResp = await fetch(
+                '/calendar/v3/calendars/' + encodeURIComponent(activeCalId) + '/events/' + encodeURIComponent(eventId)
+                + '/move?destination=' + encodeURIComponent(nextCalId),
+                { method: 'POST' }
+            );
+            if (!moveResp.ok) throw new Error(await readErrorMessage(moveResp));
+            activeCalId = nextCalId;
+            modal.dataset.calId = nextCalId;
+        }
+
+        const patchResp = await fetch(
+            '/calendar/v3/calendars/' + encodeURIComponent(activeCalId) + '/events/' + encodeURIComponent(eventId),
+            {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    summary: document.getElementById('edit-ev-summary').value.trim() || '(No title)',
+                    description: document.getElementById('edit-ev-description').value.trim(),
+                    location: document.getElementById('edit-ev-location').value.trim(),
+                    ...request.value,
+                }),
+            }
+        );
+        if (!patchResp.ok) throw new Error(await readErrorMessage(patchResp));
+
+        closeEditModal();
+        showToast('Event updated.');
+        await refreshCurrentView({ preserveScroll: true });
+    } catch (error) {
+        console.error(error);
+        showToast('Could not update event.', 'error');
+    }
+}
+
+async function deleteEvent() {
+    const popover = document.getElementById('event-popover');
+    if (!popover) return;
+
+    try {
+        const resp = await fetch(
+            '/calendar/v3/calendars/' + encodeURIComponent(popover.dataset.curCalId || '')
+            + '/events/' + encodeURIComponent(popover.dataset.curEvId || ''),
+            { method: 'DELETE' }
+        );
+        if (!resp.ok && resp.status !== 204) throw new Error(await readErrorMessage(resp));
+
+        closeEventPopover();
+        showToast('Event deleted.');
+        await refreshCurrentView({ preserveScroll: true });
+    } catch (error) {
+        console.error(error);
+        showToast('Could not delete event.', 'error');
+    }
+}
+</script>
+</body>
+</html>

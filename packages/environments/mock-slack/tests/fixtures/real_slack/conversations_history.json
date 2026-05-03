@@ -1,0 +1,255 @@
+{
+  "ok": true,
+  "messages": [
+    {
+      "text": "",
+      "files": [
+        {
+          "id": "F0AP71LGCR0",
+          "mode": "tombstone"
+        }
+      ],
+      "upload": true,
+      "user": "U0AMGBHA936",
+      "display_as_bot": false,
+      "type": "message",
+      "ts": "1774576551.611359",
+      "bot_id": "B0AMAMY16CW"
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U0AMGBHA936",
+      "text": "<@U0AMGBHA936> has joined the channel",
+      "type": "message",
+      "ts": "1774576541.252349"
+    },
+    {
+      "user": "U0ALX5T9KB9",
+      "type": "message",
+      "ts": "1773840006.336049",
+      "text": "Acorn being difficult on our walk this morning :joy: delicious tacos",
+      "team": "T0AN6SZBR3J",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "Ok4l3",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Acorn being difficult on our walk this morning "
+                },
+                {
+                  "type": "emoji",
+                  "name": "joy",
+                  "unicode": "1f602"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "block_id": "JFN/2",
+          "image_url": "https://i.imgur.com/gYGOU0H.png",
+          "alt_text": "delicious tacos",
+          "image_width": 886,
+          "image_height": 1240,
+          "image_bytes": 1609838,
+          "is_animated": true,
+          "fallback": "886x1240px image"
+        }
+      ],
+      "reactions": [
+        {
+          "name": "heart",
+          "users": [
+            "U0AMAHALJUW"
+          ],
+          "count": 1
+        },
+        {
+          "name": "joy",
+          "users": [
+            "U0AMRGA64UR"
+          ],
+          "count": 1
+        }
+      ]
+    },
+    {
+      "user": "U0ALX5T9KB9",
+      "type": "message",
+      "ts": "1773840006.084639",
+      "text": "Our new puppy Meatball ! :heart_eyes: delicious tacos",
+      "team": "T0AN6SZBR3J",
+      "thread_ts": "1773840006.084639",
+      "reply_count": 1,
+      "reply_users_count": 1,
+      "latest_reply": "1773840006.237109",
+      "reply_users": [
+        "U0AMG6YMYQ4"
+      ],
+      "is_locked": false,
+      "subscribed": false,
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "pyaE3",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Our new puppy Meatball ! "
+                },
+                {
+                  "type": "emoji",
+                  "name": "heart_eyes",
+                  "unicode": "1f60d"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "block_id": "u1NFR",
+          "image_url": "https://i.imgur.com/EckgStw.png",
+          "alt_text": "delicious tacos",
+          "image_width": 956,
+          "image_height": 1210,
+          "image_bytes": 720520,
+          "is_animated": true,
+          "fallback": "956x1210px image"
+        }
+      ],
+      "reactions": [
+        {
+          "name": "star-struck",
+          "users": [
+            "U0ALX5T9KB9",
+            "U0AM67KHZ27"
+          ],
+          "count": 2
+        },
+        {
+          "name": "smiling_face_with_3_hearts",
+          "users": [
+            "U0AMAHALJUW"
+          ],
+          "count": 1
+        },
+        {
+          "name": "heart",
+          "users": [
+            "U0AMAHCF7SA",
+            "U0AMG6YMYQ4"
+          ],
+          "count": 2
+        }
+      ]
+    },
+    {
+      "user": "U0AMG6YMYQ4",
+      "type": "message",
+      "ts": "1773840005.860419",
+      "text": "Taking Toaster out for a walk! :sunny: delicious tacos",
+      "team": "T0AN6SZBR3J",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "cWaVl",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Taking Toaster out for a walk! "
+                },
+                {
+                  "type": "emoji",
+                  "name": "sunny",
+                  "unicode": "2600-fe0f"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "block_id": "6yo+T",
+          "image_url": "https://i.imgur.com/8LSI9Y0.png",
+          "alt_text": "delicious tacos",
+          "image_width": 2234,
+          "image_height": 1378,
+          "image_bytes": 2489747,
+          "is_animated": true,
+          "fallback": "2234x1378px image"
+        }
+      ],
+      "reactions": [
+        {
+          "name": "bread",
+          "users": [
+            "U0ALX5T9KB9",
+            "U0AMAHCF7SA"
+          ],
+          "count": 2
+        },
+        {
+          "name": "heart_eyes",
+          "users": [
+            "U0AMAHALJUW"
+          ],
+          "count": 1
+        },
+        {
+          "name": "heart",
+          "users": [
+            "U0AMAHCF7SA",
+            "U0AMG6YMYQ4"
+          ],
+          "count": 2
+        }
+      ]
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U0AM67LJ519",
+      "text": "<@U0AM67LJ519> has joined the channel",
+      "type": "message",
+      "ts": "1773839996.192009"
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U0ALX5T9KB9",
+      "text": "<@U0ALX5T9KB9> has joined the channel",
+      "type": "message",
+      "ts": "1773839996.125899"
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U0AMG6YMYQ4",
+      "text": "<@U0AMG6YMYQ4> has joined the channel",
+      "type": "message",
+      "ts": "1773839996.054659"
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U0AM67N0CG3",
+      "text": "<@U0AM67N0CG3> has joined the channel",
+      "type": "message",
+      "ts": "1773839995.975309"
+    }
+  ],
+  "has_more": false,
+  "pin_count": 0,
+  "channel_actions_ts": null,
+  "channel_actions_count": 0,
+  "_captured_at": "2026-03-27T20:39:36.437007+00:00"
+}

@@ -1,0 +1,8 @@
+{
+  "kind": "api#channel",
+  "id": "capture-test-changes-channel",
+  "resourceId": "G6DvclUoVTUlvRWTnxxyHneEbt4",
+  "resourceUri": "https://www.googleapis.com/drive/v3/changes?alt=json&pageToken=60",
+  "expiration": "1774647026000",
+  "_captured_at": "2026-03-27T20:30:26.960191+00:00"
+}

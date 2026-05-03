@@ -1,0 +1,52 @@
+{
+  "ok": true,
+  "channels": [
+    {
+      "id": "C0ALZRQV4FR",
+      "created": 1773858022,
+      "creator": "U0AMGBHA936",
+      "is_org_shared": false,
+      "is_im": false,
+      "context_team_id": "T0AN6SZBR3J",
+      "updated": 1773858023183,
+      "name": "mock-priv-858021",
+      "name_normalized": "mock-priv-858021",
+      "is_channel": true,
+      "is_group": false,
+      "is_mpim": false,
+      "is_private": true,
+      "is_archived": true,
+      "is_general": false,
+      "is_shared": false,
+      "is_ext_shared": false,
+      "unlinked": 0,
+      "is_pending_ext_shared": false,
+      "pending_shared": [],
+      "parent_conversation": null,
+      "purpose": {
+        "value": "",
+        "creator": "",
+        "last_set": 0
+      },
+      "topic": {
+        "value": "",
+        "creator": "",
+        "last_set": 0
+      },
+      "shared_team_ids": [
+        "T0AN6SZBR3J"
+      ],
+      "internal_team_ids": [
+        "T0AN6SZBR3J"
+      ],
+      "pending_connected_team_ids": [],
+      "is_member": true,
+      "num_members": 1,
+      "is_moved": 0
+    }
+  ],
+  "response_metadata": {
+    "next_cursor": ""
+  },
+  "_captured_at": "2026-03-27T20:39:34.799713+00:00"
+}

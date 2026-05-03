@@ -1,0 +1,21 @@
+{
+  "accessRole": "owner",
+  "backgroundColor": "#f83a22",
+  "colorId": "3",
+  "conferenceProperties": {
+    "allowedConferenceSolutionTypes": [
+      "hangoutsMeet"
+    ]
+  },
+  "dataOwner": "mediar.acc1@gmail.com",
+  "defaultReminders": [],
+  "description": "Updated desc",
+  "etag": "\"1774645749587135\"",
+  "foregroundColor": "#000000",
+  "id": "bd48fb266c2dc6b6a7d04b7bdaef9d677a1d75450b446e94a2089d53da86ef36@group.calendar.google.com",
+  "kind": "calendar#calendarListEntry",
+  "selected": true,
+  "summary": "Updated 172946",
+  "timeZone": "UTC",
+  "_captured_at": "2026-03-27T21:09:09.905576+00:00"
+}

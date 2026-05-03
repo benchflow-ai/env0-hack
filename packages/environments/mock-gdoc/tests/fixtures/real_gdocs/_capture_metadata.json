@@ -1,0 +1,11 @@
+{
+  "captured_at": "2026-03-19T15:12:58.242812+00:00",
+  "account": "(configure in scripts/auth.py)",
+  "api_version": "v1 (Docs), v3 (Drive)",
+  "api_base_docs": "https://docs.googleapis.com/v1",
+  "api_base_drive": "https://www.googleapis.com/drive/v3",
+  "auth_method": "OAuth 2.0 (scripts/auth.py \u2192 scripts/token.json)",
+  "capture_script": "scripts/capture_fixtures.py",
+  "fixture_count": 9,
+  "note": "Fixtures captured from real Google Docs + Drive APIs."
+}

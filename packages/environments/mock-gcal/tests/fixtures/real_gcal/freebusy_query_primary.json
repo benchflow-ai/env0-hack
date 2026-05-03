@@ -1,0 +1,11 @@
+{
+  "calendars": {
+    "primary": {
+      "busy": []
+    }
+  },
+  "kind": "calendar#freeBusy",
+  "timeMax": "2026-03-28T21:09:03.000Z",
+  "timeMin": "2026-03-26T21:09:03.000Z",
+  "_captured_at": "2026-03-27T21:09:04.722836+00:00"
+}

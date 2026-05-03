@@ -1,0 +1,63 @@
+{
+  "resources": {
+    "Documents": {
+      "endpoints": [
+        {"id": "docs.documents.get", "method": "GET", "path": "/v1/documents/{documentId}"},
+        {"id": "docs.documents.create", "method": "POST", "path": "/v1/documents"},
+        {"id": "docs.documents.batchUpdate", "method": "POST", "path": "/v1/documents/{documentId}:batchUpdate"}
+      ]
+    }
+  },
+  "schemas": {
+    "Document": {
+      "documentId": "string",
+      "title": "string",
+      "body": "Body",
+      "revisionId": "string",
+      "suggestionsViewMode": "string",
+      "documentStyle": "DocumentStyle",
+      "namedStyles": "NamedStyles",
+      "inlineObjects": "object",
+      "positionedObjects": "object",
+      "lists": "object",
+      "namedRanges": "object",
+      "footnotes": "object",
+      "headers": "object",
+      "footers": "object"
+    },
+    "Body": {
+      "content": "array of StructuralElement"
+    },
+    "StructuralElement": {
+      "startIndex": "integer",
+      "endIndex": "integer",
+      "paragraph": "Paragraph",
+      "sectionBreak": "SectionBreak",
+      "table": "Table",
+      "tableOfContents": "TableOfContents"
+    },
+    "Paragraph": {
+      "elements": "array of ParagraphElement",
+      "paragraphStyle": "ParagraphStyle"
+    },
+    "ParagraphElement": {
+      "startIndex": "integer",
+      "endIndex": "integer",
+      "textRun": "TextRun"
+    },
+    "TextRun": {
+      "content": "string",
+      "textStyle": "TextStyle"
+    },
+    "BatchUpdateDocumentRequest": {
+      "requests": "array of Request",
+      "writeControl": "WriteControl"
+    },
+    "BatchUpdateDocumentResponse": {
+      "documentId": "string",
+      "replies": "array of Response",
+      "writeControl": "WriteControl"
+    }
+  },
+  "total_endpoints": 3
+}

@@ -1,0 +1,16 @@
+{
+  "error": {
+    "code": 400,
+    "message": "Invalid Value",
+    "errors": [
+      {
+        "message": "Invalid Value",
+        "domain": "global",
+        "reason": "invalid",
+        "location": "q",
+        "locationType": "parameter"
+      }
+    ]
+  },
+  "_captured_at": "2026-03-27T20:30:27.583076+00:00"
+}

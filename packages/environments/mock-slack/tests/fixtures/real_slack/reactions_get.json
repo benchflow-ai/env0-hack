@@ -1,0 +1,56 @@
+{
+  "ok": true,
+  "type": "message",
+  "message": {
+    "user": "U0AMGBHA936",
+    "type": "message",
+    "ts": "1774643983.885259",
+    "bot_id": "B0AMAMY16CW",
+    "app_id": "A0AM9BMDG77",
+    "text": "Reaction fixture test",
+    "team": "T0AN6SZBR3J",
+    "bot_profile": {
+      "id": "B0AMAMY16CW",
+      "deleted": false,
+      "name": "Demo App",
+      "updated": 1773841683,
+      "app_id": "A0AM9BMDG77",
+      "user_id": "U0AMGBHA936",
+      "icons": {
+        "image_36": "https://a.slack-edge.com/80588/img/plugins/app/bot_36.png",
+        "image_48": "https://a.slack-edge.com/80588/img/plugins/app/bot_48.png",
+        "image_72": "https://a.slack-edge.com/80588/img/plugins/app/service_72.png"
+      },
+      "team_id": "T0AN6SZBR3J"
+    },
+    "blocks": [
+      {
+        "type": "rich_text",
+        "block_id": "WbOk",
+        "elements": [
+          {
+            "type": "rich_text_section",
+            "elements": [
+              {
+                "type": "text",
+                "text": "Reaction fixture test"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "reactions": [
+      {
+        "name": "+1",
+        "users": [
+          "U0AMGBHA936"
+        ],
+        "count": 1
+      }
+    ],
+    "permalink": "https://e0amahcgfl6-uez87xyy.slack.com/archives/C0AM67S42PM/p1774643983885259"
+  },
+  "channel": "C0AM67S42PM",
+  "_captured_at": "2026-03-27T20:39:44.221706+00:00"
+}

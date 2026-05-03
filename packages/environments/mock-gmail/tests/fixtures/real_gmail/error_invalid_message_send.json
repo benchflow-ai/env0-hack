@@ -1,0 +1,15 @@
+{
+  "error": {
+    "code": 400,
+    "message": "'raw' RFC822 payload message string or uploading message via /upload/* URL required",
+    "errors": [
+      {
+        "message": "'raw' RFC822 payload message string or uploading message via /upload/* URL required",
+        "domain": "global",
+        "reason": "invalidArgument"
+      }
+    ],
+    "status": "INVALID_ARGUMENT"
+  },
+  "_captured_at": "2026-03-27T18:33:36.445273+00:00"
+}

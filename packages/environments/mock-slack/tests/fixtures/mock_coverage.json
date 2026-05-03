@@ -1,0 +1,954 @@
+{
+  "endpoints": [
+    {
+      "id": "slack.auth.test",
+      "resource": "Auth",
+      "method": "POST",
+      "path": "/auth.test",
+      "implemented": true,
+      "fixture": "auth_test.json",
+      "tests": [
+        "tests/test_conformance.py::TestAuthConformance::test_auth_test_keys",
+        "tests/test_conformance.py::TestAuthConformance::test_auth_test_enterprise_fields"
+      ]
+    },
+    {
+      "id": "slack.auth.revoke",
+      "resource": "Auth",
+      "method": "GET",
+      "path": "/auth.revoke",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Auth revocation not needed for mock"
+    },
+    {
+      "id": "slack.chat.postMessage",
+      "resource": "Messages",
+      "method": "POST",
+      "path": "/chat.postMessage",
+      "implemented": true,
+      "fixture": [
+        "chat_post_message_response.json",
+        "chat_post_message_reply_response.json"
+      ],
+      "tests": [
+        "tests/test_conformance.py::TestChatConformance::test_post_message_keys",
+        "tests/test_conformance.py::TestChatConformance::test_post_message_reply_keys",
+        "tests/test_conformance.py::TestChatConformance::test_post_message_message_object_keys",
+        "tests/test_conformance.py::TestMessageMutationSideEffects::test_delete_clears_reactions",
+        "tests/test_conformance.py::TestThreadSideEffects::test_reply_increments_reply_count",
+        "tests/test_conformance.py::TestThreadSideEffects::test_reply_appears_in_conversations_replies",
+        "tests/test_conformance.py::TestThreadSideEffects::test_reply_not_in_channel_history"
+      ]
+    },
+    {
+      "id": "slack.chat.postEphemeral",
+      "resource": "Messages",
+      "method": "POST",
+      "path": "/chat.postEphemeral",
+      "implemented": true,
+      "fixture": "chat_post_ephemeral_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestChatConformance::test_post_ephemeral_keys"
+      ]
+    },
+    {
+      "id": "slack.chat.update",
+      "resource": "Messages",
+      "method": "POST",
+      "path": "/chat.update",
+      "implemented": true,
+      "fixture": "chat_update_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestChatConformance::test_chat_update_keys",
+        "tests/test_conformance.py::TestMessageMutationSideEffects::test_update_changes_text_in_history",
+        "tests/test_conformance.py::TestMessageMutationSideEffects::test_update_sets_edited_ts"
+      ]
+    },
+    {
+      "id": "slack.chat.delete",
+      "resource": "Messages",
+      "method": "POST",
+      "path": "/chat.delete",
+      "implemented": true,
+      "fixture": "chat_delete_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestChatConformance::test_chat_delete_keys",
+        "tests/test_conformance.py::TestMessageMutationSideEffects::test_delete_removes_message_from_history",
+        "tests/test_conformance.py::TestMessageMutationSideEffects::test_delete_returns_channel_and_ts",
+        "tests/test_conformance.py::TestThreadSideEffects::test_delete_reply_decrements_reply_count"
+      ]
+    },
+    {
+      "id": "slack.chat.deleteScheduledMessage",
+      "resource": "Messages",
+      "method": "POST",
+      "path": "/chat.deleteScheduledMessage",
+      "implemented": true,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": null
+    },
+    {
+      "id": "slack.chat.scheduleMessage",
+      "resource": "Messages",
+      "method": "POST",
+      "path": "/chat.scheduleMessage",
+      "implemented": true,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": null
+    },
+    {
+      "id": "slack.chat.scheduledMessages.list",
+      "resource": "Messages",
+      "method": "GET",
+      "path": "/chat.scheduledMessages.list",
+      "implemented": true,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": null
+    },
+    {
+      "id": "slack.chat.getPermalink",
+      "resource": "Messages",
+      "method": "GET",
+      "path": "/chat.getPermalink",
+      "implemented": true,
+      "fixture": "chat_get_permalink.json",
+      "tests": [
+        "tests/test_conformance.py::TestChatConformance::test_chat_get_permalink_keys"
+      ]
+    },
+    {
+      "id": "slack.chat.meMessage",
+      "resource": "Messages",
+      "method": "POST",
+      "path": "/chat.meMessage",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "meMessage not implemented"
+    },
+    {
+      "id": "slack.chat.unfurl",
+      "resource": "Messages",
+      "method": "POST",
+      "path": "/chat.unfurl",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Link unfurling requires external URL fetch"
+    },
+    {
+      "id": "slack.conversations.list",
+      "resource": "Channels",
+      "method": "GET",
+      "path": "/conversations.list",
+      "implemented": true,
+      "fixture": [
+        "conversations_list.json",
+        "conversations_list_im.json",
+        "conversations_list_private.json"
+      ],
+      "tests": [
+        "tests/test_conformance.py::TestConversationsListConformance::test_public_channel_list_keys",
+        "tests/test_conformance.py::TestConversationsListConformance::test_im_channel_list_keys",
+        "tests/test_conformance.py::TestConversationsListConformance::test_private_channel_list_keys",
+        "tests/test_conformance.py::TestConversationsListConformance::test_empty_channel_list"
+      ]
+    },
+    {
+      "id": "slack.conversations.info",
+      "resource": "Channels",
+      "method": "GET",
+      "path": "/conversations.info",
+      "implemented": true,
+      "fixture": "conversations_info.json",
+      "tests": [
+        "tests/test_conformance.py::TestConversationsInfoConformance::test_channel_info_keys",
+        "tests/test_conformance.py::TestConversationsInfoConformance::test_channel_info_nested_fields"
+      ]
+    },
+    {
+      "id": "slack.conversations.create",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.create",
+      "implemented": true,
+      "fixture": "conversations_create_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestConversationsMutationConformance::test_create_channel_keys"
+      ]
+    },
+    {
+      "id": "slack.conversations.archive",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.archive",
+      "implemented": true,
+      "fixture": "conversations_archive_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestConversationsMutationConformance::test_archive_channel_keys",
+        "tests/test_conformance.py::TestArchiveUnarchiveSideEffects::test_archive_sets_is_archived",
+        "tests/test_conformance.py::TestArchiveUnarchiveSideEffects::test_double_archive_returns_already_archived",
+        "tests/test_conformance.py::TestArchiveUnarchiveSideEffects::test_archived_channel_history_readable",
+        "tests/test_conformance.py::TestArchiveUnarchiveSideEffects::test_postmessage_to_archived_channel_blocked"
+      ]
+    },
+    {
+      "id": "slack.conversations.unarchive",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.unarchive",
+      "implemented": true,
+      "fixture": "conversations_unarchive_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestConversationsMutationConformance::test_unarchive_channel_keys",
+        "tests/test_conformance.py::TestArchiveUnarchiveSideEffects::test_unarchive_reverts_is_archived"
+      ]
+    },
+    {
+      "id": "slack.conversations.rename",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.rename",
+      "implemented": true,
+      "fixture": "conversations_rename_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestConversationsMutationConformance::test_rename_channel_keys"
+      ]
+    },
+    {
+      "id": "slack.conversations.invite",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.invite",
+      "implemented": true,
+      "fixture": "conversations_invite_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestConversationsMutationConformance::test_invite_channel_keys",
+        "tests/test_conformance.py::TestInviteKickSideEffects::test_invite_adds_user_to_members",
+        "tests/test_conformance.py::TestInviteKickSideEffects::test_invite_unknown_user_returns_error"
+      ]
+    },
+    {
+      "id": "slack.conversations.kick",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.kick",
+      "implemented": true,
+      "fixture": "conversations_kick_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestConversationsMutationConformance::test_kick_channel_keys",
+        "tests/test_conformance.py::TestInviteKickSideEffects::test_kick_removes_user_from_members",
+        "tests/test_conformance.py::TestInviteKickSideEffects::test_kick_non_member_returns_error"
+      ]
+    },
+    {
+      "id": "slack.conversations.join",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.join",
+      "implemented": true,
+      "fixture": "conversations_join_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestConversationsMutationConformance::test_join_channel_keys",
+        "tests/test_conformance.py::TestJoinLeaveSideEffects::test_join_adds_user_to_members",
+        "tests/test_conformance.py::TestJoinLeaveSideEffects::test_join_returns_channel_object",
+        "tests/test_conformance.py::TestJoinLeaveSideEffects::test_join_private_returns_error"
+      ]
+    },
+    {
+      "id": "slack.conversations.leave",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.leave",
+      "implemented": true,
+      "fixture": "conversations_leave_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestConversationsMutationConformance::test_leave_channel_keys",
+        "tests/test_conformance.py::TestJoinLeaveSideEffects::test_leave_removes_user_from_members",
+        "tests/test_conformance.py::TestJoinLeaveSideEffects::test_leave_general_returns_cant_leave_general",
+        "tests/test_conformance.py::TestJoinLeaveSideEffects::test_leave_not_in_channel_returns_not_in_channel"
+      ]
+    },
+    {
+      "id": "slack.conversations.members",
+      "resource": "Channels",
+      "method": "GET",
+      "path": "/conversations.members",
+      "implemented": true,
+      "fixture": "conversations_members.json",
+      "tests": [
+        "tests/test_conformance.py::TestJoinLeaveSideEffects::test_num_members_reflects_join"
+      ]
+    },
+    {
+      "id": "slack.conversations.history",
+      "resource": "Channels",
+      "method": "GET",
+      "path": "/conversations.history",
+      "implemented": true,
+      "fixture": [
+        "conversations_history.json",
+        "conversations_history_empty.json"
+      ],
+      "tests": [
+        "tests/test_conformance.py::TestConversationsHistoryConformance::test_history_keys",
+        "tests/test_conformance.py::TestConversationsHistoryConformance::test_history_message_keys",
+        "tests/test_conformance.py::TestConversationsHistoryConformance::test_empty_history_keys",
+        "tests/test_conformance.py::TestConversationsHistoryConformance::test_history_message_reaction_keys",
+        "tests/test_conformance.py::TestConversationsHistoryConformance::test_history_message_edited_keys"
+      ]
+    },
+    {
+      "id": "slack.conversations.replies",
+      "resource": "Channels",
+      "method": "GET",
+      "path": "/conversations.replies",
+      "implemented": true,
+      "fixture": "conversations_replies.json",
+      "tests": [
+        "tests/test_conformance.py::TestBlockStructure::test_fixture_thread_parent_thread_fields",
+        "tests/test_conformance.py::TestBlockStructure::test_fixture_thread_parent_is_locked_subscribed",
+        "tests/test_conformance.py::TestReplyMessageStructure::test_fixture_reply_has_parent_user_id",
+        "tests/test_conformance.py::TestReplyMessageStructure::test_mock_replies_thread_parent_missing_is_locked",
+        "tests/test_conformance.py::TestReplyMessageStructure::test_mock_replies_reply_missing_parent_user_id"
+      ]
+    },
+    {
+      "id": "slack.conversations.setPurpose",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.setPurpose",
+      "implemented": true,
+      "fixture": "conversations_set_purpose_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestConversationsMutationConformance::test_set_purpose_keys"
+      ]
+    },
+    {
+      "id": "slack.conversations.setTopic",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.setTopic",
+      "implemented": true,
+      "fixture": "conversations_set_topic_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestConversationsMutationConformance::test_set_topic_keys"
+      ]
+    },
+    {
+      "id": "slack.conversations.open",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.open",
+      "implemented": true,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": null
+    },
+    {
+      "id": "slack.conversations.close",
+      "resource": "Channels",
+      "method": "POST",
+      "path": "/conversations.close",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Not implemented"
+    },
+    {
+      "id": "slack.users.list",
+      "resource": "Users",
+      "method": "GET",
+      "path": "/users.list",
+      "implemented": true,
+      "fixture": [
+        "users_list.json",
+        "users.json"
+      ],
+      "tests": [
+        "tests/test_conformance.py::TestUsersConformance::test_users_list_keys",
+        "tests/test_conformance.py::TestUsersConformance::test_user_item_keys",
+        "tests/test_conformance.py::TestDefaultResources::test_slackbot_present",
+        "tests/test_conformance.py::TestDefaultResources::test_bot_user_present",
+        "tests/test_conformance.py::TestUserSubtypes::test_human_user_keys",
+        "tests/test_conformance.py::TestUserSubtypes::test_bot_user_keys",
+        "tests/test_conformance.py::TestUserSubtypes::test_slackbot_is_not_classified_as_bot"
+      ]
+    },
+    {
+      "id": "slack.users.info",
+      "resource": "Users",
+      "method": "GET",
+      "path": "/users.info",
+      "implemented": true,
+      "fixture": "users_info.json",
+      "tests": [
+        "tests/test_conformance.py::TestUsersConformance::test_users_info_keys"
+      ]
+    },
+    {
+      "id": "slack.users.lookupByEmail",
+      "resource": "Users",
+      "method": "GET",
+      "path": "/users.lookupByEmail",
+      "implemented": true,
+      "fixture": "users_lookup_by_email.json",
+      "tests": [
+        "tests/test_conformance.py::TestUsersConformance::test_users_lookup_by_email_keys"
+      ]
+    },
+    {
+      "id": "slack.users.getPresence",
+      "resource": "Users",
+      "method": "GET",
+      "path": "/users.getPresence",
+      "implemented": true,
+      "fixture": "users_get_presence.json",
+      "tests": [
+        "tests/test_conformance.py::TestUsersConformance::test_users_get_presence_keys"
+      ]
+    },
+    {
+      "id": "slack.users.setPresence",
+      "resource": "Users",
+      "method": "POST",
+      "path": "/users.setPresence",
+      "implemented": true,
+      "fixture": "users_set_presence_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestUsersConformance::test_users_set_presence_keys"
+      ]
+    },
+    {
+      "id": "slack.users.setPhoto",
+      "resource": "Users",
+      "method": "POST",
+      "path": "/users.setPhoto",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Photo upload not implemented"
+    },
+    {
+      "id": "slack.users.deletePhoto",
+      "resource": "Users",
+      "method": "POST",
+      "path": "/users.deletePhoto",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Photo deletion not implemented"
+    },
+    {
+      "id": "slack.users.profile.get",
+      "resource": "Users",
+      "method": "GET",
+      "path": "/users.profile.get",
+      "implemented": true,
+      "fixture": "users_profile_get.json",
+      "tests": [
+        "tests/test_conformance.py::TestUsersConformance::test_users_profile_get_keys"
+      ]
+    },
+    {
+      "id": "slack.users.profile.set",
+      "resource": "Users",
+      "method": "POST",
+      "path": "/users.profile.set",
+      "implemented": true,
+      "fixture": "users_profile_set_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestUsersConformance::test_users_profile_set_keys"
+      ]
+    },
+    {
+      "id": "slack.reactions.add",
+      "resource": "Reactions",
+      "method": "POST",
+      "path": "/reactions.add",
+      "implemented": true,
+      "fixture": "reactions_add_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestReactionsConformance::test_reactions_add_keys"
+      ]
+    },
+    {
+      "id": "slack.reactions.remove",
+      "resource": "Reactions",
+      "method": "POST",
+      "path": "/reactions.remove",
+      "implemented": true,
+      "fixture": "reactions_remove_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestReactionsConformance::test_reactions_remove_keys"
+      ]
+    },
+    {
+      "id": "slack.reactions.get",
+      "resource": "Reactions",
+      "method": "GET",
+      "path": "/reactions.get",
+      "implemented": true,
+      "fixture": [
+        "reactions_get.json",
+        "reactions_get_empty.json"
+      ],
+      "tests": [
+        "tests/test_conformance.py::TestReactionsConformance::test_reactions_get_keys",
+        "tests/test_conformance.py::TestReactionsConformance::test_reactions_get_empty_keys"
+      ]
+    },
+    {
+      "id": "slack.reactions.list",
+      "resource": "Reactions",
+      "method": "GET",
+      "path": "/reactions.list",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Not implemented"
+    },
+    {
+      "id": "slack.files.list",
+      "resource": "Files",
+      "method": "GET",
+      "path": "/files.list",
+      "implemented": true,
+      "fixture": [
+        "files_list.json",
+        "files_list_by_channel.json"
+      ],
+      "tests": [
+        "tests/test_conformance.py::TestFilesConformance::test_files_list_keys",
+        "tests/test_conformance.py::TestFilesConformance::test_files_list_by_channel_keys"
+      ]
+    },
+    {
+      "id": "slack.files.info",
+      "resource": "Files",
+      "method": "GET",
+      "path": "/files.info",
+      "implemented": true,
+      "fixture": "files_info.json",
+      "tests": [
+        "tests/test_conformance.py::TestFilesConformance::test_files_info_keys",
+        "tests/test_conformance.py::TestFilesConformance::test_files_info_nested_fields"
+      ]
+    },
+    {
+      "id": "slack.files.upload",
+      "resource": "Files",
+      "method": "POST",
+      "path": "/files.upload",
+      "implemented": true,
+      "fixture": "files_upload_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestFilesConformance::test_files_upload_keys"
+      ]
+    },
+    {
+      "id": "slack.files.delete",
+      "resource": "Files",
+      "method": "POST",
+      "path": "/files.delete",
+      "implemented": true,
+      "fixture": "files_delete_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestFilesConformance::test_files_delete_keys"
+      ]
+    },
+    {
+      "id": "slack.files.sharedPublicURL",
+      "resource": "Files",
+      "method": "POST",
+      "path": "/files.sharedPublicURL",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Public URL sharing not implemented"
+    },
+    {
+      "id": "slack.files.revokePublicURL",
+      "resource": "Files",
+      "method": "POST",
+      "path": "/files.revokePublicURL",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Public URL revocation not implemented"
+    },
+    {
+      "id": "slack.files.comments.delete",
+      "resource": "Files",
+      "method": "POST",
+      "path": "/files.comments.delete",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "File comments not implemented"
+    },
+    {
+      "id": "slack.search.all",
+      "resource": "Search",
+      "method": "GET",
+      "path": "/search.all",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Not implemented; use search.messages"
+    },
+    {
+      "id": "slack.search.messages",
+      "resource": "Search",
+      "method": "GET",
+      "path": "/search.messages",
+      "implemented": true,
+      "fixture": [
+        "search_messages.json",
+        "search_messages_empty.json"
+      ],
+      "tests": [
+        "tests/test_conformance.py::TestSearchConformance::test_search_messages_keys",
+        "tests/test_conformance.py::TestSearchConformance::test_search_messages_match_keys",
+        "tests/test_conformance.py::TestSearchConformance::test_search_messages_empty_keys",
+        "tests/test_conformance.py::TestSearchConformance::test_search_messages_empty_matches"
+      ]
+    },
+    {
+      "id": "slack.search.files",
+      "resource": "Search",
+      "method": "GET",
+      "path": "/search.files",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Not implemented"
+    },
+    {
+      "id": "slack.pins.add",
+      "resource": "Pins",
+      "method": "POST",
+      "path": "/pins.add",
+      "implemented": true,
+      "fixture": "pins_add_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestPinsConformance::test_pins_add_keys"
+      ]
+    },
+    {
+      "id": "slack.pins.remove",
+      "resource": "Pins",
+      "method": "POST",
+      "path": "/pins.remove",
+      "implemented": true,
+      "fixture": "pins_remove_response.json",
+      "tests": [
+        "tests/test_conformance.py::TestPinsConformance::test_pins_remove_keys"
+      ]
+    },
+    {
+      "id": "slack.pins.list",
+      "resource": "Pins",
+      "method": "GET",
+      "path": "/pins.list",
+      "implemented": true,
+      "fixture": [
+        "pins_list.json",
+        "pins_list_empty.json"
+      ],
+      "tests": [
+        "tests/test_conformance.py::TestPinsConformance::test_pins_list_keys",
+        "tests/test_conformance.py::TestPinsConformance::test_pins_list_empty_keys",
+        "tests/test_conformance.py::TestPinsConformance::test_pins_list_item_keys"
+      ]
+    },
+    {
+      "id": "slack.bookmarks.add",
+      "resource": "Bookmarks",
+      "method": "POST",
+      "path": "/bookmarks.add",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Bookmarks not implemented"
+    },
+    {
+      "id": "slack.bookmarks.edit",
+      "resource": "Bookmarks",
+      "method": "POST",
+      "path": "/bookmarks.edit",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Bookmarks not implemented"
+    },
+    {
+      "id": "slack.bookmarks.remove",
+      "resource": "Bookmarks",
+      "method": "POST",
+      "path": "/bookmarks.remove",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Bookmarks not implemented"
+    },
+    {
+      "id": "slack.bookmarks.list",
+      "resource": "Bookmarks",
+      "method": "GET",
+      "path": "/bookmarks.list",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Bookmarks not implemented"
+    },
+    {
+      "id": "slack.reminders.add",
+      "resource": "Reminders",
+      "method": "POST",
+      "path": "/reminders.add",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Partially implemented (list only)"
+    },
+    {
+      "id": "slack.reminders.complete",
+      "resource": "Reminders",
+      "method": "POST",
+      "path": "/reminders.complete",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Not implemented"
+    },
+    {
+      "id": "slack.reminders.delete",
+      "resource": "Reminders",
+      "method": "POST",
+      "path": "/reminders.delete",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Not implemented"
+    },
+    {
+      "id": "slack.reminders.info",
+      "resource": "Reminders",
+      "method": "GET",
+      "path": "/reminders.info",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Not implemented"
+    },
+    {
+      "id": "slack.reminders.list",
+      "resource": "Reminders",
+      "method": "GET",
+      "path": "/reminders.list",
+      "implemented": true,
+      "fixture": "reminders_list.json",
+      "tests": [
+        "tests/test_conformance.py::TestRemindersConformance::test_reminders_list_keys"
+      ]
+    },
+    {
+      "id": "slack.usergroups.list",
+      "resource": "Usergroups",
+      "method": "GET",
+      "path": "/usergroups.list",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "User groups not implemented"
+    },
+    {
+      "id": "slack.usergroups.create",
+      "resource": "Usergroups",
+      "method": "POST",
+      "path": "/usergroups.create",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "User groups not implemented"
+    },
+    {
+      "id": "slack.usergroups.update",
+      "resource": "Usergroups",
+      "method": "POST",
+      "path": "/usergroups.update",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "User groups not implemented"
+    },
+    {
+      "id": "slack.usergroups.disable",
+      "resource": "Usergroups",
+      "method": "POST",
+      "path": "/usergroups.disable",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "User groups not implemented"
+    },
+    {
+      "id": "slack.usergroups.enable",
+      "resource": "Usergroups",
+      "method": "POST",
+      "path": "/usergroups.enable",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "User groups not implemented"
+    },
+    {
+      "id": "slack.usergroups.users.list",
+      "resource": "Usergroups",
+      "method": "GET",
+      "path": "/usergroups.users.list",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "User groups not implemented"
+    },
+    {
+      "id": "slack.usergroups.users.update",
+      "resource": "Usergroups",
+      "method": "POST",
+      "path": "/usergroups.users.update",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "User groups not implemented"
+    },
+    {
+      "id": "slack.team.info",
+      "resource": "Team",
+      "method": "GET",
+      "path": "/team.info",
+      "implemented": true,
+      "fixture": "team_info.json",
+      "tests": [
+        "tests/test_conformance.py::TestTeamConformance::test_team_info_keys",
+        "tests/test_conformance.py::TestTeamConformance::test_team_info_nested_fields"
+      ]
+    },
+    {
+      "id": "slack.team.accessLogs",
+      "resource": "Team",
+      "method": "GET",
+      "path": "/team.accessLogs",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Admin-only, not relevant for agent testing"
+    },
+    {
+      "id": "slack.team.billableInfo",
+      "resource": "Team",
+      "method": "GET",
+      "path": "/team.billableInfo",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Admin-only, not relevant for agent testing"
+    },
+    {
+      "id": "slack.team.profile.get",
+      "resource": "Team",
+      "method": "GET",
+      "path": "/team.profile.get",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Not implemented"
+    },
+    {
+      "id": "slack.dnd.info",
+      "resource": "DND",
+      "method": "GET",
+      "path": "/dnd.info",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "DND not implemented"
+    },
+    {
+      "id": "slack.dnd.setSnooze",
+      "resource": "DND",
+      "method": "POST",
+      "path": "/dnd.setSnooze",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "DND not implemented"
+    },
+    {
+      "id": "slack.dnd.endSnooze",
+      "resource": "DND",
+      "method": "POST",
+      "path": "/dnd.endSnooze",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "DND not implemented"
+    },
+    {
+      "id": "slack.dnd.endDnd",
+      "resource": "DND",
+      "method": "POST",
+      "path": "/dnd.endDnd",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "DND not implemented"
+    },
+    {
+      "id": "slack.dnd.teamInfo",
+      "resource": "DND",
+      "method": "GET",
+      "path": "/dnd.teamInfo",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "DND not implemented"
+    },
+    {
+      "id": "slack.stars.add",
+      "resource": "Stars",
+      "method": "POST",
+      "path": "/stars.add",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Stars not implemented"
+    },
+    {
+      "id": "slack.stars.remove",
+      "resource": "Stars",
+      "method": "POST",
+      "path": "/stars.remove",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Stars not implemented"
+    },
+    {
+      "id": "slack.stars.list",
+      "resource": "Stars",
+      "method": "GET",
+      "path": "/stars.list",
+      "implemented": false,
+      "fixture": null,
+      "tests": [],
+      "skip_reason": "Stars not implemented"
+    }
+  ]
+}

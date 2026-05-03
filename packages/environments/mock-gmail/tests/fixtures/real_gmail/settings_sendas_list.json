@@ -1,0 +1,13 @@
+{
+  "sendAs": [
+    {
+      "sendAsEmail": "mediar.acc1@gmail.com",
+      "displayName": "",
+      "replyToAddress": "",
+      "signature": "",
+      "isPrimary": true,
+      "isDefault": true
+    }
+  ],
+  "_captured_at": "2026-03-27T18:33:37.081490+00:00"
+}

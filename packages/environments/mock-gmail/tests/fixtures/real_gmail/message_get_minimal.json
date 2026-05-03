@@ -1,0 +1,14 @@
+{
+  "id": "19d303903ac6ba43",
+  "threadId": "19d303903ac6ba43",
+  "labelIds": [
+    "UNREAD",
+    "CATEGORY_UPDATES",
+    "INBOX"
+  ],
+  "snippet": "Address not found Your message wasn&#39;t delivered to fixture-user@example.com because the domain example.com couldn&#39;t be found. Check for typos or unnecessary spaces and try again. LEARN MORE",
+  "sizeEstimate": 15408,
+  "historyId": "3448",
+  "internalDate": "1774630535000",
+  "_captured_at": "2026-03-27T18:33:26.759772+00:00"
+}

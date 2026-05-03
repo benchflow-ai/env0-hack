@@ -1,0 +1,204 @@
+{% from "_avatar_macros.html" import slack_avatar %}
+<!-- Profile Panel partial — loaded via HTMX into #profile-panel -->
+<div class="flex flex-col flex-1 min-h-0 overflow-hidden">
+
+  <!-- Header -->
+  <div class="h-14 flex items-center justify-between px-4 border-b border-gray-200 flex-shrink-0 bg-white">
+    <span class="font-bold text-[15px] text-gray-900">Profile</span>
+    <button onclick="closeProfilePanel()"
+      class="p-1.5 rounded text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Scrollable body -->
+  <div class="flex-1 overflow-y-auto min-h-0">
+
+    {% if is_self %}
+    <!-- ── Own profile ─────────────────────────────────────────────────── -->
+
+    <!-- Avatar hero (purple like Slack) -->
+    <div class="bg-[#4a154b] px-4 pt-10 pb-8 flex flex-col items-center">
+      <div class="relative mb-4">
+        {{ slack_avatar(user=profile_user, size='w-28 h-28', rounded='rounded', text='text-5xl', container_extra='border-4 border-white/20', fallback_bg='bg-[#7c3085]', fallback_text='text-white') }}
+        <button
+          class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white text-gray-700 text-[11px] font-semibold border border-gray-300 rounded-sm px-2.5 py-0.5 shadow hover:bg-gray-50 whitespace-nowrap">
+          Upload Photo
+        </button>
+      </div>
+      <h3 class="text-white font-bold text-[17px] mt-3">{{ profile_user.real_name or profile_user.name }}</h3>
+      {% if profile_user.title %}
+      <p class="text-white/70 text-[13px] mt-0.5">{{ profile_user.title }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Status row -->
+    <div class="px-4 py-3 border-b border-gray-200">
+      <div class="flex items-center gap-2 mb-2">
+        <div id="profile-panel-presence-dot" class="w-2.5 h-2.5 rounded-full flex-shrink-0 {{ 'bg-green-500' if profile_user.presence != 'away' else 'border-2 border-gray-400 bg-transparent' }}"></div>
+        <span id="profile-panel-presence-label" class="text-[14px] text-gray-700">{{ 'Active' if profile_user.presence != 'away' else 'Away' }}, notifications snoozed</span>
+      </div>
+      <div id="profile-panel-status-row" class="flex items-center gap-2 mb-2 {% if not profile_user.status_text %}hidden{% endif %}">
+        <span id="profile-panel-status-emoji" class="text-[14px]">{{ profile_user.status_emoji or '💬' }}</span>
+        <span id="profile-panel-status-text" class="text-[14px] text-gray-700">{{ profile_user.status_text or '' }}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-[14px] text-gray-700" data-ts-local="{{ profile_user.tz }}"></span>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="px-4 py-3 border-b border-gray-200 flex gap-2">
+      <button
+        onclick="openStatusModal()"
+        class="flex-1 py-1.5 border border-gray-300 rounded text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+        Edit status
+      </button>
+    </div>
+
+    <!-- Contact information -->
+    <div class="px-4 py-4">
+      <div class="flex items-center justify-between mb-2">
+        <h4 class="text-[13px] font-bold text-gray-900">Contact information</h4>
+        <button onclick="openEditContactModal()" class="text-[13px] font-medium text-[#1164a3] hover:underline">Edit</button>
+      </div>
+      <div id="profile-email-display" class="flex items-start gap-2.5">
+        <svg class="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        <div>
+          <div class="text-[12px] text-gray-500">Email Address</div>
+          <span id="profile-email-value" class="text-[13px] text-[#1164a3]">{{ profile_user.email or '' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Contact Modal -->
+    <div id="edit-contact-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div class="bg-white rounded-xl shadow-2xl w-80 p-6">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="font-bold text-[15px] text-gray-900">Edit Contact information</h3>
+          <button onclick="closeEditContactModal()" class="p-1 rounded hover:bg-gray-100 text-gray-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <label class="block mb-1.5">
+          <div class="flex items-center gap-1.5 text-[13px] font-medium text-gray-700 mb-1.5">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+            </svg>
+            Email Address
+          </div>
+          <input id="edit-contact-email" type="email"
+            value="{{ profile_user.email or '' }}"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-[14px] focus:outline-none focus:border-[#1164a3] focus:ring-1 focus:ring-[#1164a3]/30 bg-gray-50"/>
+        </label>
+        <div class="flex justify-end gap-2 mt-5">
+          <button onclick="closeEditContactModal()"
+            class="px-4 py-1.5 border border-gray-300 rounded text-[13px] font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+          <button onclick="saveContactInfo()"
+            class="px-4 py-1.5 rounded bg-green-700 hover:bg-green-800 text-white text-[13px] font-medium">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- ── Other user's profile ────────────────────────────────────────── -->
+
+    <!-- Avatar + name -->
+    <div class="flex flex-col items-center px-4 pt-8 pb-6 border-b border-gray-200">
+      {{ slack_avatar(user=profile_user, size='w-32 h-32', rounded='rounded-2xl', text='text-5xl', container_extra='mb-5', img_extra='object-cover object-top') }}
+      <h3 class="font-bold text-[18px] text-gray-900 text-center">{{ profile_user.real_name or profile_user.name }}</h3>
+      {% if profile_user.title %}
+      <p class="text-[13px] text-gray-500 mt-0.5 text-center">{{ profile_user.title }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Presence + time -->
+    <div class="px-4 py-3 border-b border-gray-200 space-y-2">
+      <div class="flex items-center gap-2">
+        <div class="w-2.5 h-2.5 rounded-full flex-shrink-0 {{ 'bg-green-500' if profile_user.presence != 'away' else 'border-2 border-gray-400 bg-transparent' }}"></div>
+        <span class="text-[14px] text-gray-700">{{ 'Active' if profile_user.presence != 'away' else 'Away' }}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <svg class="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-[14px] text-gray-700" data-ts-local="{{ profile_user.tz }}"></span>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="px-4 py-3 border-b border-gray-200 flex gap-2">
+      <a href="/new-dm/{{ profile_user.id }}"
+        class="flex-1 flex items-center justify-center gap-1.5 py-1.5 border border-gray-300 rounded text-[13px] font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+        </svg>
+        Message
+      </a>
+    </div>
+
+    <!-- Contact information -->
+    <div class="px-4 py-4 border-b border-gray-200">
+      <h4 class="text-[13px] font-bold text-gray-900 mb-3">Contact information</h4>
+      {% if profile_user.email %}
+      <div class="flex items-start gap-2.5">
+        <svg class="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+        </svg>
+        <div>
+          <div class="text-[12px] text-gray-500">Email Address</div>
+          <a href="mailto:{{ profile_user.email }}" class="text-[13px] text-[#1164a3] hover:underline">{{ profile_user.email }}</a>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Shared Workspaces -->
+    <div class="px-4 py-4">
+      <h4 class="text-[13px] font-bold text-gray-900 mb-2">Shared Workspaces</h4>
+      <p class="text-[13px] text-gray-600">{{ workspace.name }}</p>
+    </div>
+
+    {% endif %}
+  </div><!-- end scrollable body -->
+</div>
+
+<script>
+  function openEditContactModal() {
+    document.getElementById('edit-contact-modal').classList.remove('hidden');
+    document.getElementById('edit-contact-email').focus();
+  }
+  function closeEditContactModal() {
+    document.getElementById('edit-contact-modal').classList.add('hidden');
+  }
+  function saveContactInfo() {
+    var email = document.getElementById('edit-contact-email').value.trim();
+    document.getElementById('profile-email-value').textContent = email;
+    closeEditContactModal();
+  }
+
+  (function() {
+    // Format local times safely (no document.write)
+    document.querySelectorAll('#profile-panel [data-ts-local]').forEach(function(el) {
+      var tz = el.getAttribute('data-ts-local');
+      try {
+        el.textContent = new Date().toLocaleTimeString([], {
+          timeZone: tz || undefined,
+          hour: '2-digit',
+          minute: '2-digit'
+        }) + ' local time';
+      } catch(e) {
+        el.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + ' local time';
+      }
+    });
+  })();
+</script>

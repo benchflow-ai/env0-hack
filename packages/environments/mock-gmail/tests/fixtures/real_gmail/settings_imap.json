@@ -1,0 +1,7 @@
+{
+  "enabled": false,
+  "autoExpunge": true,
+  "expungeBehavior": "archive",
+  "maxFolderSize": 0,
+  "_captured_at": "2026-03-02T01:42:19+00:00"
+}

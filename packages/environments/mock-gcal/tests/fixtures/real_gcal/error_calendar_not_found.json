@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": 404,
+    "message": "Not Found",
+    "reason": "notFound"
+  },
+  "_captured_at": "2026-03-27T21:09:19.885360+00:00"
+}

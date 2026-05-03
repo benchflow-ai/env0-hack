@@ -1,0 +1,180 @@
+{% extends "base_dev.html" %}
+
+{% block title %}Dashboard - mock-gdoc Dev{% endblock %}
+
+{% block content %}
+<div class="min-h-full bg-gray-50 p-6">
+    <div class="flex items-center justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-semibold text-gray-800">mock-gdoc Dashboard</h1>
+            <p class="text-sm text-gray-500 mt-1">Environment overview, diff tracking, and recent activity</p>
+        </div>
+    </div>
+
+    <!-- Stats cards -->
+    <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-500">Documents</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-800">{{ doc_count }}</div>
+            <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-blue-500 rounded-full" style="width: 100%"></div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-500">Comments</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-800">{{ comment_count }}</div>
+            <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-green-500 rounded-full" style="width: 100%"></div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-500">Revisions</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-800">{{ revision_count }}</div>
+            <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-purple-500 rounded-full" style="width: 100%"></div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg border border-gray-200 p-4">
+            <div class="flex items-center gap-2 mb-2">
+                <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span class="text-sm font-medium text-gray-500">Users</span>
+            </div>
+            <div class="text-3xl font-bold text-gray-800">{{ user_count }}</div>
+            <div class="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full bg-orange-500 rounded-full" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diff since seed -->
+    <div class="bg-white rounded-lg border border-gray-200 mb-6">
+        <div class="px-5 py-3 border-b border-gray-200">
+            <h2 class="font-semibold text-gray-800">Diff Since Seed</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Changes to the database since initial seeding</p>
+        </div>
+        <div class="grid grid-cols-3 gap-4 p-5">
+            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-green-600">+{{ diff_summary.documents_added }}</div>
+                <div class="text-xs text-gray-500 mt-1">Docs Added</div>
+            </div>
+            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-blue-600">~{{ diff_summary.documents_updated }}</div>
+                <div class="text-xs text-gray-500 mt-1">Docs Updated</div>
+            </div>
+            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-red-600">-{{ diff_summary.documents_deleted }}</div>
+                <div class="text-xs text-gray-500 mt-1">Docs Deleted</div>
+            </div>
+            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-green-600">+{{ diff_summary.comments_added }}</div>
+                <div class="text-xs text-gray-500 mt-1">Comments Added</div>
+            </div>
+            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-blue-600">~{{ diff_summary.comments_updated }}</div>
+                <div class="text-xs text-gray-500 mt-1">Comments Updated</div>
+            </div>
+            <div class="text-center p-3 bg-gray-50 rounded-lg">
+                <div class="text-2xl font-bold text-red-600">-{{ diff_summary.comments_deleted }}</div>
+                <div class="text-xs text-gray-500 mt-1">Comments Deleted</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent documents -->
+    <div class="bg-white rounded-lg border border-gray-200 mb-6">
+        <div class="px-5 py-3 border-b border-gray-200">
+            <h2 class="font-semibold text-gray-800">Recent Documents</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-200">
+                        <th class="px-5 py-2 text-left font-semibold text-gray-600">Title</th>
+                        <th class="px-5 py-2 text-left font-semibold text-gray-600">Modified</th>
+                        <th class="px-5 py-2 text-left font-semibold text-gray-600">Revision</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for doc in recent_docs %}
+                    <tr class="border-b border-gray-100 hover:bg-blue-50 cursor-pointer" onclick="window.location='/doc/{{ doc.id }}'">
+                        <td class="px-5 py-2.5 text-gray-800">{{ doc.title or '(untitled)' }}</td>
+                        <td class="px-5 py-2.5 text-gray-500">{{ doc.modified_time.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="px-5 py-2.5 font-mono text-xs text-gray-500">{{ doc.revision_id[:12] }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% if not recent_docs %}
+                    <tr><td colspan="3" class="px-5 py-8 text-center text-gray-400">No documents</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent actions -->
+    <div class="bg-white rounded-lg border border-gray-200 mb-6">
+        <details>
+            <summary class="flex items-center justify-between px-5 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-200"
+                     hx-get="/_admin/action_log" hx-target="#action-log-body" hx-swap="innerHTML"
+                     hx-trigger="click once">
+                <h2 class="font-semibold text-gray-800">Action Log</h2>
+                <span class="text-xs text-gray-500">Recent API calls</span>
+            </summary>
+            <div id="action-log-body" class="px-5 py-3">
+                <p class="text-sm text-gray-400 text-center py-4">Click to load action log...</p>
+            </div>
+        </details>
+    </div>
+</div>
+
+<script>
+document.body.addEventListener('htmx:afterSwap', function(event) {
+    if (event.detail.target.id === 'action-log-body') {
+        try {
+            var data = JSON.parse(event.detail.target.textContent);
+            var entries = data.entries || [];
+            if (entries.length === 0) {
+                event.detail.target.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">No API calls recorded yet.</p>';
+                return;
+            }
+            var html = '<table class="w-full text-xs"><thead><tr class="text-gray-400 uppercase">' +
+                '<th class="text-left py-1 font-medium">Time</th>' +
+                '<th class="text-left py-1 font-medium">Method</th>' +
+                '<th class="text-left py-1 font-medium">Path</th>' +
+                '<th class="text-left py-1 font-medium">User</th>' +
+                '<th class="text-right py-1 font-medium">Status</th></tr></thead><tbody>';
+            entries.slice(-50).reverse().forEach(function(e) {
+                var statusColor = e.response_status < 400 ? 'text-green-600' : 'text-red-600';
+                var methodColors = {GET:'bg-blue-100 text-blue-700', POST:'bg-green-100 text-green-700',
+                    PUT:'bg-yellow-100 text-yellow-700', DELETE:'bg-red-100 text-red-700'};
+                var mc = methodColors[e.method] || 'bg-gray-100 text-gray-700';
+                html += '<tr class="border-t border-gray-50">' +
+                    '<td class="py-1 text-gray-400">' + ((e.timestamp || '').split('T')[1] || '').split('.')[0] + '</td>' +
+                    '<td class="py-1"><span class="px-1 py-0.5 rounded font-mono ' + mc + '">' + e.method + '</span></td>' +
+                    '<td class="py-1 font-mono text-gray-600 truncate max-w-xs">' + e.path + '</td>' +
+                    '<td class="py-1 text-gray-500 truncate max-w-[100px]">' + (e.user_id || '-') + '</td>' +
+                    '<td class="py-1 text-right ' + statusColor + '">' + e.response_status + '</td></tr>';
+            });
+            html += '</tbody></table>';
+            event.detail.target.innerHTML = html;
+        } catch(err) {}
+    }
+});
+</script>
+{% endblock %}

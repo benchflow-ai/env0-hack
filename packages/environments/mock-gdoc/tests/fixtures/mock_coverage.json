@@ -1,0 +1,44 @@
+{
+  "endpoints": [
+    {
+      "id": "docs.documents.get",
+      "resource": "Documents",
+      "method": "GET",
+      "path": "/v1/documents/{documentId}",
+      "implemented": true,
+      "fixture": "document_get.json",
+      "tests": [
+        "tests/test_api.py::TestDocuments::test_get_document",
+        "tests/test_api.py::TestDocuments::test_get_document_not_found",
+        "tests/test_conformance.py::TestDocumentsConformance::test_get_document_keys",
+        "tests/test_conformance.py::TestDocumentsConformance::test_get_document_body_structure"
+      ]
+    },
+    {
+      "id": "docs.documents.create",
+      "resource": "Documents",
+      "method": "POST",
+      "path": "/v1/documents",
+      "implemented": true,
+      "fixture": "document_create.json",
+      "tests": [
+        "tests/test_api.py::TestDocuments::test_create_document",
+        "tests/test_conformance.py::TestDocumentsConformance::test_create_document_keys"
+      ]
+    },
+    {
+      "id": "docs.documents.batchUpdate",
+      "resource": "Documents",
+      "method": "POST",
+      "path": "/v1/documents/{documentId}:batchUpdate",
+      "implemented": true,
+      "fixture": ["document_batch_update.json", "document_batch_update_replace.json"],
+      "tests": [
+        "tests/test_api.py::TestDocuments::test_batch_update_insert_text",
+        "tests/test_api.py::TestDocuments::test_batch_update_replace_all_text",
+        "tests/test_conformance.py::TestDocumentsConformance::test_batch_update_response_keys",
+        "tests/test_conformance.py::TestDocumentsConformance::test_batch_update_replace_reply_shape"
+      ]
+    }
+  ]
+}

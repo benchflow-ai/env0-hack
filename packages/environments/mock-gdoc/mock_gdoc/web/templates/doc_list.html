@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}My Drive - Google Docs{% endblock %}
+
+{% block head %}
+<style>
+    .sidebar-item {
+        display: flex; align-items: center; gap: 12px; height: 32px; padding: 0 24px;
+        font-size: 13px; border-radius: 0 16px 16px 0; cursor: pointer; color: var(--gdoc-text-secondary);
+        text-decoration: none; user-select: none;
+    }
+    .sidebar-item:hover { background-color: #e8eaed; }
+    .sidebar-item.active { background-color: #e8f0fe; color: var(--gdoc-blue); font-weight: 500; }
+    .file-row { display: flex; align-items: center; padding: 0 16px; height: 48px; cursor: pointer; border-bottom: 1px solid #f1f3f4; text-decoration: none; color: var(--gdoc-text); }
+    .file-row:hover { background-color: #f8f9fa; }
+    .file-row:last-child { border-bottom: none; }
+</style>
+{% endblock %}
+
+{% block body %}
+<!-- Header -->
+<header class="flex items-center h-16 px-4 border-b border-[var(--gdoc-border)] bg-white">
+    <div class="flex items-center gap-3 flex-shrink-0 w-60">
+        <button class="p-2 rounded-full hover:bg-gray-100">
+            <span class="material-symbols-outlined" style="font-size:24px;color:var(--gdoc-text-secondary)">menu</span>
+        </button>
+        <div class="flex items-center gap-2">
+            <svg viewBox="0 0 72 100" class="w-6 h-8" fill="none">
+                <path d="M44 0H8C3.58 0 0 3.58 0 8v84c0 4.42 3.58 8 8 8h56c4.42 0 8-3.58 8-8V28L44 0z" fill="#4285F4"/>
+                <path d="M44 0v20c0 4.42 3.58 8 8 8h20L44 0z" fill="#A1C2FA"/>
+                <path d="M16 72h40v-4H16v4zm0-12h40v-4H16v4zm0-12h28v-4H16v4z" fill="white"/>
+            </svg>
+            <span class="text-xl text-[var(--gdoc-text-secondary)] font-normal">Docs</span>
+            <span class="text-[10px] bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded ml-1 font-medium">MOCK</span>
+        </div>
+    </div>
+    <div class="flex-1 max-w-2xl mx-auto">
+        <div class="relative">
+            <span class="material-symbols-outlined absolute left-3 top-2 text-[var(--gdoc-text-secondary)]">search</span>
+            <input type="text" placeholder="Search in Docs"
+                   class="w-full h-10 pl-10 pr-4 bg-[#f1f3f4] rounded-full text-sm focus:outline-none focus:bg-white focus:ring-1 focus:ring-[var(--gdoc-blue)] focus:shadow-md transition-all">
+        </div>
+    </div>
+    <div class="flex items-center gap-3 ml-4 flex-shrink-0">
+        <button class="p-2 rounded-full hover:bg-gray-100" title="Support">
+            <span class="material-symbols-outlined" style="color:var(--gdoc-text-secondary)">help_outline</span>
+        </button>
+        <button class="p-2 rounded-full hover:bg-gray-100" title="Settings">
+            <span class="material-symbols-outlined" style="color:var(--gdoc-text-secondary)">settings</span>
+        </button>
+        <button class="p-2 rounded-full hover:bg-gray-100" title="Google apps">
+            <span class="material-symbols-outlined" style="color:var(--gdoc-text-secondary)">apps</span>
+        </button>
+        <div class="w-8 h-8 rounded-full bg-[var(--gdoc-blue)] text-white flex items-center justify-center text-sm font-medium">
+            M
+        </div>
+    </div>
+</header>
+
+<div class="flex h-[calc(100vh-4rem)]">
+    <!-- Sidebar -->
+    <nav class="w-60 py-3 overflow-y-auto flex-shrink-0">
+        <a href="/" class="sidebar-item active mb-1">
+            <span class="material-symbols-outlined filled" style="font-size:20px">folder</span>
+            <span>My Drive</span>
+        </a>
+        <a href="/" class="sidebar-item mb-1">
+            <span class="material-symbols-outlined" style="font-size:20px">people</span>
+            <span>Shared with me</span>
+        </a>
+        <a href="/" class="sidebar-item mb-1">
+            <span class="material-symbols-outlined" style="font-size:20px">schedule</span>
+            <span>Recent</span>
+        </a>
+        <a href="/" class="sidebar-item mb-1">
+            <span class="material-symbols-outlined" style="font-size:20px">star</span>
+            <span>Starred</span>
+        </a>
+        <a href="/" class="sidebar-item mb-1">
+            <span class="material-symbols-outlined" style="font-size:20px">delete</span>
+            <span>Trash</span>
+        </a>
+
+        <div class="mt-6 pt-4 border-t border-[var(--gdoc-border)] mx-4">
+            <div class="text-xs text-[var(--gdoc-text-secondary)] font-medium uppercase tracking-wider px-2 mb-2">Dev Tools</div>
+            <a href="/dev/dashboard" class="sidebar-item">
+                <span class="material-symbols-outlined" style="font-size:18px">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="/dev/api-explorer" class="sidebar-item">
+                <span class="material-symbols-outlined" style="font-size:18px">code</span>
+                <span>API Explorer</span>
+            </a>
+            <a href="/dev/db-viewer" class="sidebar-item">
+                <span class="material-symbols-outlined" style="font-size:18px">database</span>
+                <span>DB Viewer</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="flex-1 border-l border-[var(--gdoc-border)] overflow-y-auto bg-white">
+        <div class="px-6 py-4">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-base font-medium text-[var(--gdoc-text)]">My Drive</h2>
+                <div class="flex items-center gap-2">
+                    <button class="toolbar-btn" title="List view" style="width:32px;height:32px">
+                        <span class="material-symbols-outlined">view_list</span>
+                    </button>
+                    <button class="toolbar-btn" title="Grid view" style="width:32px;height:32px">
+                        <span class="material-symbols-outlined">grid_view</span>
+                    </button>
+                    <button class="toolbar-btn" title="Details" style="width:32px;height:32px">
+                        <span class="material-symbols-outlined">info</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Column headers -->
+            <div class="flex items-center px-4 h-10 text-xs font-medium text-[var(--gdoc-text-secondary)] uppercase tracking-wide border-b border-[var(--gdoc-border)]">
+                <div class="flex-1">Name</div>
+                <div class="w-40">Owner</div>
+                <div class="w-44">Last modified</div>
+                <div class="w-24">Revision</div>
+            </div>
+
+            <!-- File list -->
+            <div>
+                {% for doc in documents %}
+                <a href="/doc/{{ doc.id }}" class="file-row">
+                    <div class="flex-1 flex items-center gap-3 min-w-0">
+                        <svg viewBox="0 0 72 100" class="w-5 h-7 flex-shrink-0" fill="none">
+                            <path d="M44 0H8C3.58 0 0 3.58 0 8v84c0 4.42 3.58 8 8 8h56c4.42 0 8-3.58 8-8V28L44 0z" fill="#4285F4"/>
+                            <path d="M44 0v20c0 4.42 3.58 8 8 8h20L44 0z" fill="#A1C2FA"/>
+                            <path d="M16 72h40v-4H16v4zm0-12h40v-4H16v4zm0-12h28v-4H16v4z" fill="white"/>
+                        </svg>
+                        <span class="text-sm text-[var(--gdoc-text)] truncate">{{ doc.title or '(untitled)' }}</span>
+                    </div>
+                    <div class="w-40 text-sm text-[var(--gdoc-text-secondary)] truncate">{{ doc.user.display_name }}</div>
+                    <div class="w-44 text-sm text-[var(--gdoc-text-secondary)]">{{ doc.modified_time.strftime('%b %d, %Y') }}</div>
+                    <div class="w-24 text-xs text-[var(--gdoc-text-secondary)] font-mono">{{ doc.revision_id[:8] }}</div>
+                </a>
+                {% endfor %}
+
+                {% if not documents %}
+                <div class="flex flex-col items-center justify-center py-20 text-[var(--gdoc-text-secondary)]">
+                    <span class="material-symbols-outlined" style="font-size:64px;color:#dadce0">description</span>
+                    <p class="text-sm mt-4">No documents yet</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="mt-4 text-xs text-[var(--gdoc-text-secondary)] px-4">
+                {{ documents | length }} document{{ 's' if documents | length != 1 else '' }}
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}

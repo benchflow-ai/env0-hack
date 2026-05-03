@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}GDrive DB Viewer{% endblock %}
+{% block content %}
+<div class="p-6 space-y-4">
+    <div class="flex flex-wrap items-end justify-between gap-3">
+        <div>
+            <h1 class="font-google-sans text-2xl text-gray-800">DB Viewer</h1>
+            <p class="text-gray-500 mt-1">{{ total }} rows in <code>{{ table }}</code></p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            {% for name in tables %}
+            <a href="/dev/db-viewer?table={{ name }}"
+               class="px-3 py-1.5 rounded-full border text-sm {{ 'bg-blue-100 border-blue-200 text-blue-700' if name == table else 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50' }}">{{ name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+                    <tr>
+                        {% for col in columns %}
+                        <th class="text-left px-3 py-2 font-medium">{{ col }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in rows %}
+                    <tr class="border-t border-gray-100 hover:bg-blue-50">
+                        {% for col in columns %}
+                        <td class="px-3 py-2 max-w-xs truncate">{{ row[col] }}</td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-between text-sm text-gray-600">
+        <span>Page {{ page }} of {{ total_pages }}</span>
+        <div class="flex gap-2">
+            {% if page > 1 %}
+            <a class="px-3 py-1.5 bg-white border border-gray-200 rounded-full" href="/dev/db-viewer?table={{ table }}&page={{ page - 1 }}">Previous</a>
+            {% endif %}
+            {% if page < total_pages %}
+            <a class="px-3 py-1.5 bg-white border border-gray-200 rounded-full" href="/dev/db-viewer?table={{ table }}&page={{ page + 1 }}">Next</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

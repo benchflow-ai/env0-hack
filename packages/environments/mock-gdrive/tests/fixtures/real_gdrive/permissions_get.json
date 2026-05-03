@@ -1,0 +1,24 @@
+{
+  "kind": "drive#permission",
+  "id": "06560596394248937550",
+  "type": "user",
+  "emailAddress": "mediar.acc1@gmail.com",
+  "role": "owner",
+  "displayName": "Mediar Acc1",
+  "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocKkQ0GqGopU53d8x9oD2oQ3va9q3oHaVgSVi5LnDzYTwy2Ewg=s64",
+  "permissionDetails": [
+    {
+      "permissionType": "file",
+      "role": "writer",
+      "inherited": true
+    },
+    {
+      "permissionType": "file",
+      "role": "owner",
+      "inherited": false
+    }
+  ],
+  "deleted": false,
+  "pendingOwner": false,
+  "_captured_at": "2026-03-27T20:30:19.516142+00:00"
+}

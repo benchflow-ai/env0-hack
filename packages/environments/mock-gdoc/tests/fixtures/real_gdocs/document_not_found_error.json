@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": 404,
+    "message": "Requested entity was not found.",
+    "status": "NOT_FOUND"
+  },
+  "_captured_at": "2026-03-19T15:12:58.122102+00:00"
+}

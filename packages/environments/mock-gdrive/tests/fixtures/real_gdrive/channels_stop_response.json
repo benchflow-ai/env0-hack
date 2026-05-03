@@ -1,0 +1,6 @@
+{
+  "status": 204,
+  "body": null,
+  "_note": "channels.stop returns 204 on success",
+  "_captured_at": "2026-03-27T20:30:27.083618+00:00"
+}

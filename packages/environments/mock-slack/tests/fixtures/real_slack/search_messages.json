@@ -1,0 +1,766 @@
+{
+  "ok": true,
+  "query": "Edge Account Review Progress",
+  "messages": {
+    "total": 80,
+    "pagination": {
+      "total_count": 80,
+      "page": 1,
+      "per_page": 10,
+      "page_count": 8,
+      "first": 1,
+      "last": 10
+    },
+    "paging": {
+      "count": 10,
+      "total": 80,
+      "page": 1,
+      "pages": 8
+    },
+    "matches": [
+      {
+        "db_message": {},
+        "iid": "634d3b67-b2c3-4a48-906c-a91620259142",
+        "team": "T0AN6SZBR3J",
+        "score": 924.8481,
+        "channel": {
+          "id": "C0AMCK1SJR0",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_ext_shared": false,
+          "is_private": false,
+          "name": "acct-edge",
+          "pending_shared": [],
+          "is_pending_ext_shared": false,
+          "teams": [
+            "T0AN6SZBR3J"
+          ]
+        },
+        "type": "message",
+        "user": "U0AMAHALJUW",
+        "username": "eliza_berry",
+        "ts": "1773840000.853909",
+        "blocks": [
+          {
+            "type": "rich_text",
+            "block_id": "Ohx",
+            "elements": [
+              {
+                "type": "rich_text_section",
+                "elements": [
+                  {
+                    "type": "emoji",
+                    "name": "clipboard",
+                    "unicode": "1f4cb"
+                  },
+                  {
+                    "type": "text",
+                    "text": " Edge Account Review Progress Update "
+                  },
+                  {
+                    "type": "emoji",
+                    "name": "chart_with_upwards_trend",
+                    "unicode": "1f4c8"
+                  },
+                  {
+                    "type": "text",
+                    "text": "\n\nWanted to share where we stand on the Q4 Edge account review\u2014I've completed the stakeholder interviews and am finalizing the success metrics report. The expansion opportunity looks strong; their APAC team is eager to pilot. Expect the full write-up by Friday, and please come prepared with any customer quotes or case study material for the exec summary."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "text": ":clipboard: Edge Account Review Progress Update :chart_with_upwards_trend:\n\nWanted to share where we stand on the Q4 Edge account review\u2014I've completed the stakeholder interviews and am finalizing the success metrics report. The expansion opportunity looks strong; their APAC team is eager to pilot. Expect the full write-up by Friday, and please come prepared with any customer quotes or case study material for the exec summary.",
+        "permalink": "https://e0amahcgfl6-uez87xyy.slack.com/archives/C0AMCK1SJR0/p1773840000853909?thread_ts=1773840000.853909"
+      },
+      {
+        "db_message": {},
+        "iid": "da5025ae-b64c-484a-9409-8ccbbaaefae0",
+        "team": "T0AN6SZBR3J",
+        "score": 193.9488,
+        "channel": {
+          "id": "C0AMCK1SJR0",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_ext_shared": false,
+          "is_private": false,
+          "name": "acct-edge",
+          "pending_shared": [],
+          "is_pending_ext_shared": false,
+          "teams": [
+            "T0AN6SZBR3J"
+          ]
+        },
+        "type": "message",
+        "user": "U0AMAHALJUW",
+        "username": "eliza_berry",
+        "ts": "1773840000.609989",
+        "blocks": [
+          {
+            "type": "rich_text",
+            "block_id": "jP1K",
+            "elements": [
+              {
+                "type": "rich_text_section",
+                "elements": [
+                  {
+                    "type": "text",
+                    "text": "Quick check-in on Edge account priorities "
+                  },
+                  {
+                    "type": "emoji",
+                    "name": "clipboard",
+                    "unicode": "1f4cb"
+                  },
+                  {
+                    "type": "text",
+                    "text": "\n\nRunning through our focus areas to ensure we're aligned heading into EOW:\n\nKey Initiatives:\n\u2022 Edge renewal signed\u2014expansion discussion scheduled for next week\n\u2022 APAC region rollout planning with their procurement team\n\u2022 Technical integration review with their IT lead\n\u2022 Updated contract terms shared in #acct-edge-resources\n\nImpact: Edge is our top-performing account this quarter. Strong relationship momentum.\n\nNext Steps: Let's sync on the expansion proposal\u2014they're asking about multi-region deployment options.\n\nQuestions or blockers? Drop them below."
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "text": "Quick check-in on Edge account priorities :clipboard:\n\nRunning through our focus areas to ensure we're aligned heading into EOW:\n\nKey Initiatives:\n\u2022 Edge renewal signed\u2014expansion discussion scheduled for next week\n\u2022 APAC region rollout planning with their procurement team\n\u2022 Technical integration review with their IT lead\n\u2022 Updated contract terms shared in #acct-edge-resources\n\nImpact: Edge is our top-performing account this quarter. Strong relationship momentum.\n\nNext Steps: Let's sync on the expansion proposal\u2014they're asking about multi-region deployment options.\n\nQuestions or blockers? Drop them below.",
+        "permalink": "https://e0amahcgfl6-uez87xyy.slack.com/archives/C0AMCK1SJR0/p1773840000609989?thread_ts=1773840000.609989",
+        "no_reactions": true
+      },
+      {
+        "db_message": {},
+        "iid": "26a8eebf-8c31-42c8-a29e-021bd717cced",
+        "team": "T0AN6SZBR3J",
+        "score": 0.77088964,
+        "channel": {
+          "id": "C0AMAHGFGVC",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_ext_shared": false,
+          "is_private": false,
+          "name": "social-celebration",
+          "pending_shared": [],
+          "is_pending_ext_shared": false,
+          "teams": [
+            "T0AN6SZBR3J"
+          ]
+        },
+        "type": "message",
+        "user": "U0ALX5T9KB9",
+        "username": "jane_manager",
+        "ts": "1773840005.024289",
+        "blocks": [
+          {
+            "type": "section",
+            "block_id": "IXzum",
+            "text": {
+              "type": "plain_text",
+              "text": ":star2: Celebrating Phillip's Work Anniversary! :star2:",
+              "emoji": true
+            }
+          },
+          {
+            "type": "section",
+            "block_id": "hDlYx",
+            "text": {
+              "type": "mrkdwn",
+              "text": "Today marks the 5th year Phillip has been with us! :tada: Thank you, Phillip, for all your hard work, dedication, and positivity. Here's to many more successful years ahead! :clinking_glasses:",
+              "verbatim": false
+            }
+          }
+        ],
+        "text": "",
+        "permalink": "https://e0amahcgfl6-uez87xyy.slack.com/archives/C0AMAHGFGVC/p1773840005024289"
+      },
+      {
+        "db_message": {},
+        "iid": "9c40f662-f910-4070-9dce-bf923ed84d79",
+        "team": "T0AN6SZBR3J",
+        "score": 0.79070485,
+        "channel": {
+          "id": "C0AMG71JXC4",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_ext_shared": false,
+          "is_private": false,
+          "name": "campaign-nto",
+          "pending_shared": [],
+          "is_pending_ext_shared": false,
+          "teams": [
+            "T0AN6SZBR3J"
+          ]
+        },
+        "type": "message",
+        "user": "U0AMAHCF7SA",
+        "username": "sue_marketing",
+        "ts": "1773840003.843509",
+        "blocks": [
+          {
+            "type": "section",
+            "block_id": "arO75",
+            "text": {
+              "type": "mrkdwn",
+              "text": "Regina Williams shared the <https://platform.datorama.com/external/dashboard?embedpage=f31723f0-627c-4a00-9df9-61bfa137055a|weekly performance report.>\n",
+              "verbatim": false
+            }
+          },
+          {
+            "type": "image",
+            "block_id": "HHoPD",
+            "image_url": "https://i.imgur.com/doCEOn2.png",
+            "alt_text": "Top Channels - Engagement",
+            "title": {
+              "type": "plain_text",
+              "text": "Intelligence Insights",
+              "emoji": true
+            },
+            "image_width": 1316,
+            "image_height": 615,
+            "image_bytes": 104675,
+            "is_animated": true,
+            "fallback": "1316x615px image"
+          }
+        ],
+        "text": "",
+        "permalink": "https://e0amahcgfl6-uez87xyy.slack.com/archives/C0AMG71JXC4/p1773840003843509?thread_ts=1773840003.843509",
+        "no_reactions": true
+      },
+      {
+        "db_message": {},
+        "iid": "d50d929a-1de2-4fc8-b9fd-8ac7ed372791",
+        "team": "T0AN6SZBR3J",
+        "score": 0.7906792,
+        "channel": {
+          "id": "C0AMG71JXC4",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_ext_shared": false,
+          "is_private": false,
+          "name": "campaign-nto",
+          "pending_shared": [],
+          "is_pending_ext_shared": false,
+          "teams": [
+            "T0AN6SZBR3J"
+          ]
+        },
+        "type": "message",
+        "user": "U0AMAHCF7SA",
+        "username": "sue_marketing",
+        "ts": "1773840003.474429",
+        "blocks": [
+          {
+            "type": "section",
+            "block_id": "0ZG37",
+            "text": {
+              "type": "mrkdwn",
+              "text": "Regina Williams shared the <https://platform.datorama.com/external/dashboard?embedpage=f31723f0-627c-4a00-9df9-61bfa137055a|weekly performance report.>\n",
+              "verbatim": false
+            }
+          },
+          {
+            "type": "image",
+            "block_id": "5ByAa",
+            "image_url": "https://i.imgur.com/Z6bGBhb.png",
+            "alt_text": "Top Channels - Engagement",
+            "title": {
+              "type": "plain_text",
+              "text": "Intelligence Insights",
+              "emoji": true
+            },
+            "image_width": 1316,
+            "image_height": 616,
+            "image_bytes": 102289,
+            "is_animated": true,
+            "fallback": "1316x616px image"
+          }
+        ],
+        "text": "",
+        "permalink": "https://e0amahcgfl6-uez87xyy.slack.com/archives/C0AMG71JXC4/p1773840003474429?thread_ts=1773840003.474429",
+        "no_reactions": true
+      },
+      {
+        "db_message": {},
+        "iid": "87e4237b-3f6c-4fa6-aee2-bdb93c9eaef2",
+        "team": "T0AN6SZBR3J",
+        "score": 0.79064256,
+        "channel": {
+          "id": "C0AMG71JXC4",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_ext_shared": false,
+          "is_private": false,
+          "name": "campaign-nto",
+          "pending_shared": [],
+          "is_pending_ext_shared": false,
+          "teams": [
+            "T0AN6SZBR3J"
+          ]
+        },
+        "type": "message",
+        "user": "U0AMAHCF7SA",
+        "username": "sue_marketing",
+        "ts": "1773840003.168779",
+        "blocks": [
+          {
+            "type": "section",
+            "block_id": "Tm4Kw",
+            "text": {
+              "type": "mrkdwn",
+              "text": "Regina Williams shared the <https://platform.datorama.com/external/dashboard?embedpage=f31723f0-627c-4a00-9df9-61bfa137055a|weekly performance report.>\n",
+              "verbatim": false
+            }
+          },
+          {
+            "type": "image",
+            "block_id": "q6rKq",
+            "image_url": "https://i.imgur.com/eF12CNy.png",
+            "alt_text": "Top Channels - Engagement",
+            "title": {
+              "type": "plain_text",
+              "text": "Intelligence Insights",
+              "emoji": true
+            },
+            "image_width": 1316,
+            "image_height": 615,
+            "image_bytes": 102773,
+            "is_animated": true,
+            "fallback": "1316x615px image"
+          }
+        ],
+        "text": "",
+        "permalink": "https://e0amahcgfl6-uez87xyy.slack.com/archives/C0AMG71JXC4/p1773840003168779?thread_ts=1773840003.168779",
+        "no_reactions": true
+      },
+      {
+        "db_message": {},
+        "iid": "c9972efc-267a-4c05-90d7-3b044fec6f72",
+        "team": "T0AN6SZBR3J",
+        "score": 0.7762969,
+        "channel": {
+          "id": "C0AMG71JXC4",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_ext_shared": false,
+          "is_private": false,
+          "name": "campaign-nto",
+          "pending_shared": [],
+          "is_pending_ext_shared": false,
+          "teams": [
+            "T0AN6SZBR3J"
+          ]
+        },
+        "type": "message",
+        "user": "U0AMG6YMYQ4",
+        "username": "phillip_lim",
+        "ts": "1773840002.367079",
+        "blocks": [
+          {
+            "type": "section",
+            "block_id": "+2GkP",
+            "text": {
+              "type": "mrkdwn",
+              "text": "*<trailhead.com|@Phillip Lim> left a comment on a Figma file you're subscribed to*",
+              "verbatim": false
+            }
+          },
+          {
+            "type": "section",
+            "block_id": "KEXgk",
+            "fields": [
+              {
+                "type": "mrkdwn",
+                "text": "*Asset:*<trailhead.com|*Digital Creative Campaign*>\n",
+                "verbatim": false
+              },
+              {
+                "type": "mrkdwn",
+                "text": "*Comment:*\nHi *<salesforce.com|@Jane Manager>*, here's the updated creative round for this campaign for your review, please leave feedback in thread!",
+                "verbatim": false
+              }
+            ]
+          },
+          {
+            "type": "image",
+            "block_id": "cYBM0",
+            "image_url": "https://i.imgur.com/kQhS7xn.png",
+            "alt_text": "inspiration",
+            "image_width": 440,
+            "image_height": 185,
+            "image_bytes": 2767,
+            "is_animated": true,
+            "fallback": "440x185px image"
+          },
+          {
+            "type": "actions",
+            "block_id": "IMH9b",
+            "elements": [
+              {
+                "type": "button",
+                "action_id": "7orDO",
+                "text": {
+                  "type": "plain_text",
+                  "text": "Reply",
+                  "emoji": true
+                },
+                "value": "click_me_123"
+              },
+              {
+                "type": "button",
+                "action_id": "BScYF",
+                "text": {
+                  "type": "plain_text",
+                  "text": "Open in Figma",
+                  "emoji": true
+                },
+                "value": "click_me_123"
+              }
+            ]
+          }
+        ],
+        "text": "",
+        "permalink": "https://e0amahcgfl6-uez87xyy.slack.com/archives/C0AMG71JXC4/p1773840002367079?thread_ts=1773840002.367079",
+        "no_reactions": true
+      },
+      {
+        "db_message": {},
+        "iid": "f7b4c693-25c2-4379-8489-5a570bf7de20",
+        "team": "T0AN6SZBR3J",
+        "score": 0.7885436,
+        "channel": {
+          "id": "C0ALX5WMCKH",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_ext_shared": false,
+          "is_private": false,
+          "name": "acct-omega",
+          "pending_shared": [],
+          "is_pending_ext_shared": false,
+          "teams": [
+            "T0AN6SZBR3J"
+          ]
+        },
+        "type": "message",
+        "user": "U0AMRGA64UR",
+        "username": "tim_smith",
+        "ts": "1773839997.735909",
+        "blocks": [
+          {
+            "type": "section",
+            "block_id": "fBux1",
+            "text": {
+              "type": "mrkdwn",
+              "text": "<trailhead.com|@Tim Smith> created a new opportunity in Sales Cloud :cloud:",
+              "verbatim": false
+            }
+          },
+          {
+            "type": "context",
+            "block_id": "iZCKC",
+            "elements": [
+              {
+                "type": "image",
+                "image_url": "https://a.slack-edge.com/4da2b50/img/sales-home/opportunity.png",
+                "alt_text": "swap"
+              },
+              {
+                "type": "mrkdwn",
+                "text": "*<trailhead.com|Omega, Inc. - Agentforce Add-on Business>\n*",
+                "verbatim": false
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "block_id": "kM79h",
+            "text": {
+              "type": "mrkdwn",
+              "text": "*Stage:* Qualification\n*Close Date:* 2025-06-30\n*Amount* $550,000.00 USD\n*Owner:* Jennifer\n*Account:* Omega, Inc.\n*Next step:* Align internally to prepare for upcoming EBC.",
+              "verbatim": false
+            }
+          }
+        ],
+        "text": "",
+        "permalink": "https://e0amahcgfl6-uez87xyy.slack.com/archives/C0ALX5WMCKH/p1773839997735909?thread_ts=1773839997.735909"
+      },
+      {
+        "db_message": {},
+        "iid": "6c8184a3-172b-425a-b8da-e00c37ba5698",
+        "team": "T0AN6SZBR3J",
+        "score": 0.7180577,
+        "channel": {
+          "id": "C0AMAHGFGVC",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_ext_shared": false,
+          "is_private": false,
+          "name": "social-celebration",
+          "pending_shared": [],
+          "is_pending_ext_shared": false,
+          "teams": [
+            "T0AN6SZBR3J"
+          ]
+        },
+        "type": "message",
+        "user": "U0AMAHCF7SA",
+        "username": "sue_marketing",
+        "ts": "1773840005.325999",
+        "attachments": [
+          {
+            "image_url": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGlyMjR2b25vNWQydTBsa2ljbXBham90bjN5aDh5Z3gzd3M5MXVmZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/g5R9dok94mrIvplmZd/giphy.gif",
+            "image_width": 480,
+            "image_height": 400,
+            "image_bytes": 1943488,
+            "from_url": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGlyMjR2b25vNWQydTBsa2ljbXBham90bjN5aDh5Z3gzd3M5MXVmZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/g5R9dok94mrIvplmZd/giphy.gif",
+            "id": 1,
+            "original_url": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGlyMjR2b25vNWQydTBsa2ljbXBham90bjN5aDh5Z3gzd3M5MXVmZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/g5R9dok94mrIvplmZd/giphy.gif",
+            "fallback": "480x400px image"
+          }
+        ],
+        "blocks": [
+          {
+            "type": "section",
+            "block_id": "edLw9",
+            "text": {
+              "type": "plain_text",
+              "text": ":birthday: Happy Birthday Tim! :tada:",
+              "emoji": true
+            }
+          },
+          {
+            "type": "section",
+            "block_id": "M9sfw",
+            "text": {
+              "type": "mrkdwn",
+              "text": "Join us in wishing a very Happy Birthday to Tim! :partying_face: May your day be filled with laughter, joy, and plenty of cake! Don't forget to swing by the break room for some birthday treats at 3 PM! :balloon:",
+              "verbatim": false
+            }
+          },
+          {
+            "type": "rich_text",
+            "block_id": "Omm6u",
+            "elements": [
+              {
+                "type": "rich_text_section",
+                "elements": [
+                  {
+                    "type": "link",
+                    "url": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGlyMjR2b25vNWQydTBsa2ljbXBham90bjN5aDh5Z3gzd3M5MXVmZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/g5R9dok94mrIvplmZd/giphy.gif",
+                    "text": "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGlyMjR2b25vNWQydTBsa2ljbXBham90bjN[\u2026]pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/g5R9dok94mrIvplmZd/giphy.gif"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "text": ":birthday: Happy Birthday Tim! :tada: \ue005 Join us in wishing a very Happy Birthday to Tim! :partying_face: May your day be filled with laughter, joy, and plenty of cake! Don't forget to swing by the break room for some birthday treats at 3 PM! :balloon: \ue005 <https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGlyMjR2b25vNWQydTBsa2ljbXBham90bjN5aDh5Z3gzd3M5MXVmZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/g5R9dok94mrIvplmZd/giphy.gif|https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGlyMjR2b25vNWQydTBsa2ljbXBham90bjN[\u2026]pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/g5R9dok94mrIvplmZd/giphy.gif>",
+        "permalink": "https://e0amahcgfl6-uez87xyy.slack.com/archives/C0AMAHGFGVC/p1773840005325999"
+      },
+      {
+        "db_message": {},
+        "iid": "9eaf035c-770e-40fb-b99e-016bdb496c64",
+        "team": "T0AN6SZBR3J",
+        "score": 0.8079811,
+        "channel": {
+          "id": "C0AMCK1SJR0",
+          "is_channel": true,
+          "is_group": false,
+          "is_im": false,
+          "is_mpim": false,
+          "is_shared": false,
+          "is_org_shared": false,
+          "is_ext_shared": false,
+          "is_private": false,
+          "name": "acct-edge",
+          "pending_shared": [],
+          "is_pending_ext_shared": false,
+          "teams": [
+            "T0AN6SZBR3J"
+          ]
+        },
+        "type": "message",
+        "user": "U0AM67KHZ27",
+        "username": "rosario_bennet",
+        "ts": "1773840000.021469",
+        "blocks": [
+          {
+            "type": "rich_text",
+            "block_id": "=96W",
+            "elements": [
+              {
+                "type": "rich_text_section",
+                "elements": [
+                  {
+                    "type": "text",
+                    "text": "Exciting news! Edge Comms is deploying CumulusRack across their data centers for streamlined automation and enhanced performance. They were thrilled with the cost savings and ease of management. Another win for Cumulus!"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "text": "Exciting news! Edge Comms is deploying CumulusRack across their data centers for streamlined automation and enhanced performance. They were thrilled with the cost savings and ease of management. Another win for Cumulus! ",
+        "permalink": "https://e0amahcgfl6-uez87xyy.slack.com/archives/C0AMCK1SJR0/p1773840000021469"
+      }
+    ]
+  },
+  "users": {
+    "U0AMAHALJUW": {
+      "id": "U0AMAHALJUW",
+      "name": "eliza_berry",
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "profile": {
+        "avatar_hash": "55d2eb7c3100",
+        "image_72": "https://avatars.slack-edge.com/2026-03-18/10730233190628_55d2eb7c3100d46cf9b0_72.png",
+        "first_name": "Eliza",
+        "real_name": "Eliza Berry",
+        "display_name": "Eliza",
+        "team": "E0AMAHCGFL6"
+      },
+      "enterprise_user": {
+        "teams": [
+          "T0AN6SZBR3J"
+        ],
+        "enterprise_id": "E0AMAHCGFL6"
+      }
+    },
+    "U0ALX5T9KB9": {
+      "id": "U0ALX5T9KB9",
+      "name": "jane_manager",
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "profile": {
+        "avatar_hash": "10a52ade6851",
+        "image_72": "https://avatars.slack-edge.com/2026-03-18/10739552775377_10a52ade6851bce7a56d_72.png",
+        "first_name": "Jane",
+        "real_name": "Jane Manager",
+        "display_name": "Jane",
+        "team": "E0AMAHCGFL6"
+      },
+      "enterprise_user": {
+        "teams": [
+          "T0AN6SZBR3J"
+        ],
+        "enterprise_id": "E0AMAHCGFL6"
+      }
+    },
+    "U0AMAHCF7SA": {
+      "id": "U0AMAHCF7SA",
+      "name": "sue_marketing",
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "profile": {
+        "avatar_hash": "4c6e8dc474fb",
+        "image_72": "https://avatars.slack-edge.com/2026-03-18/10754916161248_4c6e8dc474fbea85d7a7_72.png",
+        "first_name": "Sue",
+        "real_name": "Sue Marketing",
+        "display_name": "Sue",
+        "team": "E0AMAHCGFL6"
+      },
+      "enterprise_user": {
+        "teams": [
+          "T0AN6SZBR3J"
+        ],
+        "enterprise_id": "E0AMAHCGFL6"
+      }
+    },
+    "U0AMG6YMYQ4": {
+      "id": "U0AMG6YMYQ4",
+      "name": "phillip_lim",
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "profile": {
+        "avatar_hash": "9c1b6603f4b2",
+        "image_72": "https://avatars.slack-edge.com/2026-03-18/10724588269382_9c1b6603f4b2a38c4383_72.png",
+        "first_name": "Phillip",
+        "real_name": "Phillip Lim",
+        "display_name": "Phillip",
+        "team": "E0AMAHCGFL6"
+      },
+      "enterprise_user": {
+        "teams": [
+          "T0AN6SZBR3J"
+        ],
+        "enterprise_id": "E0AMAHCGFL6"
+      }
+    },
+    "U0AMRGA64UR": {
+      "id": "U0AMRGA64UR",
+      "name": "tim_smith",
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "profile": {
+        "avatar_hash": "887eb9838770",
+        "image_72": "https://avatars.slack-edge.com/2026-03-18/10720258744803_887eb9838770282fee5b_72.png",
+        "first_name": "Tim",
+        "real_name": "Tim Smith",
+        "display_name": "Tim",
+        "team": "E0AMAHCGFL6"
+      },
+      "enterprise_user": {
+        "teams": [
+          "T0AN6SZBR3J"
+        ],
+        "enterprise_id": "E0AMAHCGFL6"
+      }
+    },
+    "U0AM67KHZ27": {
+      "id": "U0AM67KHZ27",
+      "name": "rosario_bennet",
+      "is_restricted": false,
+      "is_ultra_restricted": false,
+      "profile": {
+        "avatar_hash": "03d3db71780a",
+        "image_72": "https://avatars.slack-edge.com/2026-03-18/10711195576071_03d3db71780a12ec7ba8_72.png",
+        "first_name": "Rosario",
+        "real_name": "Rosario Bennet",
+        "display_name": "Rosario",
+        "team": "E0AMAHCGFL6"
+      },
+      "enterprise_user": {
+        "teams": [
+          "T0AN6SZBR3J"
+        ],
+        "enterprise_id": "E0AMAHCGFL6"
+      }
+    }
+  },
+  "teams": {},
+  "bots": {},
+  "_captured_at": "2026-03-27T20:39:49.248780+00:00"
+}

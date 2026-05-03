@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": 403,
+    "message": "This file is never writable.",
+    "errors": [
+      {
+        "message": "This file is never writable.",
+        "domain": "global",
+        "reason": "fileNeverWritable"
+      }
+    ]
+  },
+  "_captured_at": "2026-03-27T20:30:27.507423+00:00"
+}

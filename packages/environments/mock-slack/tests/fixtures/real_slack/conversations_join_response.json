@@ -1,0 +1,57 @@
+{
+  "ok": true,
+  "channel": {
+    "id": "C0APBQ6HAQN",
+    "created": 1774643977,
+    "creator": "U0AMGBHA936",
+    "is_org_shared": false,
+    "is_im": false,
+    "context_team_id": "T0AN6SZBR3J",
+    "updated": 1774643978196,
+    "name": "mock-fixture-643977-r",
+    "name_normalized": "mock-fixture-643977-r",
+    "is_channel": true,
+    "is_group": false,
+    "is_mpim": false,
+    "is_private": false,
+    "is_archived": false,
+    "is_general": false,
+    "is_shared": false,
+    "is_ext_shared": false,
+    "unlinked": 0,
+    "is_pending_ext_shared": false,
+    "pending_shared": [],
+    "parent_conversation": null,
+    "purpose": {
+      "value": "fixture test purpose",
+      "creator": "U0AMGBHA936",
+      "last_set": 1774643977
+    },
+    "topic": {
+      "value": "fixture test topic",
+      "creator": "U0AMGBHA936",
+      "last_set": 1774643977
+    },
+    "shared_team_ids": [
+      "T0AN6SZBR3J"
+    ],
+    "internal_team_ids": [
+      "T0AN6SZBR3J"
+    ],
+    "pending_connected_team_ids": [],
+    "is_member": true,
+    "priority": 0,
+    "is_moved": 0,
+    "previous_names": [
+      "mock-fixture-643977"
+    ]
+  },
+  "warning": "missing_charset,already_in_channel",
+  "response_metadata": {
+    "warnings": [
+      "missing_charset",
+      "already_in_channel"
+    ]
+  },
+  "_captured_at": "2026-03-27T20:39:39.563630+00:00"
+}

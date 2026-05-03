@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mock GDrive{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'google-sans': ['"Google Sans"', 'Roboto', 'Arial', 'sans-serif'],
+                        'roboto': ['Roboto', 'Arial', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .file-row:hover { background-color: #e8f0fe; }
+        .file-row.selected { background-color: #d2e3fc; }
+        .sidebar-item:hover { background-color: #e8eaed; border-radius: 0 16px 16px 0; }
+        .sidebar-item.active { background-color: #c2e7ff; border-radius: 0 16px 16px 0; font-weight: 600; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20; }
+    </style>
+</head>
+<body class="bg-[#f8fafd] text-gray-800 text-sm font-roboto">
+    <!-- Header -->
+    <header class="flex items-center h-16 px-4 bg-[#f8fafd]">
+        <div class="flex items-center gap-4 flex-1">
+            <button class="p-2 rounded-full hover:bg-gray-200">
+                <span class="material-symbols-outlined text-[24px] text-gray-600">menu</span>
+            </button>
+            <div class="flex items-center gap-2">
+                <!-- Drive triangle icon -->
+                <svg class="w-10 h-10" viewBox="0 0 87.3 78" xmlns="http://www.w3.org/2000/svg">
+                    <path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/>
+                    <path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-20.4 35.3c-.8 1.4-1.2 2.95-1.2 4.5h27.5z" fill="#00ac47"/>
+                    <path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 13.55z" fill="#ea4335"/>
+                    <path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/>
+                    <path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/>
+                    <path d="m73.4 26.5-10.1-17.5c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 23.8h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/>
+                </svg>
+                <span class="text-[22px] text-gray-600 font-google-sans">Drive</span>
+                <span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded font-medium ml-1">MOCK</span>
+            </div>
+        </div>
+        <div class="flex-1 max-w-2xl">
+            <form action="/" method="get" class="relative">
+                {% if view != 'my-drive' %}
+                <input type="hidden" name="view" value="{{ view }}">
+                {% endif %}
+                <span class="material-symbols-outlined absolute left-4 top-3.5 text-[20px] text-gray-600">search</span>
+                <input type="text" name="q" value="{{ search_query or '' }}"
+                    placeholder="Search in Drive"
+                    class="w-full h-12 pl-12 pr-12 bg-[#edf2fc] rounded-full text-base font-roboto focus:outline-none focus:bg-white focus:shadow-md focus:ring-1 focus:ring-blue-200 transition-all">
+                <button type="button" class="absolute right-4 top-3.5">
+                    <span class="material-symbols-outlined text-[20px] text-gray-600">tune</span>
+                </button>
+            </form>
+        </div>
+        <div class="flex-1 flex justify-end items-center gap-1">
+            <button class="p-2 rounded-full hover:bg-gray-200" title="Support">
+                <span class="material-symbols-outlined text-[20px] text-gray-600">help</span>
+            </button>
+            <button class="p-2 rounded-full hover:bg-gray-200" title="Settings">
+                <span class="material-symbols-outlined text-[20px] text-gray-600">settings</span>
+            </button>
+            <button class="p-2 rounded-full hover:bg-gray-200" title="Google apps">
+                <span class="material-symbols-outlined text-[20px] text-gray-600">apps</span>
+            </button>
+            <!-- User switcher -->
+            <div class="relative group ml-2">
+                <button class="flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium cursor-pointer"
+                         title="{{ user.email if user else '' }}">
+                        {{ (user.display_name[0] if user and user.display_name else '?') | upper }}
+                    </div>
+                </button>
+                <div class="hidden group-hover:block absolute right-0 top-full mt-1 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50 py-2">
+                    <div class="px-4 py-2 text-xs text-gray-500 font-medium border-b border-gray-100">Switch user</div>
+                    {% for u in all_users %}
+                    <a href="/switch-user?email={{ u.email }}"
+                       class="flex items-center gap-3 px-4 py-2 hover:bg-gray-50 {{ 'bg-blue-50' if u.email == user.email else '' }}">
+                        <div class="w-7 h-7 rounded-full {{ 'bg-blue-600' if u.email == user.email else 'bg-gray-400' }} text-white flex items-center justify-center text-xs font-medium flex-shrink-0">
+                            {{ u.display_name[0] | upper }}
+                        </div>
+                        <div class="min-w-0">
+                            <div class="text-sm truncate {{ 'font-medium' if u.email == user.email else '' }}">{{ u.display_name }}</div>
+                            <div class="text-xs text-gray-400 truncate">{{ u.email }}</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex h-[calc(100vh-4rem)]">
+        <!-- Sidebar -->
+        <nav class="w-64 p-2 overflow-y-auto flex-shrink-0">
+            <!-- + New button -->
+            <button class="flex items-center gap-3 h-14 px-6 mb-4 rounded-2xl bg-white shadow-md hover:shadow-lg border border-gray-200 transition-shadow cursor-pointer font-google-sans"
+                    title="Create new (mock)">
+                <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 0, 'wght' 500;">add</span>
+                <span class="text-[14px] font-medium">New</span>
+            </button>
+
+            <a href="/"
+               class="sidebar-item flex items-center h-8 px-3 pl-6 text-sm gap-4 {{ 'active' if view == 'my-drive' and not folder_id else '' }}">
+                <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' {{ 1 if view == 'my-drive' and not folder_id else 0 }};">hard_drive</span>
+                <span class="flex-1">My Drive</span>
+            </a>
+            <a href="/?view=shared"
+               class="sidebar-item flex items-center h-8 px-3 pl-6 text-sm gap-4 {{ 'active' if view == 'shared' else '' }}">
+                <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' {{ 1 if view == 'shared' else 0 }};">group</span>
+                <span class="flex-1">Shared with me</span>
+            </a>
+            <a href="/?view=recent"
+               class="sidebar-item flex items-center h-8 px-3 pl-6 text-sm gap-4 {{ 'active' if view == 'recent' else '' }}">
+                <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' {{ 1 if view == 'recent' else 0 }};">schedule</span>
+                <span class="flex-1">Recent</span>
+            </a>
+            <a href="/?view=starred"
+               class="sidebar-item flex items-center h-8 px-3 pl-6 text-sm gap-4 {{ 'active' if view == 'starred' else '' }}">
+                <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' {{ 1 if view == 'starred' else 0 }};">star</span>
+                <span class="flex-1">Starred</span>
+            </a>
+            <a href="/?view=trash"
+               class="sidebar-item flex items-center h-8 px-3 pl-6 text-sm gap-4 {{ 'active' if view == 'trash' else '' }}">
+                <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' {{ 1 if view == 'trash' else 0 }};">delete</span>
+                <span class="flex-1">Trash</span>
+                {% if trash_count %}<span class="text-xs text-gray-400">{{ trash_count }}</span>{% endif %}
+            </a>
+
+            <div class="mt-4 mx-6 border-t border-gray-200"></div>
+
+            <!-- Storage -->
+            <div class="mt-3 px-6">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="material-symbols-outlined text-[18px] text-gray-500">cloud</span>
+                    <span class="text-xs text-gray-500">Storage</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-1 mb-1.5">
+                    <div class="bg-blue-500 h-1 rounded-full" style="width: {{ [((storage_used or 0) / (storage_limit or 15000000000) * 100), 100] | min }}%"></div>
+                </div>
+                <div class="text-xs text-gray-500">{{ total_files }} files owned &middot; {{ total_shared }} shared</div>
+            </div>
+
+            <div class="mt-4 mx-6 border-t border-gray-200"></div>
+
+            <!-- Dev tools -->
+            <div class="mt-2">
+                <a href="/dev/api-explorer"
+                   class="sidebar-item flex items-center h-8 px-3 pl-6 text-sm gap-4 {{ 'active' if request.url.path == '/dev/api-explorer' else '' }}">
+                    <span class="material-symbols-outlined text-[20px]">code</span>
+                    <span class="flex-1">API Explorer</span>
+                </a>
+                <a href="/dev/db-viewer"
+                   class="sidebar-item flex items-center h-8 px-3 pl-6 text-sm gap-4 {{ 'active' if request.url.path == '/dev/db-viewer' else '' }}">
+                    <span class="material-symbols-outlined text-[20px]">database</span>
+                    <span class="flex-1">DB Viewer</span>
+                </a>
+                <a href="/dev/dashboard"
+                   class="sidebar-item flex items-center h-8 px-3 pl-6 text-sm gap-4 {{ 'active' if request.url.path == '/dev/dashboard' else '' }}">
+                    <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                    <span class="flex-1">Dashboard</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main content -->
+        <main class="flex-1 bg-white rounded-tl-2xl overflow-y-auto border-t border-l border-gray-200">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,129 @@
+{
+  "id": "19d303903ac6ba43",
+  "historyId": "3448",
+  "messages": [
+    {
+      "id": "19d303903ac6ba43",
+      "threadId": "19d303903ac6ba43",
+      "labelIds": [
+        "UNREAD",
+        "CATEGORY_UPDATES",
+        "INBOX"
+      ],
+      "snippet": "Address not found Your message wasn&#39;t delivered to fixture-user@example.com because the domain example.com couldn&#39;t be found. Check for typos or unnecessary spaces and try again. LEARN MORE",
+      "payload": {
+        "mimeType": "multipart/report",
+        "headers": [
+          {
+            "name": "Delivered-To",
+            "value": "mediar.acc1@gmail.com"
+          },
+          {
+            "name": "Received",
+            "value": "by 2002:a17:906:eecc:b0:b99:5d5f:fe13 with SMTP id wu12csp2056559ejb;        Fri, 27 Mar 2026 09:55:36 -0700 (PDT)"
+          },
+          {
+            "name": "X-Received",
+            "value": "by 2002:a05:620a:29d3:b0:8cf:d62a:c807 with SMTP id af79cd13be357-8d01c6527f6mr412871585a.17.1774630535737;        Fri, 27 Mar 2026 09:55:35 -0700 (PDT)"
+          },
+          {
+            "name": "ARC-Seal",
+            "value": "i=1; a=rsa-sha256; t=1774630535; cv=none;        d=google.com; s=arc-20240605;        b=RY1DxYkccfNXTM6u6EX7Cs0I/1TRE8q9PHsguguxOSOKJsaGtyWgE9FvYFZMY2+AAm         Hj6DftZSFL9evsvQTHyFYQsxeNFBEtBzrTpU681dWG4PHV4/U1lUN5wNcKDQy4poVxWu         Nc6QZRlnO8V/MQbNLyfchroAV3Q9Fi6MXA6KqqTGxCR2SuAKuzwK1r87IY8vITCsusiy         aAW5CeoAM8thUfhzJWG/94gyK5oIGq+yY8yXJLeZ4JOVE8VSrSVRfEj97WXGXN1jMaNU         U6GReEgY9MgOfRS7VY/3wYIfgki8dAQ7NFUXCq7NKrMBKnzdimXeaIbthRgHx9J5aiGc         oB+A=="
+          },
+          {
+            "name": "ARC-Message-Signature",
+            "value": "i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;        h=in-reply-to:references:subject:from:date:message-id:auto-submitted         :to:dkim-signature;        bh=n9nrxyEcvYMRb+Wom28nMKbI2QnUqM+nvhj39ld/+7g=;        fh=09/5idjjz20vqANtoHnceckqHLS4K6opLvJjCLfGud8=;        b=FAySjGZUej4W7o8Ocay35Lt/uUrKjgnN60sYSVc5X0J08jmKCHVmV3vlZcfOG1VZP0         A1VdJ95dTjR2Lkl612Mgh5mvFrKTQe64m4JZn7X99aT0sVJ4AplvRXojTX3EQw7psi95         iSxaxJLQSXGAqpbomebQRMuvTSiVk/c2wGmcJ65b7YTnhMUhj/UHKWgSxGtaTLgw3KZ2         Vrfr2xQDKKxogIIbj6kKoVJ1jt7FM0CNS+3yWI51gySsrVJ1mBbiXjbOI2QbVf2XLYoZ         9gJ4uo15ronR8ZrrmcE9EufwrC/+HLtlCBj+AYnVoTTlMhT9l62p8aK2dZL0CV7QvMeN         nVuQ==;        dara=google.com"
+          },
+          {
+            "name": "ARC-Authentication-Results",
+            "value": "i=1; mx.google.com;       dkim=pass header.i=@googlemail.com header.s=20251104 header.b=JukSWeFp;       spf=none (google.com: postmaster@mail-sor-f69.google.com does not designate permitted sender hosts) smtp.helo=mail-sor-f69.google.com;       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=googlemail.com;       dara=pass header.i=@gmail.com"
+          },
+          {
+            "name": "Return-Path",
+            "value": "<>"
+          },
+          {
+            "name": "Received",
+            "value": "from mail-sor-f69.google.com (mail-sor-f69.google.com. [209.85.220.69])        by mx.google.com with SMTPS id af79cd13be357-8d00e520c9fsor396286185a.12.2026.03.27.09.55.35        for <mediar.acc1@gmail.com>        (Google Transport Security);        Fri, 27 Mar 2026 09:55:35 -0700 (PDT)"
+          },
+          {
+            "name": "Received-SPF",
+            "value": "none (google.com: postmaster@mail-sor-f69.google.com does not designate permitted sender hosts) client-ip=209.85.220.69;"
+          },
+          {
+            "name": "Authentication-Results",
+            "value": "mx.google.com;       dkim=pass header.i=@googlemail.com header.s=20251104 header.b=JukSWeFp;       spf=none (google.com: postmaster@mail-sor-f69.google.com does not designate permitted sender hosts) smtp.helo=mail-sor-f69.google.com;       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=googlemail.com;       dara=pass header.i=@gmail.com"
+          },
+          {
+            "name": "DKIM-Signature",
+            "value": "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=googlemail.com; s=20251104; t=1774630535; x=1775235335; dara=google.com;        h=in-reply-to:references:subject:from:date:message-id:auto-submitted         :to:from:to:cc:subject:date:message-id:reply-to;        bh=n9nrxyEcvYMRb+Wom28nMKbI2QnUqM+nvhj39ld/+7g=;        b=JukSWeFp5vOCT2FO2SAWZ4OcDpT8WhjSqzMiE4DWOBZTpawP/Zp5McJ/xNlaty7qrz         Fg0amPd45COgSBXW36995/JsPR5K+yyDtNvkZRuLHiL9+Oyy4Bbjimhh9pdvBXVGWEro         I1jzlaCON9jJVWa0WB8YymWdkJHFN4J+oYykiyPIPNeYCBBxdeCbgZ/+UXue+YRxxWnr         skTAjP7uuhOcGc6TTOlvbbyO/OZsucREISUV9QbdYLwGeLOlF5VegQ90ITV8/Lxs2zCL         HtBsCxC53u6TcOVl7RFGsyQL63+Ay2X1ArHaH6AKFgFqgTLWEMNfPZoM+YCvkMB9SW5u         pzig=="
+          },
+          {
+            "name": "X-Google-DKIM-Signature",
+            "value": "v=1; a=rsa-sha256; c=relaxed/relaxed;        d=1e100.net; s=20251104; t=1774630535; x=1775235335;        h=in-reply-to:references:subject:from:date:message-id:auto-submitted         :to:x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;        bh=n9nrxyEcvYMRb+Wom28nMKbI2QnUqM+nvhj39ld/+7g=;        b=puPMjGgPXlX5XYKfhgHfg94HK4Lkp55FXNnK2XM7TtI7gugyZ+WpRlzGnuAxSSlBLd         fkPIgrwJxp0r2gvPmYUq76SUEg/BEj4D3zdK4fG3yJK+mfLcl2oEOi+czXjl8CeuZv/R         aqw6gwTIViZGcC0JjRaiKaeMKuvG8xWpt6hUwlJ5gLmg/hB9qJu7OeyTDLjsDCfrx9vy         8UfK5jm6nUzFDjlW2YEMQNMfL0OqTkEampU6RT4j8o9D2n+ei7+6u81bQxbitn7N+XNW         WZjRYjXIYenQNq0rXHckKewUlJ2IIZKs9a1tROGsJAdAkcUIx9hpB5AO2NlTeqF+A+mk         Bhxg=="
+          },
+          {
+            "name": "X-Gm-Message-State",
+            "value": "AOJu0Yx7OM0UkczCIi5BX0HOVPGkCY6JMpynCyLE4DLbEuhItgnB9Vv1 YWfaXjTGLC/Emc0rCGqkbwBFSfbFA+vI00GeripmD8bKsakoc/9ZImaZSSm3l3xOGc125FVpnIN AfM6yy6gl1XKoLsnyRNSb13ke3AbJ15pMnk5b1XwJEFoPEJkMxhHieO6doA=="
+          },
+          {
+            "name": "X-Received",
+            "value": "by 2002:a05:620a:4005:b0:8cd:80f1:f468 with SMTP id af79cd13be357-8d01c7fb5b1mr434029185a.41.1774630535235;        Fri, 27 Mar 2026 09:55:35 -0700 (PDT)"
+          },
+          {
+            "name": "Content-Type",
+            "value": "multipart/report; boundary=\"000000000000a8e564064e045ed2\"; report-type=delivery-status"
+          },
+          {
+            "name": "To",
+            "value": "mediar.acc1@gmail.com"
+          },
+          {
+            "name": "Received",
+            "value": "by 2002:a05:620a:4005:b0:8cd:80f1:f468 with SMTP id af79cd13be357-8d01c7fb5b1mr451658985a.41; Fri, 27 Mar 2026 09:55:35 -0700 (PDT)"
+          },
+          {
+            "name": "Return-Path",
+            "value": "<>"
+          },
+          {
+            "name": "Auto-Submitted",
+            "value": "auto-replied"
+          },
+          {
+            "name": "Message-ID",
+            "value": "<69c6b687.050a0220.275545.9906.GMR@mx.google.com>"
+          },
+          {
+            "name": "Date",
+            "value": "Fri, 27 Mar 2026 09:55:35 -0700 (PDT)"
+          },
+          {
+            "name": "From",
+            "value": "Mail Delivery Subsystem <mailer-daemon@googlemail.com>"
+          },
+          {
+            "name": "Subject",
+            "value": "Delivery Status Notification (Failure)"
+          },
+          {
+            "name": "References",
+            "value": "<calendar-cce12bae-8045-44c2-8da4-e13200fd4b38@google.com>"
+          },
+          {
+            "name": "In-Reply-To",
+            "value": "<calendar-cce12bae-8045-44c2-8da4-e13200fd4b38@google.com>"
+          },
+          {
+            "name": "X-Failed-Recipients",
+            "value": "fixture-user@example.com"
+          }
+        ]
+      },
+      "sizeEstimate": 15408,
+      "historyId": "3448",
+      "internalDate": "1774630535000"
+    }
+  ],
+  "_captured_at": "2026-03-27T18:33:27.720367+00:00"
+}

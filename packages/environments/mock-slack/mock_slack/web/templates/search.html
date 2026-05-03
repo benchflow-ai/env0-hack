@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% from "_avatar_macros.html" import slack_avatar %}
+{% block content %}
+<div class="flex flex-col flex-1 min-h-0 bg-white overflow-hidden">
+
+  <!-- Header -->
+  <div class="flex items-center px-6 h-14 border-b border-gray-200 flex-shrink-0">
+    <h2 class="font-bold text-[18px] text-gray-900 mr-2">Search:</h2>
+    <span class="font-bold text-[18px] text-[#1164a3]">{{ query }}</span>
+    {% if results %}
+    <span class="ml-3 text-[13px] text-gray-400">{{ results|length }} result{{ 's' if results|length != 1 else '' }}</span>
+    {% endif %}
+  </div>
+
+  <div class="flex flex-1 min-h-0 overflow-hidden">
+
+    <!-- Left: Category tabs -->
+    <div class="w-52 flex-shrink-0 border-r border-gray-200 py-3 overflow-y-auto">
+      <button class="srch-tab active w-full flex items-center justify-between px-4 py-2 text-[14px] font-semibold rounded-lg mx-1" style="width:calc(100% - 8px)" onclick="switchSrchTab('messages', this)">
+        <span class="flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+          Messages
+        </span>
+        <span class="text-[12px]">{{ results|length }}</span>
+      </button>
+      <button class="srch-tab w-full flex items-center justify-between px-4 py-2 text-[14px] text-gray-600 rounded-lg mx-1" style="width:calc(100% - 8px)" onclick="switchSrchTab('files', this)">
+        <span class="flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          Files
+        </span>
+        <span class="text-[12px] text-gray-400">0</span>
+      </button>
+      <button class="srch-tab w-full flex items-center justify-between px-4 py-2 text-[14px] text-gray-600 rounded-lg mx-1" style="width:calc(100% - 8px)" onclick="switchSrchTab('people', this)">
+        <span class="flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          People
+        </span>
+        <span class="text-[12px] text-gray-400">0</span>
+      </button>
+      <button class="srch-tab w-full flex items-center justify-between px-4 py-2 text-[14px] text-gray-600 rounded-lg mx-1" style="width:calc(100% - 8px)" onclick="switchSrchTab('channels', this)">
+        <span class="flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+          Channels
+        </span>
+        <span class="text-[12px] text-gray-400">0</span>
+      </button>
+    </div>
+
+    <!-- Right: Results -->
+    <div class="flex-1 overflow-y-auto custom-scroll">
+
+      <!-- Messages tab -->
+      <div id="srch-messages" class="srch-panel">
+        {% if not query %}
+        <div class="flex flex-col items-center justify-center h-64 text-gray-400">
+          <svg class="w-12 h-12 mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <p class="text-[15px]">Search for messages, files, people and more</p>
+        </div>
+        {% elif not results %}
+        <div class="flex flex-col items-center justify-center h-64 text-gray-400">
+          <svg class="w-12 h-12 mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <p class="text-[15px] font-medium text-gray-500">No results for "{{ query }}"</p>
+          <p class="text-[13px] mt-1">Try different keywords or check spelling</p>
+        </div>
+        {% else %}
+        {% for item in results %}
+        {% set msg = item.msg %}
+        {% set ch = item.channel %}
+        <a href="/channel/{{ ch.id if ch else msg.channel_id }}"
+           class="flex items-start gap-3 px-6 py-4 border-b border-gray-100 hover:bg-gray-50 cursor-pointer block no-underline">
+          <!-- Avatar -->
+          {{ slack_avatar(user=msg.user, size='w-9 h-9', rounded='rounded-lg', text='text-sm', container_extra='mt-0.5 flex-shrink-0') }}
+          <!-- Content -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline gap-2 mb-0.5">
+              <span class="font-bold text-[14px] text-gray-900">{{ msg.user.real_name or msg.user.name if msg.user else 'Unknown' }}</span>
+              <span class="text-[12px] text-gray-400">
+                {% if ch %}
+                  {% if ch.is_im %}@{{ ch.name }}{% else %}#{{ ch.name }}{% endif %}
+                {% endif %}
+              </span>
+              <span class="ml-auto text-[12px] text-gray-400 flex-shrink-0" data-ts="{{ msg.ts }}" data-ts-format="date-at-time"></span>
+            </div>
+            <p class="text-[14px] text-gray-700 leading-relaxed line-clamp-2 search-result-text" data-query="{{ query | e }}">{{ msg.text }}</p>
+          </div>
+        </a>
+        {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Other tabs (empty for now) -->
+      <div id="srch-files" class="srch-panel hidden">
+        <div class="flex flex-col items-center justify-center h-64 text-gray-400">
+          <p class="text-[14px]">No files found</p>
+        </div>
+      </div>
+      <div id="srch-people" class="srch-panel hidden">
+        <div class="flex flex-col items-center justify-center h-64 text-gray-400">
+          <p class="text-[14px]">No people found</p>
+        </div>
+      </div>
+      <div id="srch-channels" class="srch-panel hidden">
+        <div class="flex flex-col items-center justify-center h-64 text-gray-400">
+          <p class="text-[14px]">No channels found</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .srch-tab { transition: background .1s; }
+  .srch-tab.active { background: #eff6ff; color: #1164a3; }
+  .srch-tab:hover:not(.active) { background: #f9fafb; }
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+</style>
+
+<script>
+  function switchSrchTab(name, btn) {
+    document.querySelectorAll('.srch-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    document.querySelectorAll('.srch-panel').forEach(function(p) { p.classList.add('hidden'); });
+    document.getElementById('srch-' + name).classList.remove('hidden');
+  }
+
+  // Highlight query terms in results
+  document.addEventListener('DOMContentLoaded', function() {
+    var q = {{ query | tojson }};
+    if (!q) return;
+    document.querySelectorAll('.search-result-text').forEach(function(el) {
+      var text = el.textContent;
+      var re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      el.innerHTML = text.replace(re, '<mark class="bg-yellow-100 text-yellow-900 rounded px-0.5">$1</mark>');
+    });
+  });
+
+  document.querySelectorAll('[data-ts]').forEach(function(el) {
+    var ts = parseFloat(el.getAttribute('data-ts'));
+    if (isNaN(ts)) return;
+    var d = new Date(ts * 1000);
+    el.textContent = d.toLocaleDateString([], {month: 'short', day: 'numeric'}) + ' at ' + d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+  });
+</script>
+{% endblock %}

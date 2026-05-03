@@ -1,0 +1,328 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .later-tab {
+    padding: 8px 2px; font-size: 13px; font-weight: 500; color: #6b7280;
+    border: none; background: none; cursor: pointer; position: relative;
+    white-space: nowrap; transition: color .15s;
+  }
+  .later-tab:hover { color: #111827; }
+  .later-tab.active { color: #111827; font-weight: 700; }
+  .later-tab.active::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px; background: #1164a3; border-radius: 2px 2px 0 0;
+  }
+  .later-card {
+    border-radius: 10px; border: 1px solid #e5e7eb; background: white;
+    padding: 14px 16px; cursor: pointer; position: relative;
+    transition: box-shadow .15s, border-color .15s;
+    margin-bottom: 10px;
+  }
+  .later-card:hover { border-color: #c7d2fe; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+  .later-card:hover .hover-actions { opacity: 1; pointer-events: auto; }
+  .later-card.selected { border-color: #1164a3; box-shadow: 0 0 0 2px rgba(17,100,163,.15); }
+  .hover-actions {
+    opacity: 0; pointer-events: none; transition: opacity .15s;
+    position: absolute; top: -14px; right: 10px;
+    background: white; border: 1px solid #e5e7eb; border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.12);
+    display: flex; align-items: center; gap: 0; padding: 3px;
+    z-index: 10;
+  }
+  .hover-actions button {
+    padding: 5px 8px; border: none; background: none; cursor: pointer;
+    color: #6b7280; border-radius: 5px; font-size: 11px; font-weight: 600;
+    display: flex; align-items: center; gap: 4px; white-space: nowrap;
+    transition: background .1s, color .1s;
+  }
+  .hover-actions button:hover { background: #f3f4f6; color: #111827; }
+  .hover-actions button.danger:hover { background: #fef2f2; color: #dc2626; }
+  .overdue-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: #4c0d6e; color: #d8b4fe;
+    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 12px;
+    margin-bottom: 8px;
+  }
+  .feed-section { display: none; }
+  .feed-section.active { display: block; }
+  .detail-panel {
+    display: flex; flex-direction: column; height: 100%;
+    animation: slideIn .2s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+</style>
+
+<div class="flex h-full overflow-hidden">
+
+  <!-- ── LEFT: Later list ─────────────────────────────────────── -->
+  <div class="w-[380px] flex-shrink-0 flex flex-col border-r border-gray-200 bg-white h-full">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-200 flex-shrink-0">
+      <div>
+        <h2 class="font-bold text-[18px] text-gray-900">Later</h2>
+      </div>
+      <div class="flex items-center gap-2">
+        <button class="p-1.5 rounded text-gray-400 hover:bg-gray-100" title="Filter">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+          </svg>
+        </button>
+        <button class="p-1.5 rounded text-gray-400 hover:bg-gray-100" title="Add">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex items-end gap-5 px-5 border-b border-gray-200 flex-shrink-0">
+      <button class="later-tab active" onclick="switchTab('in-progress', this)">
+        In progress
+        {% if in_progress %}<span class="ml-1 font-normal text-gray-400">{{ in_progress|length }}</span>{% endif %}
+      </button>
+      <button class="later-tab" onclick="switchTab('archived', this)">Archived</button>
+      <button class="later-tab" onclick="switchTab('completed', this)">
+        Completed
+        {% if completed %}<span class="ml-1 font-normal text-gray-400">{{ completed|length }}</span>{% endif %}
+      </button>
+    </div>
+
+    <!-- Card list -->
+    <div class="flex-1 overflow-y-auto custom-scroll px-4 py-4">
+
+      <!-- In progress -->
+      <div id="tab-in-progress" class="feed-section active">
+        {% if in_progress %}
+          {% for item in in_progress %}
+          <div class="later-card group" id="card-{{ item.id }}" onclick="openDetail({{ loop.index0 }})">
+            <!-- Hover action panel -->
+            <div class="hover-actions" onclick="event.stopPropagation()">
+              <button title="Mark complete">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                Mark complete
+              </button>
+              <div class="w-px h-4 bg-gray-200 mx-0.5"></div>
+              <button class="danger" title="Remove">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Remove
+              </button>
+            </div>
+
+            <!-- Overdue badge -->
+            {% if item.is_overdue %}
+            <div class="overdue-badge">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Overdue by {{ item.overdue_days }} day{{ 's' if item.overdue_days != 1 else '' }}
+            </div>
+            {% endif %}
+
+            <!-- Reminder text -->
+            <p class="text-[14px] text-gray-800 leading-snug line-clamp-3">{{ item.text }}</p>
+
+            <!-- Due date -->
+            {% if item.remind_at %}
+            <p class="text-[12px] text-gray-400 mt-2">
+              Due {{ item.remind_at.strftime('%b %-d, %Y') }}
+            </p>
+            {% endif %}
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="flex flex-col items-center justify-center py-20 text-center px-4">
+          <svg class="w-12 h-12 text-gray-200 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+          </svg>
+          <p class="text-[14px] font-semibold text-gray-400">Nothing saved for later</p>
+          <p class="text-[12px] text-gray-300 mt-1">Save messages and reminders to follow up.</p>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Archived -->
+      <div id="tab-archived" class="feed-section">
+        <div class="flex flex-col items-center justify-center py-20 text-center px-4">
+          <p class="text-[14px] text-gray-400">No archived items.</p>
+        </div>
+      </div>
+
+      <!-- Completed -->
+      <div id="tab-completed" class="feed-section">
+        {% if completed %}
+          {% for item in completed %}
+          <div class="later-card opacity-60">
+            <p class="text-[14px] text-gray-500 line-through line-clamp-2">{{ item.text }}</p>
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="flex flex-col items-center justify-center py-20 text-center px-4">
+          <p class="text-[14px] text-gray-400">No completed items yet.</p>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── RIGHT: Detail panel ─────────────────────────────────── -->
+  <div class="flex-1 flex flex-col h-full bg-gray-50 overflow-hidden" id="later-detail">
+
+    <!-- Empty state -->
+    <div id="detail-empty" class="flex flex-col items-center justify-center h-full text-center px-8">
+      <svg class="w-16 h-16 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+          d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+      </svg>
+      <p class="text-[15px] font-semibold text-gray-400">Select a saved item</p>
+      <p class="text-[13px] text-gray-300 mt-1">Click any card to see the full details.</p>
+    </div>
+
+    <!-- Detail content (hidden until card clicked) -->
+    <div id="detail-content" class="hidden detail-panel">
+      <!-- Detail header -->
+      <div class="flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200 flex-shrink-0">
+        <div class="flex items-center gap-3">
+          <svg class="w-5 h-5 text-[#4c0d6e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+          </svg>
+          <h3 class="font-bold text-[16px] text-gray-900" id="detail-title">Saved for later</h3>
+        </div>
+        <button onclick="closeDetail()" class="p-1.5 rounded text-gray-400 hover:bg-gray-100">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Detail body -->
+      <div class="flex-1 overflow-y-auto custom-scroll px-8 py-6">
+        <!-- Due pill -->
+        <div class="inline-flex items-center gap-1.5 text-[12px] font-semibold mb-5" id="detail-due-pill">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span id="detail-due-text"></span>
+        </div>
+
+        <!-- Message card -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+          <!-- Bookmark indicator -->
+          <div class="flex items-center gap-2 mb-3">
+            <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z"/>
+            </svg>
+            <span class="text-[12px] text-gray-500 font-medium" id="detail-saved-label">Saved for later</span>
+            <span class="text-[12px] text-gray-400">•</span>
+            <span class="text-[12px] text-gray-400" id="detail-due-label"></span>
+          </div>
+
+          <!-- Reminder text body -->
+          <p class="text-[15px] text-gray-800 leading-relaxed" id="detail-body"></p>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-3 mt-5">
+          <button class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-[13px] font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Mark as complete
+          </button>
+          <button class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-[13px] font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
+            </svg>
+            Archive
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Reminder data from server
+  const reminders = [
+    {% for item in in_progress %}
+    {
+      id: "{{ item.id }}",
+      text: {{ item.text | tojson }},
+      dueDate: "{{ item.remind_at.strftime('%B %-d, %Y') if item.remind_at else '' }}",
+      overdueDays: {{ item.overdue_days }},
+      isOverdue: {{ 'true' if item.is_overdue else 'false' }},
+    },
+    {% endfor %}
+  ];
+
+  let selectedCard = null;
+
+  function switchTab(name, btn) {
+    document.querySelectorAll('.later-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.feed-section').forEach(s => s.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    closeDetail();
+  }
+
+  function openDetail(idx) {
+    const item = reminders[idx];
+    if (!item) return;
+
+    // Highlight selected card
+    document.querySelectorAll('.later-card').forEach(c => c.classList.remove('selected'));
+    const card = document.getElementById('card-' + item.id);
+    if (card) card.classList.add('selected');
+
+    // Populate detail
+    document.getElementById('detail-title').textContent = 'Saved for later';
+    document.getElementById('detail-body').textContent = item.text;
+
+    const duePill = document.getElementById('detail-due-pill');
+    const dueText = document.getElementById('detail-due-text');
+    const dueLabel = document.getElementById('detail-due-label');
+
+    if (item.isOverdue) {
+      duePill.className = duePill.className.replace(/text-\S+/, '');
+      duePill.classList.add('text-purple-700', 'bg-purple-50', 'px-2.5', 'py-1', 'rounded-full');
+      dueText.textContent = 'Overdue by ' + item.overdueDays + ' day' + (item.overdueDays !== 1 ? 's' : '');
+      dueLabel.textContent = 'Due ' + item.dueDate + ' • overdue';
+    } else {
+      duePill.classList.add('text-gray-500');
+      dueText.textContent = item.dueDate ? 'Due ' + item.dueDate : '';
+      dueLabel.textContent = 'Due ' + item.dueDate;
+    }
+
+    document.getElementById('detail-empty').classList.add('hidden');
+    const content = document.getElementById('detail-content');
+    content.classList.remove('hidden');
+    // retrigger animation
+    content.style.animation = 'none';
+    content.offsetHeight;
+    content.style.animation = '';
+  }
+
+  function closeDetail() {
+    document.getElementById('detail-empty').classList.remove('hidden');
+    document.getElementById('detail-content').classList.add('hidden');
+    document.querySelectorAll('.later-card').forEach(c => c.classList.remove('selected'));
+  }
+</script>
+{% endblock %}

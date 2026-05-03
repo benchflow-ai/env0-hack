@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+  .act-tab {
+    position: relative; padding: 0 4px 12px; font-size: 13px; font-weight: 500;
+    color: #cfc3cf; cursor: pointer; white-space: nowrap; border: none; background: none;
+    transition: color .15s;
+  }
+  .act-tab:hover { color: #ffffff; }
+  .act-tab.active { color: #ffffff; font-weight: 700; }
+  .act-tab.active::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px;
+    background: #ffffff; border-radius: 2px 2px 0 0;
+  }
+  .act-item {
+    display: flex; gap: 12px; padding: 10px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08); cursor: pointer;
+    transition: background .1s;
+    animation: fadeSlideIn .25s ease both;
+  }
+  .act-item:hover { background: #350d36; }
+  .act-item.active-item { background: #1164a3; }
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .act-badge {
+    width: 18px; height: 18px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 9px; font-weight: 800;
+    flex-shrink: 0; margin-top: 2px; color: white;
+    position: absolute; bottom: -2px; right: -2px;
+    border: 2px solid #3f0e40;
+  }
+  .act-badge.mention  { background: #e01e5a; }
+  .act-badge.thread   { background: #1164a3; }
+  .act-badge.reaction { background: #ecb22e; color: #000; }
+  .act-preview {
+    font-size: 13px; color: #ffffff; line-height: 1.45;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .act-context-bar {
+    border-left: 3px solid rgba(255,255,255,0.22); margin: 4px 0 0 0; padding-left: 8px;
+    font-size: 12px; color: #cfc3cf; line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .feed-section { display: none; }
+  .feed-section.active { display: block; }
+
+  /* stagger animation per item */
+  {% for i in range(60) %}.act-item:nth-child({{ i+1 }}) { animation-delay: {{ i * 0.03 }}s; }
+  {% endfor %}
+</style>
+
+<div class="flex flex-1 min-h-0 overflow-hidden">
+
+<!-- ── LEFT: Activity feed ──────────────────────────────────── -->
+<div class="w-[380px] flex-shrink-0 flex flex-col border-r border-[#522653] bg-[#3f0e40] text-white min-h-0">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between px-5 h-14 border-b border-[#522653] flex-shrink-0">
+    <h2 class="font-bold text-[18px] text-white">Activity</h2>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex items-end gap-4 px-5 border-b border-[#522653] flex-shrink-0 overflow-x-auto">
+    <button class="act-tab active" onclick="switchTab('all', this)">All</button>
+    <button class="act-tab" onclick="switchTab('mentions', this)">
+      <span class="flex items-center gap-1">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"/>
+        </svg>
+        Mentions
+      </span>
+    </button>
+    <button class="act-tab" onclick="switchTab('threads', this)">
+      <span class="flex items-center gap-1">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+        </svg>
+        Threads
+      </span>
+    </button>
+    <button class="act-tab" onclick="switchTab('reactions', this)">
+      <span class="flex items-center gap-1">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Reactions
+      </span>
+    </button>
+  </div>
+
+  <!-- Feed -->
+  <div class="flex-1 overflow-y-auto custom-scroll min-h-0">
+
+    <!-- ALL -->
+    <div id="feed-all" class="feed-section active">
+      {% if activity_items %}
+        {% for item in activity_items %}
+          {% include "partials/activity_item.html" %}
+        {% endfor %}
+      {% else %}
+        {% include "partials/activity_empty.html" %}
+      {% endif %}
+    </div>
+
+    <!-- MENTIONS -->
+    <div id="feed-mentions" class="feed-section">
+      {% if mentions %}
+        {% for item in mentions %}
+          {% include "partials/activity_item.html" %}
+        {% endfor %}
+      {% else %}
+        {% include "partials/activity_empty.html" %}
+      {% endif %}
+    </div>
+
+    <!-- THREADS -->
+    <div id="feed-threads" class="feed-section">
+      {% if threads %}
+        {% for item in threads %}
+          {% include "partials/activity_item.html" %}
+        {% endfor %}
+      {% else %}
+        {% include "partials/activity_empty.html" %}
+      {% endif %}
+    </div>
+
+    <!-- REACTIONS -->
+    <div id="feed-reactions" class="feed-section">
+      {% if reactions %}
+        {% for item in reactions %}
+          {% include "partials/activity_item.html" %}
+        {% endfor %}
+      {% else %}
+        {% include "partials/activity_empty.html" %}
+      {% endif %}
+    </div>
+
+  </div>
+</div><!-- end left panel -->
+
+<!-- ── RIGHT: Chat panel ──────────────────────────────────────── -->
+<div class="flex-1 flex flex-col min-h-0 overflow-hidden relative bg-white">
+  <!-- Empty state -->
+  <div id="activity-empty-state"
+    class="inline-empty-state flex absolute inset-0 flex-col items-center justify-center text-center text-gray-400 bg-white">
+    <svg class="w-16 h-16 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+    </svg>
+    <p class="text-[15px] font-medium text-gray-500">Select an activity item</p>
+  </div>
+  <!-- Inline channel panel target -->
+  <div id="chat-right-panel" class="flex-1 flex flex-col min-h-0 overflow-hidden"></div>
+</div>
+
+</div><!-- end outer flex -->
+
+<script>
+  function switchTab(name, btn) {
+    document.querySelectorAll('.act-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    document.querySelectorAll('.feed-section').forEach(function(s) { s.classList.remove('active'); });
+    document.getElementById('feed-' + name).classList.add('active');
+    // retrigger animation
+    document.querySelectorAll('#feed-' + name + ' .act-item').forEach(function(el, i) {
+      el.style.animation = 'none';
+      el.offsetHeight;
+      el.style.animation = '';
+      el.style.animationDelay = (i * 0.03) + 's';
+    });
+  }
+
+  function selectActivityItem(channelId, ts, el) {
+    if (!channelId) return;
+    document.querySelectorAll('.act-item').forEach(function(i) { i.classList.remove('active-item'); });
+    if (el) el.classList.add('active-item');
+    loadInlineChannel(channelId, ts);
+  }
+
+  // Auto-load first activity item
+  {% if first_channel_id %}
+  document.addEventListener('DOMContentLoaded', function() {
+    loadInlineChannel('{{ first_channel_id }}', '{{ first_ts or "" }}');
+    var firstItem = document.querySelector('#feed-all .act-item');
+    if (firstItem) firstItem.classList.add('active-item');
+  });
+  {% endif %}
+</script>
+{% endblock %}

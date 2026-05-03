@@ -1,0 +1,375 @@
+{% extends "base_dev.html" %}
+
+{% block title %}API Explorer - Mock Slack{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-6 px-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-normal text-gray-900 mb-1">API Explorer</h1>
+        <p class="text-sm text-gray-500">Interactive documentation for the Mock Slack API. Base path: <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs">/api</code></p>
+    </div>
+
+    <style>
+        .method-badge { font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; font-family:monospace; display:inline-block; min-width:52px; text-align:center; }
+        .method-get { background:#dbeafe; color:#1d4ed8; }
+        .method-post { background:#dcfce7; color:#166534; }
+        .method-delete { background:#fee2e2; color:#991b1b; }
+        .endpoint-card { border:1px solid #e5e7eb; border-radius:8px; margin-bottom:8px; overflow:hidden; }
+        .endpoint-header { padding:10px 16px; cursor:pointer; display:flex; align-items:center; gap:12px; }
+        .endpoint-header:hover { background:#f9fafb; }
+        .endpoint-body { display:none; border-top:1px solid #e5e7eb; padding:16px; background:#fafafa; }
+        .endpoint-card.open .endpoint-body { display:block; }
+        .endpoint-card.open .chevron { transform:rotate(90deg); }
+        .section-toggle { cursor:pointer; user-select:none; }
+        .section-toggle .section-chevron { transition:transform 0.15s; }
+        .section-toggle.open .section-chevron { transform:rotate(90deg); }
+        .code-block { background:#1e293b; color:#e2e8f0; padding:12px 16px; border-radius:6px; font-size:12px; font-family:'SF Mono',Monaco,Consolas,monospace; overflow-x:auto; white-space:pre; line-height:1.5; }
+        .try-btn { font-size:12px; padding:4px 12px; border:1px solid #d1d5db; border-radius:6px; background:#fff; cursor:pointer; color:#374151; }
+        .try-btn:hover { background:#f3f4f6; border-color:#9ca3af; }
+        .response-area { margin-top:12px; }
+    </style>
+
+    {% macro endpoint(method, path, desc, example_req=None, example_resp=None, live_path=None) %}
+    <div class="endpoint-card" onclick="this.classList.toggle('open')">
+        <div class="endpoint-header">
+            <svg class="w-4 h-4 text-gray-400 chevron flex-shrink-0 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="method-badge method-{{ method|lower }}">{{ method }}</span>
+            <code class="text-sm text-gray-800 flex-1">{{ path }}</code>
+            <span class="text-xs text-gray-500 hidden sm:inline">{{ desc }}</span>
+        </div>
+        <div class="endpoint-body" onclick="event.stopPropagation()">
+            <p class="text-sm text-gray-600 mb-3">{{ desc }}</p>
+            {% if example_resp %}
+            <div class="mb-3">
+                <div class="text-xs font-medium text-gray-500 mb-1">Example Response</div>
+                <div class="code-block">{{ example_resp }}</div>
+            </div>
+            {% endif %}
+            {% if example_req %}
+            <div class="mb-3">
+                <div class="text-xs font-medium text-gray-500 mb-1">Example Request Body</div>
+                <div class="code-block">{{ example_req }}</div>
+            </div>
+            {% endif %}
+            {% if live_path %}
+            <div class="flex items-center gap-2 mt-3">
+                <button class="try-btn"
+                        onclick="tryEndpoint(this, '{{ method }}', '{{ live_path }}', {{ example_req|default('null')|tojson }})">
+                    Try it live
+                </button>
+                <span class="text-xs text-gray-400">{{ method }} /api{{ live_path }}</span>
+            </div>
+            <div class="response-area"></div>
+            {% endif %}
+        </div>
+    </div>
+    {% endmacro %}
+
+    {% macro section(title, icon, id) %}
+    <div class="mb-6">
+        <div class="section-toggle open flex items-center gap-2 mb-3 px-1" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('hidden')">
+            <svg class="w-4 h-4 text-gray-400 section-chevron transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">{{ icon }} {{ title }}</span>
+        </div>
+        <div id="section-{{ id }}">
+            {{ caller() }}
+        </div>
+    </div>
+    {% endmacro %}
+
+    {# --- Auth --- #}
+    {% call section("Auth", "🔑", "auth") %}
+    {{ endpoint("GET", "/auth.test", "Checks authentication and returns identity",
+        live_path="/auth.test",
+        example_resp='{
+  "ok": true,
+  "url": "https://your-workspace.slack.com/",
+  "team": "Mock Slack",
+  "user": "alex.chen",
+  "team_id": "T0000001",
+  "user_id": "' ~ sample_user_id ~ '"
+}') }}
+    {% endcall %}
+
+    {# --- Conversations --- #}
+    {% call section("Conversations", "#", "conversations") %}
+    {{ endpoint("GET", "/conversations.list", "Lists all channels in a Slack team",
+        live_path="/conversations.list",
+        example_resp='{
+  "ok": true,
+  "channels": [
+    {"id": "C0001", "name": "general", "is_channel": true, "is_private": false, "num_members": 5}
+  ],
+  "response_metadata": {"next_cursor": ""}
+}') }}
+    {{ endpoint("GET", "/conversations.info", "Retrieve information about a conversation",
+        live_path="/conversations.info?channel=' ~ sample_channel_id ~ '",
+        example_resp='{
+  "ok": true,
+  "channel": {"id": "' ~ sample_channel_id ~ '", "name": "general", "is_channel": true}
+}') }}
+    {{ endpoint("GET", "/conversations.history", "Fetches a conversation's history of messages",
+        live_path="/conversations.history?channel=' ~ sample_channel_id ~ '&limit=5",
+        example_resp='{
+  "ok": true,
+  "messages": [
+    {"type": "message", "text": "Hello!", "user": "U001", "ts": "1700000000.000100"}
+  ],
+  "has_more": false
+}') }}
+    {{ endpoint("GET", "/conversations.replies", "Retrieve a thread of messages",
+        live_path="/conversations.replies?channel=' ~ sample_channel_id ~ '&ts=' ~ sample_msg_ts ~ '",
+        example_resp='{
+  "ok": true,
+  "messages": [
+    {"type": "message", "text": "Thread reply", "user": "U001", "ts": "1700000001.000200"}
+  ]
+}') }}
+    {{ endpoint("GET", "/conversations.members", "Retrieve members of a conversation",
+        live_path="/conversations.members?channel=' ~ sample_channel_id ~ '",
+        example_resp='{
+  "ok": true,
+  "members": ["U0001", "U0002"],
+  "response_metadata": {"next_cursor": ""}
+}') }}
+    {{ endpoint("POST", "/conversations.create", "Initiates a public or private channel-based conversation",
+        example_req='{"name": "new-channel", "is_private": false}',
+        example_resp='{"ok": true, "channel": {"id": "C0002", "name": "new-channel"}}') }}
+    {{ endpoint("POST", "/conversations.invite", "Invites users to a channel",
+        example_req='{"channel": "' ~ sample_channel_id ~ '", "users": "' ~ sample_user_id ~ '"}') }}
+    {{ endpoint("POST", "/conversations.kick", "Removes a user from a conversation",
+        example_req='{"channel": "' ~ sample_channel_id ~ '", "user": "' ~ sample_user_id ~ '"}') }}
+    {{ endpoint("POST", "/conversations.join", "Joins an existing conversation",
+        example_req='{"channel": "' ~ sample_channel_id ~ '"}') }}
+    {{ endpoint("POST", "/conversations.leave", "Leaves a conversation",
+        example_req='{"channel": "' ~ sample_channel_id ~ '"}') }}
+    {{ endpoint("POST", "/conversations.archive", "Archives a conversation",
+        example_req='{"channel": "' ~ sample_channel_id ~ '"}') }}
+    {{ endpoint("POST", "/conversations.unarchive", "Reverses conversation archival",
+        example_req='{"channel": "' ~ sample_channel_id ~ '"}') }}
+    {{ endpoint("POST", "/conversations.rename", "Renames a conversation",
+        example_req='{"channel": "' ~ sample_channel_id ~ '", "name": "new-name"}') }}
+    {{ endpoint("POST", "/conversations.setPurpose", "Sets the purpose for a conversation",
+        example_req='{"channel": "' ~ sample_channel_id ~ '", "purpose": "Team discussions"}') }}
+    {{ endpoint("POST", "/conversations.setTopic", "Sets the topic for a conversation",
+        example_req='{"channel": "' ~ sample_channel_id ~ '", "topic": "Sprint planning"}') }}
+    {% endcall %}
+
+    {# --- Chat --- #}
+    {% call section("Chat", "💬", "chat") %}
+    {{ endpoint("POST", "/chat.postMessage", "Sends a message to a channel",
+        example_req='{
+  "channel": "' ~ sample_channel_id ~ '",
+  "text": "Hello, world!",
+  "thread_ts": null
+}',
+        example_resp='{
+  "ok": true,
+  "channel": "' ~ sample_channel_id ~ '",
+  "ts": "1700000100.000001",
+  "message": {"text": "Hello, world!", "user": "' ~ sample_user_id ~ '"}
+}') }}
+    {{ endpoint("POST", "/chat.postEphemeral", "Sends an ephemeral message to a user in a channel",
+        example_req='{
+  "channel": "' ~ sample_channel_id ~ '",
+  "user": "' ~ sample_user_id ~ '",
+  "text": "Only you can see this"
+}') }}
+    {{ endpoint("POST", "/chat.update", "Updates a message in a channel",
+        example_req='{
+  "channel": "' ~ sample_channel_id ~ '",
+  "ts": "' ~ sample_msg_ts ~ '",
+  "text": "Updated message text"
+}') }}
+    {{ endpoint("POST", "/chat.delete", "Deletes a message in a channel",
+        example_req='{
+  "channel": "' ~ sample_channel_id ~ '",
+  "ts": "' ~ sample_msg_ts ~ '"
+}') }}
+    {{ endpoint("GET", "/chat.getPermalink", "Retrieve a permalink URL for a specific extant message",
+        live_path="/chat.getPermalink?channel=' ~ sample_channel_id ~ '&message_ts=' ~ sample_msg_ts ~ '",
+        example_resp='{
+  "ok": true,
+  "channel": "' ~ sample_channel_id ~ '",
+  "permalink": "https://workspace.slack.com/archives/C001/p1700000100000001"
+}') }}
+    {% endcall %}
+
+    {# --- Users --- #}
+    {% call section("Users", "👤", "users") %}
+    {{ endpoint("GET", "/users.list", "Lists all users in a Slack team",
+        live_path="/users.list",
+        example_resp='{
+  "ok": true,
+  "members": [
+    {"id": "' ~ sample_user_id ~ '", "name": "alex.chen", "real_name": "Alex Chen", "is_admin": false}
+  ]
+}') }}
+    {{ endpoint("GET", "/users.info", "Gets information about a user",
+        live_path="/users.info?user=' ~ sample_user_id ~ '",
+        example_resp='{
+  "ok": true,
+  "user": {"id": "' ~ sample_user_id ~ '", "name": "alex.chen", "profile": {"email": "alex@example.com"}}
+}') }}
+    {{ endpoint("GET", "/users.lookupByEmail", "Find a user with an email address",
+        live_path="/users.lookupByEmail?email=alex@example.com") }}
+    {{ endpoint("GET", "/users.profile.get", "Retrieves a user's profile information",
+        live_path="/users.profile.get?user=' ~ sample_user_id ~ '",
+        example_resp='{
+  "ok": true,
+  "profile": {"real_name": "Alex Chen", "email": "alex@example.com", "title": "Engineer"}
+}') }}
+    {{ endpoint("POST", "/users.profile.set", "Set the profile information for a user",
+        example_req='{"profile": {"status_text": "In a meeting", "status_emoji": ":calendar:"}}') }}
+    {{ endpoint("POST", "/users.setPresence", "Manually sets user presence",
+        example_req='{"presence": "away"}') }}
+    {{ endpoint("GET", "/users.getPresence", "Gets user presence information",
+        live_path="/users.getPresence?user=' ~ sample_user_id ~ '",
+        example_resp='{"ok": true, "presence": "active"}') }}
+    {% endcall %}
+
+    {# --- Reactions --- #}
+    {% call section("Reactions", "👍", "reactions") %}
+    {{ endpoint("POST", "/reactions.add", "Adds a reaction to an item",
+        example_req='{
+  "channel": "' ~ sample_channel_id ~ '",
+  "timestamp": "' ~ sample_msg_ts ~ '",
+  "name": "thumbsup"
+}') }}
+    {{ endpoint("POST", "/reactions.remove", "Removes a reaction from an item",
+        example_req='{
+  "channel": "' ~ sample_channel_id ~ '",
+  "timestamp": "' ~ sample_msg_ts ~ '",
+  "name": "thumbsup"
+}') }}
+    {{ endpoint("GET", "/reactions.get", "Gets reactions for an item",
+        live_path="/reactions.get?channel=' ~ sample_channel_id ~ '&timestamp=' ~ sample_msg_ts ~ '",
+        example_resp='{
+  "ok": true,
+  "type": "message",
+  "message": {
+    "reactions": [{"name": "thumbsup", "count": 2, "users": ["U001", "U002"]}]
+  }
+}') }}
+    {% endcall %}
+
+    {# --- Files --- #}
+    {% call section("Files", "📎", "files") %}
+    {{ endpoint("GET", "/files.list", "List for a team, in a channel, or from a user with applied filters",
+        live_path="/files.list",
+        example_resp='{
+  "ok": true,
+  "files": [
+    {"id": "F001", "name": "report.pdf", "title": "Q4 Report", "mimetype": "application/pdf", "size": 204800}
+  ]
+}') }}
+    {{ endpoint("GET", "/files.info", "Gets information about a file",
+        live_path="/files.info?file=' ~ sample_file_id ~ '") }}
+    {{ endpoint("POST", "/files.upload", "Uploads or creates a file",
+        example_req='{
+  "channels": "' ~ sample_channel_id ~ '",
+  "filename": "notes.txt",
+  "content": "Meeting notes here..."
+}',
+        example_resp='{"ok": true, "file": {"id": "F002", "name": "notes.txt"}}') }}
+    {{ endpoint("POST", "/files.delete", "Deletes a file",
+        example_req='{"file": "' ~ sample_file_id ~ '"}') }}
+    {% endcall %}
+
+    {# --- Pins --- #}
+    {% call section("Pins", "📌", "pins") %}
+    {{ endpoint("POST", "/pins.add", "Pins an item to a channel",
+        example_req='{
+  "channel": "' ~ sample_channel_id ~ '",
+  "timestamp": "' ~ sample_msg_ts ~ '"
+}') }}
+    {{ endpoint("POST", "/pins.remove", "Un-pins an item from a channel",
+        example_req='{
+  "channel": "' ~ sample_channel_id ~ '",
+  "timestamp": "' ~ sample_msg_ts ~ '"
+}') }}
+    {{ endpoint("GET", "/pins.list", "Lists items pinned to a channel",
+        live_path="/pins.list?channel=' ~ sample_channel_id ~ '",
+        example_resp='{
+  "ok": true,
+  "items": [
+    {"type": "message", "message": {"text": "Important update", "ts": "1700000000.000100"}}
+  ]
+}') }}
+    {% endcall %}
+
+    {# --- Reminders --- #}
+    {% call section("Reminders", "⏰", "reminders") %}
+    {{ endpoint("GET", "/reminders.list", "Lists all reminders created by or for a given user",
+        live_path="/reminders.list",
+        example_resp='{
+  "ok": true,
+  "reminders": [
+    {"id": "Rm001", "text": "Follow up with team", "user": "' ~ sample_user_id ~ '", "complete_ts": 0}
+  ]
+}') }}
+    {% endcall %}
+
+    {# --- Search --- #}
+    {% call section("Search", "🔍", "search") %}
+    {{ endpoint("GET", "/search.messages", "Searches for messages matching a query",
+        live_path="/search.messages?query=hello",
+        example_resp='{
+  "ok": true,
+  "messages": {
+    "total": 1,
+    "matches": [
+      {"text": "Hello team!", "channel": {"id": "' ~ sample_channel_id ~ '"}, "ts": "1700000000.000100"}
+    ]
+  }
+}') }}
+    {% endcall %}
+
+    {# --- Team --- #}
+    {% call section("Team", "🏢", "team") %}
+    {{ endpoint("GET", "/team.info", "Gets information about the current team",
+        live_path="/team.info",
+        example_resp='{
+  "ok": true,
+  "team": {"id": "T0000001", "name": "Mock Slack", "domain": "mock-slack"}
+}') }}
+    {% endcall %}
+
+    {# --- Admin --- #}
+    {% call section("Admin", "⚙️", "admin") %}
+    {{ endpoint("POST", "/_admin/reset", "Reset database to initial seed state",
+        example_resp='{"status": "ok", "message": "Reset to initial state"}') }}
+    {{ endpoint("GET", "/_admin/state", "Full state dump for evaluation") }}
+    {{ endpoint("GET", "/_admin/diff", "Diff current state vs initial snapshot") }}
+    {{ endpoint("GET", "/_admin/action_log", "Audit trail of all API calls",
+        live_path="/_admin/action_log") }}
+    {% endcall %}
+</div>
+
+<script>
+async function tryEndpoint(btn, method, path, body) {
+    const card = btn.closest('.endpoint-body');
+    let area = card.querySelector('.response-area');
+    area.innerHTML = '<div class="text-xs text-gray-400 py-2">Loading...</div>';
+    try {
+        const isAdmin = path.startsWith('/_admin');
+        const url = isAdmin ? path : '/api' + path;
+        const opts = { method: method, headers: {'Content-Type': 'application/json'} };
+        if (body && method !== 'GET') opts.body = JSON.stringify(body);
+        const resp = await fetch(url, opts);
+        const text = await resp.text();
+        let formatted;
+        try { formatted = JSON.stringify(JSON.parse(text), null, 2); }
+        catch(e) { formatted = text; }
+        area.innerHTML = '<div class="mt-2"><div class="flex items-center gap-2 mb-1"><span class="text-xs font-medium text-gray-500">Response</span><span class="text-xs ' + (resp.ok ? 'text-green-600' : 'text-red-600') + '">' + resp.status + '</span></div><div class="code-block" style="max-height:300px;overflow-y:auto">' + escapeHtml(formatted) + '</div></div>';
+    } catch(e) {
+        area.innerHTML = '<div class="text-xs text-red-500 py-2">Error: ' + escapeHtml(e.message) + '</div>';
+    }
+}
+function escapeHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+}
+</script>
+{% endblock %}

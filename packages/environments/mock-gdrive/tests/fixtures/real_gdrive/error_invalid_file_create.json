@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": 500,
+    "message": "Internal Error",
+    "errors": [
+      {
+        "message": "Internal Error",
+        "domain": "global",
+        "reason": "internalError"
+      }
+    ]
+  },
+  "_captured_at": "2026-03-27T20:30:27.686946+00:00"
+}

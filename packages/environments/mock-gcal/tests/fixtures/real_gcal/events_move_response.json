@@ -1,0 +1,39 @@
+{
+  "attendees": [
+    {
+      "email": "fixture-user@example.com",
+      "responseStatus": "needsAction"
+    }
+  ],
+  "created": "2026-03-27T21:09:17.000Z",
+  "creator": {
+    "email": "mediar.acc1@gmail.com"
+  },
+  "description": "Fixture test event with all optional fields",
+  "end": {
+    "dateTime": "2026-03-28T22:09:03Z",
+    "timeZone": "UTC"
+  },
+  "etag": "\"3549291515828894\"",
+  "eventType": "default",
+  "htmlLink": "https://www.google.com/calendar/event?eid=aGc1dnU2b3UyZXM4cTQ5OW9iMTI2djV1aTggYmQ0OGZiMjY2YzJkYzZiNmE3ZDA0YjdiZGFlZjlkNjc3YTFkNzU0NTBiNDQ2ZTk0YTIwODlkNTNkYTg2ZWYzNkBn",
+  "iCalUID": "hg5vu6ou2es8q499ob126v5ui8@google.com",
+  "id": "hg5vu6ou2es8q499ob126v5ui8",
+  "kind": "calendar#event",
+  "location": "Conference Room A",
+  "organizer": {
+    "email": "mediar.acc1@gmail.com"
+  },
+  "reminders": {
+    "useDefault": true
+  },
+  "sequence": 0,
+  "start": {
+    "dateTime": "2026-03-28T21:09:03Z",
+    "timeZone": "UTC"
+  },
+  "status": "cancelled",
+  "summary": "Move Semantics Event",
+  "updated": "2026-03-27T21:09:17.914Z",
+  "_captured_at": "2026-03-27T21:09:19.220689+00:00"
+}

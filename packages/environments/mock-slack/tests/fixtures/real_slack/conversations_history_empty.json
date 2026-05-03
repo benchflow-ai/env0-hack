@@ -1,0 +1,42 @@
+{
+  "ok": true,
+  "messages": [
+    {
+      "subtype": "channel_name",
+      "user": "U0AMGBHA936",
+      "old_name": "mock-fixture-643977",
+      "name": "mock-fixture-643977-r",
+      "text": "has renamed the channel from \"mock-fixture-643977\" to \"mock-fixture-643977-r\"",
+      "type": "message",
+      "ts": "1774643978.250809"
+    },
+    {
+      "subtype": "channel_topic",
+      "user": "U0AMGBHA936",
+      "topic": "fixture test topic",
+      "text": "set the channel topic: fixture test topic",
+      "type": "message",
+      "ts": "1774643977.989659"
+    },
+    {
+      "subtype": "channel_purpose",
+      "user": "U0AMGBHA936",
+      "purpose": "fixture test purpose",
+      "text": "set the channel description: fixture test purpose",
+      "type": "message",
+      "ts": "1774643977.778269"
+    },
+    {
+      "subtype": "channel_join",
+      "user": "U0AMGBHA936",
+      "text": "<@U0AMGBHA936> has joined the channel",
+      "type": "message",
+      "ts": "1774643977.446669"
+    }
+  ],
+  "has_more": false,
+  "pin_count": 0,
+  "channel_actions_ts": null,
+  "channel_actions_count": 0,
+  "_captured_at": "2026-03-27T20:39:38.617771+00:00"
+}

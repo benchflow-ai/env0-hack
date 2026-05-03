@@ -1,0 +1,10 @@
+{
+  "captured_at": "2026-03-27T20:30:27.692418+00:00",
+  "account": "Google Workspace test account (OAuth 2.0)",
+  "api_version": "v3",
+  "api_base": "https://www.googleapis.com/drive/v3",
+  "auth_method": "OAuth 2.0 desktop flow (scripts/auth.py)",
+  "capture_script": "scripts/capture_fixtures.py",
+  "fixture_count": 42,
+  "note": "Captured 40 fixtures covering files, permissions, comments, replies, revisions, changes, drives, and error responses."
+}

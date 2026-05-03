@@ -1,0 +1,131 @@
+{
+  "kind": "drive#file",
+  "id": "1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM",
+  "name": "__capture_test_file_copy__",
+  "mimeType": "application/vnd.google-apps.document",
+  "starred": false,
+  "trashed": false,
+  "explicitlyTrashed": false,
+  "parents": [
+    "0AOKMUqAiDHl9Uk9PVA"
+  ],
+  "spaces": [
+    "drive"
+  ],
+  "version": "4",
+  "webViewLink": "https://docs.google.com/document/d/1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM/edit?usp=drivesdk",
+  "iconLink": "https://drive-thirdparty.googleusercontent.com/16/type/application/vnd.google-apps.document",
+  "hasThumbnail": true,
+  "thumbnailLink": "https://lh3.googleusercontent.com/drive-storage/AJQWtBMcTzHdxJ6MVeXAc5CQz_Ne-zPtE_uWFYQkNvsq36c0p3RvLrDxHX2Hq_ePj4zROZ1E51Jr1LqAkE9Rtmpeg8bji2thCQv2-A7NJ7SRfWxiNHYPzQbuID4cjPCjxMgJ=s220",
+  "thumbnailVersion": "1",
+  "viewedByMe": true,
+  "viewedByMeTime": "2026-03-27T20:30:11.632Z",
+  "createdTime": "2026-03-27T20:30:13.043Z",
+  "modifiedTime": "2026-03-27T20:30:13.043Z",
+  "modifiedByMeTime": "2026-03-27T20:30:13.043Z",
+  "modifiedByMe": true,
+  "owners": [
+    {
+      "kind": "drive#user",
+      "displayName": "Mediar Acc1",
+      "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocKkQ0GqGopU53d8x9oD2oQ3va9q3oHaVgSVi5LnDzYTwy2Ewg=s64",
+      "me": true,
+      "permissionId": "06560596394248937550",
+      "emailAddress": "mediar.acc1@gmail.com"
+    }
+  ],
+  "lastModifyingUser": {
+    "kind": "drive#user",
+    "displayName": "Mediar Acc1",
+    "photoLink": "https://lh3.googleusercontent.com/a/ACg8ocKkQ0GqGopU53d8x9oD2oQ3va9q3oHaVgSVi5LnDzYTwy2Ewg=s64",
+    "me": true,
+    "permissionId": "06560596394248937550",
+    "emailAddress": "mediar.acc1@gmail.com"
+  },
+  "shared": false,
+  "ownedByMe": true,
+  "downloadRestrictions": {
+    "itemDownloadRestriction": {
+      "restrictedForReaders": false,
+      "restrictedForWriters": false
+    },
+    "effectiveDownloadRestrictionWithContext": {
+      "restrictedForReaders": false,
+      "restrictedForWriters": false
+    }
+  },
+  "capabilities": {
+    "canAcceptOwnership": false,
+    "canAddChildren": false,
+    "canAddMyDriveParent": false,
+    "canChangeCopyRequiresWriterPermission": true,
+    "canChangeItemDownloadRestriction": true,
+    "canChangeSecurityUpdateEnabled": false,
+    "canChangeViewersCanCopyContent": true,
+    "canComment": true,
+    "canCopy": true,
+    "canDelete": true,
+    "canDisableInheritedPermissions": false,
+    "canDownload": true,
+    "canEdit": true,
+    "canEnableInheritedPermissions": true,
+    "canListChildren": false,
+    "canModifyContent": true,
+    "canModifyContentRestriction": true,
+    "canModifyEditorContentRestriction": true,
+    "canModifyOwnerContentRestriction": true,
+    "canModifyLabels": false,
+    "canMoveChildrenWithinDrive": false,
+    "canMoveItemIntoTeamDrive": true,
+    "canMoveItemOutOfDrive": true,
+    "canMoveItemWithinDrive": true,
+    "canReadLabels": false,
+    "canReadRevisions": true,
+    "canRemoveChildren": false,
+    "canRemoveContentRestriction": false,
+    "canRemoveMyDriveParent": true,
+    "canRename": true,
+    "canShare": true,
+    "canTrash": true,
+    "canUntrash": true
+  },
+  "viewersCanCopyContent": true,
+  "copyRequiresWriterPermission": false,
+  "writersCanShare": true,
+  "permissions": [
+    {
+      "kind": "drive#permission",
+      "id": "06560596394248937550",
+      "type": "user",
+      "emailAddress": "mediar.acc1@gmail.com",
+      "role": "owner",
+      "displayName": "mediar.acc1",
+      "deleted": false,
+      "pendingOwner": false
+    }
+  ],
+  "permissionIds": [
+    "06560596394248937550"
+  ],
+  "size": "1024",
+  "quotaBytesUsed": "1024",
+  "isAppAuthorized": true,
+  "exportLinks": {
+    "application/rtf": "https://docs.google.com/feeds/download/documents/export/Export?id=1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM&exportFormat=rtf",
+    "application/vnd.oasis.opendocument.text": "https://docs.google.com/feeds/download/documents/export/Export?id=1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM&exportFormat=odt",
+    "text/html": "https://docs.google.com/feeds/download/documents/export/Export?id=1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM&exportFormat=html",
+    "application/pdf": "https://docs.google.com/feeds/download/documents/export/Export?id=1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM&exportFormat=pdf",
+    "text/x-markdown": "https://docs.google.com/feeds/download/documents/export/Export?id=1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM&exportFormat=markdown",
+    "text/markdown": "https://docs.google.com/feeds/download/documents/export/Export?id=1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM&exportFormat=markdown",
+    "application/epub+zip": "https://docs.google.com/feeds/download/documents/export/Export?id=1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM&exportFormat=epub",
+    "application/zip": "https://docs.google.com/feeds/download/documents/export/Export?id=1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM&exportFormat=zip",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "https://docs.google.com/feeds/download/documents/export/Export?id=1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM&exportFormat=docx",
+    "text/plain": "https://docs.google.com/feeds/download/documents/export/Export?id=1mMJRBLn0lefPuYWcHzzIes82TVBrvozTKfifj7lfqWM&exportFormat=txt"
+  },
+  "linkShareMetadata": {
+    "securityUpdateEligible": false,
+    "securityUpdateEnabled": true
+  },
+  "inheritedPermissionsDisabled": false,
+  "_captured_at": "2026-03-27T20:30:16.394988+00:00"
+}

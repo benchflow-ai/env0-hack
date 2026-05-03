@@ -1,0 +1,26 @@
+{
+  "history": [
+    {
+      "id": "3730",
+      "messages": [
+        {
+          "id": "19d3092af29571c7",
+          "threadId": "19d3092af29571c7"
+        }
+      ],
+      "messagesDeleted": [
+        {
+          "message": {
+            "id": "19d3092af29571c7",
+            "threadId": "19d3092af29571c7",
+            "labelIds": [
+              "DRAFT"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "historyId": "3737",
+  "_captured_at": "2026-03-27T18:33:36.888445+00:00"
+}

@@ -1,0 +1,99 @@
+{% extends "base_dev.html" %}
+
+{% block title %}API Explorer - mock-gdoc Dev{% endblock %}
+
+{% block content %}
+<div class="min-h-full bg-gray-50 p-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-semibold text-gray-800">API Explorer</h1>
+        <p class="text-sm text-gray-500 mt-1">Quick reference for mock Google Docs API endpoints</p>
+    </div>
+
+    <!-- API Methods -->
+    <div class="bg-white rounded-lg border border-gray-200 mb-6">
+        <div class="px-5 py-3 border-b border-gray-200">
+            <h2 class="font-semibold text-gray-800">Google Docs API Methods</h2>
+            <p class="text-xs text-gray-500 mt-0.5">Implemented mock endpoints</p>
+        </div>
+        <div class="p-5">
+            {% set api_groups = [
+                ("Documents", [
+                    ("GET", "/v1/documents", "List documents (supports q, pageSize)"),
+                    ("GET", "/v1/documents/{id}", "Get a single document"),
+                    ("POST", "/v1/documents", "Create a new document"),
+                    ("POST", "/v1/documents/{id}:batchUpdate", "Insert/replace/delete text"),
+                    ("DELETE", "/v1/documents/{id}", "Delete a document"),
+                ]),
+                ("Drive", [
+                    ("GET", "/drive/v3/files", "List files (Drive API)"),
+                ]),
+                ("Comments", [
+                    ("GET", "/v1/documents/{id}/comments", "List comments on a document"),
+                    ("POST", "/v1/documents/{id}/comments", "Add a comment"),
+                    ("DELETE", "/v1/documents/{id}/comments/{cid}", "Delete a comment"),
+                ]),
+                ("Admin", [
+                    ("GET", "/_admin/state", "Full state dump for evaluation"),
+                    ("GET", "/_admin/diff", "Diff vs initial seed state"),
+                    ("GET", "/_admin/action_log", "Audit trail of API calls"),
+                    ("POST", "/_admin/reset", "Reset to initial seed state"),
+                    ("POST", "/_admin/seed", "Re-seed database"),
+                ]),
+            ] %}
+            {% for group_name, endpoints in api_groups %}
+            <div class="mb-6 last:mb-0">
+                <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">{{ group_name }}</div>
+                <div class="border border-gray-100 rounded-lg overflow-hidden">
+                    {% for method, path, notes in endpoints %}
+                    <div class="flex items-center px-4 py-2.5 border-b border-gray-50 last:border-0 hover:bg-gray-50 text-sm">
+                        <span class="w-16 flex-shrink-0">
+                            <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-medium
+                                {{ 'bg-blue-100 text-blue-700' if method == 'GET' else '' }}
+                                {{ 'bg-green-100 text-green-700' if method == 'POST' else '' }}
+                                {{ 'bg-red-100 text-red-700' if method == 'DELETE' else '' }}
+                            ">{{ method }}</span>
+                        </span>
+                        <code class="flex-1 text-gray-700 text-xs">{{ path.replace('{id}', sample_doc_id[:12] + '...') if '{id}' in path else path }}</code>
+                        <span class="text-xs text-gray-500 ml-4">{{ notes }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- curl examples -->
+    <div class="bg-white rounded-lg border border-gray-200 mb-6">
+        <div class="px-5 py-3 border-b border-gray-200">
+            <h2 class="font-semibold text-gray-800">curl Examples</h2>
+        </div>
+        <div class="p-5">
+            <pre class="text-xs bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto leading-relaxed"><code># List documents
+curl http://127.0.0.1:9004/v1/documents
+
+# Search by title
+curl "http://127.0.0.1:9004/v1/documents?q=Aurora"
+
+# Read a document
+curl http://127.0.0.1:9004/v1/documents/{{ sample_doc_id }}
+
+# Create a document
+curl -X POST http://127.0.0.1:9004/v1/documents \
+  -H 'Content-Type: application/json' \
+  -d '{"title":"Draft Summary"}'
+
+# Insert text
+curl -X POST http://127.0.0.1:9004/v1/documents/{{ sample_doc_id }}:batchUpdate \
+  -H 'Content-Type: application/json' \
+  -d '{"requests":[{"insertText":{"location":{"index":1},"text":"Hello\n"}}]}'
+
+# Get environment state
+curl http://127.0.0.1:9004/_admin/state
+
+# Reset to seed
+curl -X POST http://127.0.0.1:9004/_admin/reset</code></pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

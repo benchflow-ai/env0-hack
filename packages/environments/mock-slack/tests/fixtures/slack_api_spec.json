@@ -1,0 +1,333 @@
+{
+  "resources": {
+    "Auth": {
+      "endpoints": [
+        {"id": "slack.auth.test", "method": "POST", "path": "/auth.test"},
+        {"id": "slack.auth.revoke", "method": "GET", "path": "/auth.revoke"}
+      ]
+    },
+    "Messages": {
+      "endpoints": [
+        {"id": "slack.chat.postMessage", "method": "POST", "path": "/chat.postMessage"},
+        {"id": "slack.chat.postEphemeral", "method": "POST", "path": "/chat.postEphemeral"},
+        {"id": "slack.chat.update", "method": "POST", "path": "/chat.update"},
+        {"id": "slack.chat.delete", "method": "POST", "path": "/chat.delete"},
+        {"id": "slack.chat.deleteScheduledMessage", "method": "POST", "path": "/chat.deleteScheduledMessage"},
+        {"id": "slack.chat.scheduleMessage", "method": "POST", "path": "/chat.scheduleMessage"},
+        {"id": "slack.chat.scheduledMessages.list", "method": "GET", "path": "/chat.scheduledMessages.list"},
+        {"id": "slack.chat.getPermalink", "method": "GET", "path": "/chat.getPermalink"},
+        {"id": "slack.chat.meMessage", "method": "POST", "path": "/chat.meMessage"},
+        {"id": "slack.chat.unfurl", "method": "POST", "path": "/chat.unfurl"}
+      ]
+    },
+    "Channels": {
+      "endpoints": [
+        {"id": "slack.conversations.list", "method": "GET", "path": "/conversations.list"},
+        {"id": "slack.conversations.info", "method": "GET", "path": "/conversations.info"},
+        {"id": "slack.conversations.create", "method": "POST", "path": "/conversations.create"},
+        {"id": "slack.conversations.archive", "method": "POST", "path": "/conversations.archive"},
+        {"id": "slack.conversations.unarchive", "method": "POST", "path": "/conversations.unarchive"},
+        {"id": "slack.conversations.rename", "method": "POST", "path": "/conversations.rename"},
+        {"id": "slack.conversations.invite", "method": "POST", "path": "/conversations.invite"},
+        {"id": "slack.conversations.kick", "method": "POST", "path": "/conversations.kick"},
+        {"id": "slack.conversations.join", "method": "POST", "path": "/conversations.join"},
+        {"id": "slack.conversations.leave", "method": "POST", "path": "/conversations.leave"},
+        {"id": "slack.conversations.members", "method": "GET", "path": "/conversations.members"},
+        {"id": "slack.conversations.history", "method": "GET", "path": "/conversations.history"},
+        {"id": "slack.conversations.replies", "method": "GET", "path": "/conversations.replies"},
+        {"id": "slack.conversations.setPurpose", "method": "POST", "path": "/conversations.setPurpose"},
+        {"id": "slack.conversations.setTopic", "method": "POST", "path": "/conversations.setTopic"},
+        {"id": "slack.conversations.open", "method": "POST", "path": "/conversations.open"},
+        {"id": "slack.conversations.close", "method": "POST", "path": "/conversations.close"}
+      ]
+    },
+    "Users": {
+      "endpoints": [
+        {"id": "slack.users.list", "method": "GET", "path": "/users.list"},
+        {"id": "slack.users.info", "method": "GET", "path": "/users.info"},
+        {"id": "slack.users.lookupByEmail", "method": "GET", "path": "/users.lookupByEmail"},
+        {"id": "slack.users.getPresence", "method": "GET", "path": "/users.getPresence"},
+        {"id": "slack.users.setPresence", "method": "POST", "path": "/users.setPresence"},
+        {"id": "slack.users.setPhoto", "method": "POST", "path": "/users.setPhoto"},
+        {"id": "slack.users.deletePhoto", "method": "POST", "path": "/users.deletePhoto"},
+        {"id": "slack.users.profile.get", "method": "GET", "path": "/users.profile.get"},
+        {"id": "slack.users.profile.set", "method": "POST", "path": "/users.profile.set"}
+      ]
+    },
+    "Reactions": {
+      "endpoints": [
+        {"id": "slack.reactions.add", "method": "POST", "path": "/reactions.add"},
+        {"id": "slack.reactions.remove", "method": "POST", "path": "/reactions.remove"},
+        {"id": "slack.reactions.get", "method": "GET", "path": "/reactions.get"},
+        {"id": "slack.reactions.list", "method": "GET", "path": "/reactions.list"}
+      ]
+    },
+    "Files": {
+      "endpoints": [
+        {"id": "slack.files.list", "method": "GET", "path": "/files.list"},
+        {"id": "slack.files.info", "method": "GET", "path": "/files.info"},
+        {"id": "slack.files.upload", "method": "POST", "path": "/files.upload"},
+        {"id": "slack.files.delete", "method": "POST", "path": "/files.delete"},
+        {"id": "slack.files.sharedPublicURL", "method": "POST", "path": "/files.sharedPublicURL"},
+        {"id": "slack.files.revokePublicURL", "method": "POST", "path": "/files.revokePublicURL"},
+        {"id": "slack.files.comments.delete", "method": "POST", "path": "/files.comments.delete"}
+      ]
+    },
+    "Search": {
+      "endpoints": [
+        {"id": "slack.search.all", "method": "GET", "path": "/search.all"},
+        {"id": "slack.search.messages", "method": "GET", "path": "/search.messages"},
+        {"id": "slack.search.files", "method": "GET", "path": "/search.files"}
+      ]
+    },
+    "Pins": {
+      "endpoints": [
+        {"id": "slack.pins.add", "method": "POST", "path": "/pins.add"},
+        {"id": "slack.pins.remove", "method": "POST", "path": "/pins.remove"},
+        {"id": "slack.pins.list", "method": "GET", "path": "/pins.list"}
+      ]
+    },
+    "Bookmarks": {
+      "endpoints": [
+        {"id": "slack.bookmarks.add", "method": "POST", "path": "/bookmarks.add"},
+        {"id": "slack.bookmarks.edit", "method": "POST", "path": "/bookmarks.edit"},
+        {"id": "slack.bookmarks.remove", "method": "POST", "path": "/bookmarks.remove"},
+        {"id": "slack.bookmarks.list", "method": "GET", "path": "/bookmarks.list"}
+      ]
+    },
+    "Reminders": {
+      "endpoints": [
+        {"id": "slack.reminders.add", "method": "POST", "path": "/reminders.add"},
+        {"id": "slack.reminders.complete", "method": "POST", "path": "/reminders.complete"},
+        {"id": "slack.reminders.delete", "method": "POST", "path": "/reminders.delete"},
+        {"id": "slack.reminders.info", "method": "GET", "path": "/reminders.info"},
+        {"id": "slack.reminders.list", "method": "GET", "path": "/reminders.list"}
+      ]
+    },
+    "Usergroups": {
+      "endpoints": [
+        {"id": "slack.usergroups.list", "method": "GET", "path": "/usergroups.list"},
+        {"id": "slack.usergroups.create", "method": "POST", "path": "/usergroups.create"},
+        {"id": "slack.usergroups.update", "method": "POST", "path": "/usergroups.update"},
+        {"id": "slack.usergroups.disable", "method": "POST", "path": "/usergroups.disable"},
+        {"id": "slack.usergroups.enable", "method": "POST", "path": "/usergroups.enable"},
+        {"id": "slack.usergroups.users.list", "method": "GET", "path": "/usergroups.users.list"},
+        {"id": "slack.usergroups.users.update", "method": "POST", "path": "/usergroups.users.update"}
+      ]
+    },
+    "Team": {
+      "endpoints": [
+        {"id": "slack.team.info", "method": "GET", "path": "/team.info"},
+        {"id": "slack.team.accessLogs", "method": "GET", "path": "/team.accessLogs"},
+        {"id": "slack.team.billableInfo", "method": "GET", "path": "/team.billableInfo"},
+        {"id": "slack.team.profile.get", "method": "GET", "path": "/team.profile.get"}
+      ]
+    },
+    "DND": {
+      "endpoints": [
+        {"id": "slack.dnd.info", "method": "GET", "path": "/dnd.info"},
+        {"id": "slack.dnd.setSnooze", "method": "POST", "path": "/dnd.setSnooze"},
+        {"id": "slack.dnd.endSnooze", "method": "POST", "path": "/dnd.endSnooze"},
+        {"id": "slack.dnd.endDnd", "method": "POST", "path": "/dnd.endDnd"},
+        {"id": "slack.dnd.teamInfo", "method": "GET", "path": "/dnd.teamInfo"}
+      ]
+    },
+    "Stars": {
+      "endpoints": [
+        {"id": "slack.stars.add", "method": "POST", "path": "/stars.add"},
+        {"id": "slack.stars.remove", "method": "POST", "path": "/stars.remove"},
+        {"id": "slack.stars.list", "method": "GET", "path": "/stars.list"}
+      ]
+    }
+  },
+  "schemas": {
+    "AuthInfo": {
+      "ok": "boolean",
+      "url": "string",
+      "team": "string",
+      "user": "string",
+      "team_id": "string",
+      "user_id": "string",
+      "bot_id": "string",
+      "is_enterprise_install": "boolean"
+    },
+    "Message": {
+      "type": "string",
+      "subtype": "string",
+      "ts": "string",
+      "user": "string",
+      "text": "string",
+      "thread_ts": "string",
+      "reply_count": "integer",
+      "reply_users_count": "integer",
+      "latest_reply": "string",
+      "reply_users": "array",
+      "reactions": "array",
+      "edited": "MessageEdited",
+      "attachments": "array",
+      "blocks": "array",
+      "files": "array",
+      "upload": "boolean",
+      "bot_id": "string",
+      "permalink": "string"
+    },
+    "MessageEdited": {
+      "user": "string",
+      "ts": "string"
+    },
+    "Conversation": {
+      "id": "string",
+      "name": "string",
+      "is_channel": "boolean",
+      "is_group": "boolean",
+      "is_im": "boolean",
+      "is_mpim": "boolean",
+      "is_private": "boolean",
+      "is_archived": "boolean",
+      "is_general": "boolean",
+      "is_member": "boolean",
+      "created": "integer",
+      "creator": "string",
+      "topic": "ConversationTopic",
+      "purpose": "ConversationPurpose",
+      "num_members": "integer",
+      "unread_count": "integer",
+      "unread_count_display": "integer"
+    },
+    "ConversationTopic": {
+      "value": "string",
+      "creator": "string",
+      "last_set": "integer"
+    },
+    "ConversationPurpose": {
+      "value": "string",
+      "creator": "string",
+      "last_set": "integer"
+    },
+    "User": {
+      "id": "string",
+      "team_id": "string",
+      "name": "string",
+      "deleted": "boolean",
+      "real_name": "string",
+      "tz": "string",
+      "tz_label": "string",
+      "tz_offset": "integer",
+      "profile": "UserProfile",
+      "is_admin": "boolean",
+      "is_owner": "boolean",
+      "is_bot": "boolean",
+      "updated": "integer",
+      "is_app_user": "boolean"
+    },
+    "UserProfile": {
+      "real_name": "string",
+      "display_name": "string",
+      "email": "string",
+      "phone": "string",
+      "title": "string",
+      "status_text": "string",
+      "status_emoji": "string",
+      "avatar_hash": "string",
+      "image_24": "string",
+      "image_32": "string",
+      "image_48": "string",
+      "image_72": "string",
+      "image_192": "string",
+      "image_512": "string"
+    },
+    "File": {
+      "id": "string",
+      "created": "integer",
+      "name": "string",
+      "title": "string",
+      "mimetype": "string",
+      "filetype": "string",
+      "pretty_type": "string",
+      "user": "string",
+      "editable": "boolean",
+      "size": "integer",
+      "mode": "string",
+      "is_external": "boolean",
+      "is_public": "boolean",
+      "public_url_shared": "boolean",
+      "url_private": "string",
+      "url_private_download": "string",
+      "permalink": "string",
+      "permalink_public": "string",
+      "channels": "array",
+      "groups": "array",
+      "ims": "array"
+    },
+    "Reaction": {
+      "name": "string",
+      "count": "integer",
+      "users": "array"
+    },
+    "Reminder": {
+      "id": "string",
+      "creator": "string",
+      "user": "string",
+      "text": "string",
+      "recurring": "boolean",
+      "time": "integer",
+      "complete_ts": "integer"
+    },
+    "Usergroup": {
+      "id": "string",
+      "team_id": "string",
+      "is_usergroup": "boolean",
+      "name": "string",
+      "description": "string",
+      "handle": "string",
+      "is_external": "boolean",
+      "date_create": "integer",
+      "date_update": "integer",
+      "date_delete": "integer",
+      "auto_type": "string",
+      "created_by": "string",
+      "updated_by": "string",
+      "user_count": "integer",
+      "users": "array"
+    },
+    "Team": {
+      "id": "string",
+      "name": "string",
+      "domain": "string",
+      "email_domain": "string",
+      "icon": "TeamIcon",
+      "enterprise_id": "string",
+      "enterprise_name": "string"
+    },
+    "TeamIcon": {
+      "image_34": "string",
+      "image_44": "string",
+      "image_68": "string",
+      "image_88": "string",
+      "image_102": "string",
+      "image_132": "string",
+      "image_230": "string",
+      "image_default": "boolean"
+    },
+    "DndStatus": {
+      "dnd_enabled": "boolean",
+      "next_dnd_start_ts": "integer",
+      "next_dnd_end_ts": "integer",
+      "snooze_enabled": "boolean",
+      "snooze_endtime": "integer",
+      "snooze_remaining": "integer"
+    },
+    "Pagination": {
+      "count": "integer",
+      "total": "integer",
+      "page": "integer",
+      "pages": "integer",
+      "per_page": "integer",
+      "spill": "integer"
+    },
+    "ResponseMetadata": {
+      "next_cursor": "string"
+    }
+  },
+  "total_endpoints": 83
+}

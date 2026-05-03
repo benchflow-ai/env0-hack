@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}{{ file.name }} - Mock GDrive{% endblock %}
+
+{% block content %}
+<div class="min-h-full">
+    <!-- Top bar -->
+    <div class="flex items-center h-12 px-6 border-b border-gray-100">
+        <a href="{{ '/?folder=' + file.parent_id if file.parent_id else '/' }}" class="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 px-2 py-1 rounded-lg">
+            <span class="material-symbols-outlined text-[20px]">arrow_back</span>
+            Back
+        </a>
+        <div class="flex items-center gap-1 ml-4 text-sm text-gray-400">
+            <a href="/" class="hover:text-gray-600 hover:bg-gray-100 px-1.5 py-0.5 rounded">My Drive</a>
+            {% for crumb in breadcrumbs %}
+            <span class="material-symbols-outlined text-[16px] mx-0.5">chevron_right</span>
+            <a href="/?folder={{ crumb.id }}" class="hover:text-gray-600 hover:bg-gray-100 px-1.5 py-0.5 rounded">{{ crumb.name }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="flex">
+        <!-- Main content area -->
+        <div class="flex-1 p-8 max-w-4xl">
+            <!-- File header -->
+            <div class="flex items-start gap-4 mb-6">
+                <div class="w-12 h-12 rounded-lg {{ icon.bg }} flex items-center justify-center flex-shrink-0">
+                    {% if icon.icon == 'folder' %}
+                    <span class="material-symbols-outlined text-[28px] {{ icon.color }}" style="font-variation-settings: 'FILL' 1;">folder</span>
+                    {% elif icon.icon == 'doc' %}
+                    <span class="material-symbols-outlined text-[28px] {{ icon.color }}" style="font-variation-settings: 'FILL' 1;">description</span>
+                    {% elif icon.icon == 'sheet' %}
+                    <span class="material-symbols-outlined text-[28px] {{ icon.color }}" style="font-variation-settings: 'FILL' 1;">table_chart</span>
+                    {% elif icon.icon == 'slides' %}
+                    <span class="material-symbols-outlined text-[28px] {{ icon.color }}" style="font-variation-settings: 'FILL' 1;">slideshow</span>
+                    {% elif icon.icon == 'pdf' %}
+                    <span class="material-symbols-outlined text-[28px] {{ icon.color }}" style="font-variation-settings: 'FILL' 1;">picture_as_pdf</span>
+                    {% elif icon.icon == 'image' %}
+                    <span class="material-symbols-outlined text-[28px] {{ icon.color }}" style="font-variation-settings: 'FILL' 1;">image</span>
+                    {% else %}
+                    <span class="material-symbols-outlined text-[28px] {{ icon.color }}" style="font-variation-settings: 'FILL' 1;">insert_drive_file</span>
+                    {% endif %}
+                </div>
+                <div class="min-w-0 flex-1">
+                    <h1 class="text-xl font-medium text-gray-900 truncate font-google-sans">{{ file.name }}</h1>
+                    <div class="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                        <span>{{ friendly_type }}</span>
+                        {% if file.starred %}
+                        <span class="flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[16px] text-yellow-400" style="font-variation-settings: 'FILL' 1;">star</span>
+                            Starred
+                        </span>
+                        {% endif %}
+                        {% if file.trashed %}
+                        <span class="px-2 py-0.5 bg-red-100 text-red-600 rounded text-xs">Trashed</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <!-- Action buttons -->
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    <button class="flex items-center gap-2 px-4 py-2 bg-[#c2e7ff] rounded-full text-sm font-medium hover:shadow-md font-google-sans transition-shadow" title="Share">
+                        <span class="material-symbols-outlined text-[18px]">person_add</span>
+                        Share
+                    </button>
+                    <button class="p-2 rounded-full hover:bg-gray-100" title="Download">
+                        <span class="material-symbols-outlined text-[20px] text-gray-600">download</span>
+                    </button>
+                    <button class="p-2 rounded-full hover:bg-gray-100" title="Print">
+                        <span class="material-symbols-outlined text-[20px] text-gray-600">print</span>
+                    </button>
+                    <button class="p-2 rounded-full hover:bg-gray-100" title="More actions">
+                        <span class="material-symbols-outlined text-[20px] text-gray-600">more_vert</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Content preview (primary area, like Drive's doc viewer) -->
+            {% if content_preview %}
+            <div class="mb-8 border border-gray-200 rounded-xl bg-white shadow-sm">
+                <div class="px-6 py-3 border-b border-gray-100 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px] text-gray-400">article</span>
+                    <span class="text-xs text-gray-500 font-medium">Document Content</span>
+                </div>
+                <div class="px-8 py-6 max-h-[500px] overflow-y-auto">
+                    <div class="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap font-roboto">{{ content_preview }}</div>
+                </div>
+            </div>
+            {% elif file.is_folder %}
+            <div class="mb-8 border border-gray-200 rounded-xl bg-gray-50 p-12 text-center">
+                <span class="material-symbols-outlined text-[64px] text-gray-300 mb-3" style="font-variation-settings: 'FILL' 1;">folder</span>
+                <p class="text-gray-500">This is a folder</p>
+                <a href="/?folder={{ file.id }}" class="inline-flex items-center gap-2 mt-3 px-5 py-2 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 font-google-sans">
+                    <span class="material-symbols-outlined text-[18px]">folder_open</span>
+                    Open folder
+                </a>
+            </div>
+            {% else %}
+            <div class="mb-8 border border-gray-200 rounded-xl bg-gray-50 p-12 text-center">
+                {% if icon.icon == 'image' %}
+                <span class="material-symbols-outlined text-[64px] text-gray-300 mb-3">image</span>
+                <p class="text-gray-500">Image preview not available</p>
+                {% elif icon.icon == 'pdf' %}
+                <span class="material-symbols-outlined text-[64px] text-gray-300 mb-3">picture_as_pdf</span>
+                <p class="text-gray-500">PDF preview not available</p>
+                {% else %}
+                <span class="material-symbols-outlined text-[64px] text-gray-300 mb-3">visibility</span>
+                <p class="text-gray-500">No preview available</p>
+                {% endif %}
+                <p class="text-xs text-gray-400 mt-1">Mock environment — binary content is simulated</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right sidebar: Details / Activity tabs (like real Drive) -->
+        <div class="w-80 border-l border-gray-200 flex-shrink-0 flex flex-col h-full">
+            <!-- Tabs -->
+            <div class="flex border-b border-gray-200">
+                <button onclick="document.getElementById('tab-details').classList.remove('hidden'); document.getElementById('tab-activity').classList.add('hidden'); this.classList.add('border-blue-600','text-blue-600'); this.nextElementSibling.classList.remove('border-blue-600','text-blue-600'); this.nextElementSibling.classList.add('border-transparent','text-gray-500');"
+                        class="flex-1 py-3 text-sm font-medium text-center border-b-2 border-blue-600 text-blue-600 font-google-sans">
+                    Details
+                </button>
+                <button onclick="document.getElementById('tab-activity').classList.remove('hidden'); document.getElementById('tab-details').classList.add('hidden'); this.classList.add('border-blue-600','text-blue-600'); this.previousElementSibling.classList.remove('border-blue-600','text-blue-600'); this.previousElementSibling.classList.add('border-transparent','text-gray-500');"
+                        class="flex-1 py-3 text-sm font-medium text-center border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-google-sans">
+                    Activity
+                </button>
+            </div>
+
+            <!-- Details tab -->
+            <div id="tab-details" class="flex-1 overflow-y-auto p-5">
+                <!-- Who has access -->
+                <div class="mb-6">
+                    <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Who has access</h3>
+                    <div class="flex flex-wrap gap-1.5 mb-2">
+                        {% for perm in permissions %}
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white flex-shrink-0 cursor-default
+                            {% if perm.role == 'owner' %}bg-purple-500
+                            {% elif perm.role == 'writer' %}bg-blue-500
+                            {% elif perm.role == 'reader' %}bg-green-500
+                            {% elif perm.role == 'commenter' %}bg-yellow-500
+                            {% else %}bg-gray-400{% endif %}"
+                            title="{{ perm.display_name or perm.email_address or perm.type }} ({{ perm.role }})">
+                            {% if perm.type == 'anyone' %}
+                            <span class="material-symbols-outlined text-[16px]">public</span>
+                            {% else %}
+                            {{ (perm.display_name or perm.email_address or '?')[0] | upper }}
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-xs text-gray-400">{{ permissions | length }} {{ 'person has' if permissions | length == 1 else 'people have' }} access</div>
+                </div>
+
+                <!-- File properties -->
+                <div class="mb-6">
+                    <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">File details</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-[18px] text-gray-400 mt-0.5">category</span>
+                            <div>
+                                <div class="text-xs text-gray-400">Type</div>
+                                <div class="text-gray-700">{{ friendly_type }}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-[18px] text-gray-400 mt-0.5">data_usage</span>
+                            <div>
+                                <div class="text-xs text-gray-400">Size</div>
+                                <div class="text-gray-700">{{ size_fmt }}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-[18px] text-gray-400 mt-0.5">folder</span>
+                            <div>
+                                <div class="text-xs text-gray-400">Location</div>
+                                <div class="text-gray-700">
+                                    {% if breadcrumbs %}
+                                    <a href="/?folder={{ breadcrumbs[-1].id }}" class="text-blue-600 hover:underline">{{ breadcrumbs[-1].name }}</a>
+                                    {% else %}
+                                    <a href="/" class="text-blue-600 hover:underline">My Drive</a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-[18px] text-gray-400 mt-0.5">person</span>
+                            <div>
+                                <div class="text-xs text-gray-400">Owner</div>
+                                <div class="text-gray-700">{{ file.owner.display_name if file.owner else '-' }}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-[18px] text-gray-400 mt-0.5">edit</span>
+                            <div>
+                                <div class="text-xs text-gray-400">Modified</div>
+                                <div class="text-gray-700">{{ file.modified_time.strftime('%b %d, %Y %H:%M') if file.modified_time else '-' }}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-[18px] text-gray-400 mt-0.5">add_circle</span>
+                            <div>
+                                <div class="text-xs text-gray-400">Created</div>
+                                <div class="text-gray-700">{{ file.created_time.strftime('%b %d, %Y %H:%M') if file.created_time else '-' }}</div>
+                            </div>
+                        </div>
+                        {% if file.description %}
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-[18px] text-gray-400 mt-0.5">notes</span>
+                            <div>
+                                <div class="text-xs text-gray-400">Description</div>
+                                <div class="text-gray-700">{{ file.description }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if file.is_shortcut %}
+                        <div class="flex items-start gap-3">
+                            <span class="material-symbols-outlined text-[18px] text-gray-400 mt-0.5">link</span>
+                            <div>
+                                <div class="text-xs text-gray-400">Shortcut target</div>
+                                <div><a href="/file/{{ file.shortcut_target_id }}" class="text-blue-600 hover:underline text-xs font-mono">{{ file.shortcut_target_id }}</a></div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Your access -->
+                <div class="mb-6">
+                    <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">Your access</h3>
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-medium
+                            {% if role == 'owner' %}bg-purple-100 text-purple-700
+                            {% elif role == 'writer' %}bg-blue-100 text-blue-700
+                            {% elif role == 'reader' %}bg-green-100 text-green-700
+                            {% elif role == 'commenter' %}bg-yellow-100 text-yellow-700
+                            {% else %}bg-gray-100 text-gray-500{% endif %}">
+                            {{ role or 'none' }}
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap gap-1.5">
+                        {% for cap_name, cap_val in caps.items() %}
+                        {% if cap_val %}
+                        <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[10px] bg-green-50 text-green-700">
+                            <span class="material-symbols-outlined text-[10px]">check</span>
+                            {{ cap_name }}
+                        </span>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Debug info (collapsible) -->
+                <details class="mb-4">
+                    <summary class="text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-600">
+                        Debug info
+                    </summary>
+                    <div class="mt-2 space-y-2 text-xs">
+                        <div>
+                            <span class="text-gray-400">File ID:</span>
+                            <span class="font-mono text-gray-600 ml-1 break-all">{{ file.id }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">MIME type:</span>
+                            <span class="font-mono text-gray-600 ml-1">{{ file.mime_type }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-400">Version:</span>
+                            <span class="text-gray-600 ml-1">{{ file.version }}</span>
+                        </div>
+                        {% if file.parent_id %}
+                        <div>
+                            <span class="text-gray-400">Parent ID:</span>
+                            <a href="/?folder={{ file.parent_id }}" class="font-mono text-blue-600 hover:underline ml-1">{{ file.parent_id }}</a>
+                        </div>
+                        {% endif %}
+                        <div class="space-y-1 mt-2">
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full {{ 'bg-green-400' if not file.trashed else 'bg-red-400' }}"></span>
+                                <span class="text-gray-500">trashed: {{ file.trashed }}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full {{ 'bg-yellow-400' if file.starred else 'bg-gray-300' }}"></span>
+                                <span class="text-gray-500">starred: {{ file.starred }}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full {{ 'bg-blue-400' if file.writers_can_share else 'bg-gray-300' }}"></span>
+                                <span class="text-gray-500">writersCanShare: {{ file.writers_can_share }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                {% if file.properties %}
+                <details class="mb-4">
+                    <summary class="text-xs font-medium text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-600">
+                        Custom properties
+                    </summary>
+                    <div class="mt-2 bg-gray-50 rounded-lg p-3">
+                        {% for key, val in file.properties.items() %}
+                        <div class="flex justify-between text-xs py-1 {{ 'border-t border-gray-200' if not loop.first else '' }}">
+                            <span class="text-gray-500 font-mono">{{ key }}</span>
+                            <span class="text-gray-700">{{ val }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </details>
+                {% endif %}
+            </div>
+
+            <!-- Activity tab -->
+            <div id="tab-activity" class="flex-1 overflow-y-auto p-5 hidden">
+                <!-- Comments section -->
+                <div class="mb-6">
+                    <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
+                        Comments ({{ comments | length }})
+                    </h3>
+                    {% if comments %}
+                    <div class="space-y-3">
+                        {% for comment in comments %}
+                        <div class="border border-gray-100 rounded-lg p-3">
+                            <div class="flex items-center gap-2 mb-1.5">
+                                <div class="w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px] font-medium">
+                                    {{ (comment.author.display_name[0] if comment.author and comment.author.display_name else '?') | upper }}
+                                </div>
+                                <span class="text-xs font-medium text-gray-900">{{ comment.author.display_name if comment.author else 'Unknown' }}</span>
+                                <span class="text-[10px] text-gray-400">{{ comment.created_time.strftime('%b %d, %Y') if comment.created_time else '' }}</span>
+                                {% if comment.resolved %}
+                                <span class="material-symbols-outlined text-[14px] text-green-500 ml-auto" title="Resolved">check_circle</span>
+                                {% endif %}
+                            </div>
+                            <p class="text-sm text-gray-700 pl-8">{{ comment.content }}</p>
+                            {% if comment.replies %}
+                            <div class="pl-8 mt-2 space-y-2 border-l-2 border-gray-100 ml-3">
+                                {% for reply in comment.replies %}
+                                <div class="pl-3">
+                                    <div class="flex items-center gap-2 mb-0.5">
+                                        <span class="text-[11px] font-medium text-gray-700">{{ reply.author.display_name if reply.author else 'Unknown' }}</span>
+                                        <span class="text-[10px] text-gray-400">{{ reply.created_time.strftime('%b %d') if reply.created_time else '' }}</span>
+                                    </div>
+                                    <p class="text-xs text-gray-600">{{ reply.content }}</p>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-[32px] mb-2">chat_bubble_outline</span>
+                        <p class="text-xs">No comments</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Revisions section -->
+                <div class="mb-6">
+                    <h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">
+                        Version history ({{ revisions | length }})
+                    </h3>
+                    {% if revisions %}
+                    <div class="space-y-2">
+                        {% for rev in revisions %}
+                        <div class="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50">
+                            <span class="material-symbols-outlined text-[18px] text-gray-400 mt-0.5">history</span>
+                            <div class="min-w-0 flex-1">
+                                <div class="text-sm text-gray-700">
+                                    {{ rev.modified_time.strftime('%b %d, %Y %H:%M') if rev.modified_time else 'Unknown' }}
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    {% if rev.last_modifying_user %}{{ rev.last_modifying_user.display_name }}{% else %}Unknown{% endif %}
+                                    {% if rev.size %} &middot; {{ rev.size }} bytes{% endif %}
+                                </div>
+                            </div>
+                            {% if rev.keep_forever %}
+                            <span class="material-symbols-outlined text-[14px] text-blue-500" title="Kept forever">keep</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-8 text-gray-400">
+                        <span class="material-symbols-outlined text-[32px] mb-2">history</span>
+                        <p class="text-xs">No revision history</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

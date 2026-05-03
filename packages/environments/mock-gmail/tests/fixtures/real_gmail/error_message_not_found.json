@@ -1,0 +1,15 @@
+{
+  "error": {
+    "code": 400,
+    "message": "Invalid id value",
+    "errors": [
+      {
+        "message": "Invalid id value",
+        "domain": "global",
+        "reason": "invalidArgument"
+      }
+    ],
+    "status": "INVALID_ARGUMENT"
+  },
+  "_captured_at": "2026-03-27T18:33:35.100471+00:00"
+}

@@ -1,0 +1,41 @@
+{
+  "attendees": [
+    {
+      "email": "fixture-user@example.com",
+      "responseStatus": "needsAction"
+    }
+  ],
+  "created": "2026-03-27T21:09:13.000Z",
+  "creator": {
+    "email": "mediar.acc1@gmail.com"
+  },
+  "description": "Fixture body",
+  "end": {
+    "dateTime": "2026-03-28T22:09:03Z",
+    "timeZone": "UTC"
+  },
+  "etag": "\"3549291506733214\"",
+  "eventType": "default",
+  "htmlLink": "https://www.google.com/calendar/event?eid=a2MwZ250ZDdkbjEybTczZ3E4c3M4bW5lamcgYmQ0OGZiMjY2YzJkYzZiNmE3ZDA0YjdiZGFlZjlkNjc3YTFkNzU0NTBiNDQ2ZTk0YTIwODlkNTNkYTg2ZWYzNkBn",
+  "iCalUID": "kc0gntd7dn12m73gq8ss8mnejg@google.com",
+  "id": "kc0gntd7dn12m73gq8ss8mnejg",
+  "kind": "calendar#event",
+  "location": "Virtual",
+  "organizer": {
+    "displayName": "Updated 172946",
+    "email": "bd48fb266c2dc6b6a7d04b7bdaef9d677a1d75450b446e94a2089d53da86ef36@group.calendar.google.com",
+    "self": true
+  },
+  "reminders": {
+    "useDefault": true
+  },
+  "sequence": 0,
+  "start": {
+    "dateTime": "2026-03-28T21:09:03Z",
+    "timeZone": "UTC"
+  },
+  "status": "confirmed",
+  "summary": "Fixture Event 172946",
+  "updated": "2026-03-27T21:09:13.366Z",
+  "_captured_at": "2026-03-27T21:09:13.445886+00:00"
+}

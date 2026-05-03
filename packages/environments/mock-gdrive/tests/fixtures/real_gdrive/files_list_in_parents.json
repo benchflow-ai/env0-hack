@@ -1,0 +1,37 @@
+{
+  "files": [
+    {
+      "parents": [
+        "1scesgFujogdSbWRHS-cpznuroVESxO5m"
+      ],
+      "id": "1ay44FnkKR7mK6prgrkg8-AeKOte7zEKYZinFshEWIqg",
+      "name": "complexity theory",
+      "mimeType": "application/vnd.google-apps.document"
+    },
+    {
+      "parents": [
+        "1scesgFujogdSbWRHS-cpznuroVESxO5m"
+      ],
+      "id": "1Xk_xmbtrox8RfJceP43IUy2z5OZbh2lpA4YJsVQyW9w",
+      "name": "Team members",
+      "mimeType": "application/vnd.google-apps.spreadsheet"
+    },
+    {
+      "parents": [
+        "1scesgFujogdSbWRHS-cpznuroVESxO5m"
+      ],
+      "id": "1WVlUOoRW1Ni-WdChn1o5Ysplkd08xaxVm8JgNv3dIf4",
+      "name": "Meet\u000bthe team",
+      "mimeType": "application/vnd.google-apps.presentation"
+    },
+    {
+      "parents": [
+        "1scesgFujogdSbWRHS-cpznuroVESxO5m"
+      ],
+      "id": "111EFnlVD2cDzg0qHV3zra3LJI0m-blqx6gbx_HqIzJg",
+      "name": "US presidents",
+      "mimeType": "application/vnd.google-apps.document"
+    }
+  ],
+  "kind": "drive#fileList"
+}

@@ -1,0 +1,16 @@
+{
+  "error": {
+    "code": 404,
+    "message": "File not found: nonexistent_file_id_12345.",
+    "errors": [
+      {
+        "message": "File not found: nonexistent_file_id_12345.",
+        "domain": "global",
+        "reason": "notFound",
+        "location": "fileId",
+        "locationType": "parameter"
+      }
+    ]
+  },
+  "_captured_at": "2026-03-27T20:30:27.451437+00:00"
+}

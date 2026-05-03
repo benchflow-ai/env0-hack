@@ -1,0 +1,44 @@
+{
+  "ok": true,
+  "profile": {
+    "title": "",
+    "phone": "",
+    "skype": "",
+    "real_name": "sd0amg5t3q3w_user",
+    "real_name_normalized": "sd0amg5t3q3w_user",
+    "display_name": "",
+    "display_name_normalized": "",
+    "fields": {},
+    "status_text": "capturing fixtures",
+    "status_emoji": ":camera:",
+    "status_emoji_display_info": [
+      {
+        "emoji_name": "camera",
+        "display_url": "https://a.slack-edge.com/production-standard-emoji-assets/15.0/apple-large/1f4f7.png",
+        "unicode": "1f4f7"
+      }
+    ],
+    "status_expiration": 0,
+    "status_clear_on_focus_end": false,
+    "avatar_hash": "g865956bae62",
+    "email": "chujunt@andrew.cmu.edu",
+    "huddle_state": "default_unset",
+    "first_name": "sd0amg5t3q3w_user",
+    "last_name": "",
+    "image_24": "https://secure.gravatar.com/avatar/865956bae621e441e5c1e6e2a4fe714f.jpg?s=24&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0019-24.png",
+    "image_32": "https://secure.gravatar.com/avatar/865956bae621e441e5c1e6e2a4fe714f.jpg?s=32&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0019-32.png",
+    "image_48": "https://secure.gravatar.com/avatar/865956bae621e441e5c1e6e2a4fe714f.jpg?s=48&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0019-48.png",
+    "image_72": "https://secure.gravatar.com/avatar/865956bae621e441e5c1e6e2a4fe714f.jpg?s=72&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0019-72.png",
+    "image_192": "https://secure.gravatar.com/avatar/865956bae621e441e5c1e6e2a4fe714f.jpg?s=192&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0019-192.png",
+    "image_512": "https://secure.gravatar.com/avatar/865956bae621e441e5c1e6e2a4fe714f.jpg?s=512&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0019-512.png",
+    "status_text_canonical": ""
+  },
+  "username": "sd0amg5t3q3w_user",
+  "warning": "missing_charset",
+  "response_metadata": {
+    "warnings": [
+      "missing_charset"
+    ]
+  },
+  "_captured_at": "2026-03-27T20:39:50.735247+00:00"
+}

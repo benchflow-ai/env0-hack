@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% from "_avatar_macros.html" import slack_avatar %}
+{% from "_reaction_macros.html" import reaction_chip, reaction_picker %}
+{% from "_composer_macros.html" import render_slack_composer %}
+{% from "_message_macros.html" import render_link_unfurl, render_attachments %}
+{% block content %}
+<!-- Thread Header -->
+<div class="h-16 px-5 border-b border-gray-200 flex-shrink-0 bg-white z-10 w-full relative">
+  <div class="slack-thread-header h-full">
+    <div class="flex items-center gap-3 min-w-0">
+      <a href="/channel/{{ current_channel.id }}"
+         class="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0"
+         title="Back to {% if current_channel.is_private %}🔒{% else %}#{% endif %}{{ current_channel.name }}">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </a>
+      <div class="min-w-0">
+        <h2 class="slack-thread-title">Thread</h2>
+        <div class="slack-thread-subtitle truncate">
+          {% if dm_display_name %}
+            {{ dm_display_name }}
+          {% else %}
+            <span class="text-gray-400 font-normal mr-0.5">{% if current_channel.is_private %}🔒{% else %}#{% endif %}</span>{{ current_channel.name }}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Thread Body -->
+<div class="flex-1 overflow-y-auto custom-scroll flex flex-col slack-message-stream" id="thread-container" data-message-stream="true">
+  <div class="slack-thread-parent-context">
+    <div class="w-2 h-2 rounded-full bg-[#1264a3] mt-[5px] flex-shrink-0"></div>
+    <div class="min-w-0">
+      <div class="slack-thread-parent-context-label">
+        Original message in {% if dm_display_name %}{{ dm_display_name }}{% else %}{% if current_channel.is_private %}🔒{% else %}#{% endif %}{{ current_channel.name }}{% endif %}
+      </div>
+      <div class="slack-thread-parent-context-text truncate">{{ parent.text }}</div>
+    </div>
+  </div>
+  {% set parent_link_preview = slack_build_link_preview(parent.text) %}
+
+  <!-- Parent Message (highlighted) -->
+  <div class="pt-5 pb-4 border-b border-gray-200 bg-white">
+    <div class="slack-message-row group">
+      <div class="slack-message-avatar-slot">
+        {{ slack_avatar(user=parent.user, size='w-9 h-9', rounded='rounded-md', text='text-sm') }}
+      </div>
+      <div class="slack-message-content">
+        <div class="slack-message-meta">
+          <span class="slack-message-sender hover:underline cursor-pointer">
+            {{ parent.user.real_name or parent.user.name if parent.user else 'Unknown' }}
+          </span>
+          <span class="slack-message-timestamp ts" data-ts="{{ parent.ts }}"></span>
+          {% if parent.is_edited %}
+          <span class="slack-message-edited">(edited)</span>
+          {% endif %}
+        </div>
+        <div class="slack-message-text break-words whitespace-pre-wrap">{{ slack_render_message_text(parent.text) }}</div>
+        {{ render_link_unfurl(parent_link_preview) }}
+        {{ render_attachments(parent.attachments) }}
+        {% if parent.reaction_groups %}
+        <div class="slack-message-reactions">
+          {% for reaction in parent.reaction_groups %}
+            {{ reaction_chip(current_channel.id, parent.ts, reaction) }}
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="slack-message-actions slack-message-actions--floating" data-message-actions="true">
+        {{ reaction_picker(current_channel.id, parent.ts) }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Reply count divider -->
+  {% if replies %}
+  <div class="slack-thread-divider">
+    <span class="text-[13px] font-bold text-gray-700">
+      {{ replies|length }} {{ 'reply' if replies|length == 1 else 'replies' }}
+    </span>
+    <div class="slack-thread-divider-line"></div>
+  </div>
+  {% else %}
+  <div class="flex flex-col items-center justify-center py-12 text-gray-400">
+    <svg class="w-12 h-12 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+    </svg>
+    <p class="text-sm">No replies yet. Be the first to reply.</p>
+  </div>
+  {% endif %}
+
+  <!-- Replies -->
+  {% for msg in replies %}
+  {% set prev_msg = loop.previtem if loop.previtem is defined else None %}
+  {% set is_continuation = slack_is_message_continuation(prev_msg, msg) %}
+  {% set link_preview = slack_build_link_preview(msg.text) %}
+  <div class="slack-message-row group{% if is_continuation %} slack-message-row--continuation{% endif %}"
+       data-msg-ts="{{ msg.ts }}">
+    <div class="slack-message-avatar-slot is-compact">
+      {% if not is_continuation %}
+      {{ slack_avatar(user=msg.user, size='w-8 h-8', rounded='rounded-md', text='text-xs') }}
+      {% else %}
+      <span class="slack-message-gutter-time" data-ts="{{ msg.ts }}"></span>
+      {% endif %}
+    </div>
+    <div class="slack-message-content">
+      {% if not is_continuation %}
+      <div class="slack-message-meta">
+        <span class="slack-message-sender text-[14px] hover:underline cursor-pointer">
+          {{ msg.user.real_name or msg.user.name if msg.user else 'Unknown' }}
+        </span>
+        <span class="slack-message-timestamp" data-ts="{{ msg.ts }}"></span>
+        {% if msg.is_edited %}
+        <span class="slack-message-edited">(edited)</span>
+        {% endif %}
+      </div>
+      {% endif %}
+      <div class="slack-message-text is-small break-words whitespace-pre-wrap">{{ slack_render_message_text(msg.text) }}{% if is_continuation and msg.is_edited %}<span class="slack-message-edited ml-1">(edited)</span>{% endif %}</div>
+      {{ render_link_unfurl(link_preview) }}
+      {{ render_attachments(msg.attachments) }}
+      {% if msg.reaction_groups %}
+      <div class="slack-message-reactions">
+        {% for reaction in msg.reaction_groups %}
+          {{ reaction_chip(current_channel.id, msg.ts, reaction) }}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Reply hover actions -->
+    <div class="slack-message-actions slack-message-actions--floating" data-message-actions="true">
+      {{ reaction_picker(current_channel.id, msg.ts) }}
+      {% if msg.user and msg.user.id == user.id %}
+      <button class="slack-message-action-button"
+        title="Delete reply"
+        data-message-text='{{ msg.text | tojson }}'
+        data-sender-name='{{ (msg.user.real_name or msg.user.name if msg.user else "Unknown") | tojson }}'
+        data-avatar-url='{{ (msg.user.avatar_url if msg.user and msg.user.avatar_url and msg.user.avatar_url != "/static/profile_picture.jpg" else "") | tojson }}'
+        data-avatar-label='{{ ((msg.user.real_name or msg.user.name if msg.user else "?")[:1].upper()) | tojson }}'
+        onclick="openDeleteMessageModalFromButton(this, '{{ current_channel.id }}', '{{ msg.ts }}')">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+      </button>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+
+  <div class="h-4"></div>
+</div>
+
+<!-- Reply Input -->
+<div class="px-5 pb-4 pt-2 shrink-0 bg-white border-t border-gray-100">
+  <div class="text-xs text-gray-500 mb-2">
+    Replying to
+    <span class="font-medium text-gray-700">{{ parent.user.name if parent.user else 'thread' }}</span>
+  </div>
+  <form action="/channel/{{ current_channel.id }}/thread/{{ parent.ts }}/reply" method="POST" class="flex flex-col">
+    {{ render_slack_composer(
+      textarea_id='thread-reply-text',
+      placeholder='Reply to thread...',
+      placeholder_base='Reply to thread...',
+      toolbar_id='thread-reply-toolbar',
+      actions_id='thread-reply-actions',
+      autofocus=true
+    ) }}
+  </form>
+</div>
+
+<script>
+  // Scroll to bottom of replies
+  var c = document.getElementById('thread-container');
+  if (c) c.scrollTop = c.scrollHeight;
+
+  document.querySelectorAll('[data-ts]').forEach(function(el) {
+    var ts = parseFloat(el.getAttribute('data-ts'));
+    if (!isNaN(ts)) {
+      el.textContent = formatSlackMessageTimestamp(ts);
+    }
+  });
+</script>
+{% endblock %}

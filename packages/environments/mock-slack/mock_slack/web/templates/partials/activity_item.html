@@ -1,0 +1,104 @@
+{% from "_avatar_macros.html" import slack_avatar %}
+{% set actor = item.actor %}
+{% set ch = item.channel %}
+{% set msg = item.message %}
+{% set ctx = item.context %}
+<div onclick="selectActivityItem('{{ ch.id if ch else '' }}', '{{ item.ts }}', this)"
+   class="act-item">
+
+  <!-- Avatar + badge -->
+  <div class="relative flex-shrink-0 mt-0.5"
+    onclick="event.stopPropagation(); openProfilePanel('{{ actor.id if actor else '' }}')"
+    title="{{ actor.real_name or actor.name if actor else '' }}">
+    {{ slack_avatar(
+      user=actor,
+      size='w-9 h-9',
+      rounded='rounded-lg',
+      text='text-sm',
+      container_extra='cursor-pointer hover:opacity-80',
+      fallback_bg='bg-rose-400' if item.type == 'mention' else 'bg-indigo-400' if item.type == 'thread' else 'bg-amber-400',
+      fallback_text='text-white'
+    ) }}
+    <!-- type badge -->
+    <div class="act-badge {{ item.type }}">
+      {% if item.type == 'mention' %}@
+      {% elif item.type == 'thread' %}↩
+      {% else %}:){% endif %}
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="flex-1 min-w-0">
+    <!-- Row 1: actor + action description + channel + time -->
+    <div class="flex items-baseline justify-between gap-2 mb-0.5 flex-wrap">
+      <div class="flex items-baseline gap-1 flex-wrap min-w-0">
+        <span class="font-semibold text-[13px] text-white truncate">
+          {{ actor.real_name or actor.name if actor else 'Someone' }}
+        </span>
+        <span class="text-[12px] text-[#cfc3cf]">
+          {% if item.type == 'mention' %}mentioned you in{% endif %}
+          {% if item.type == 'thread' %}replied in a thread in{% endif %}
+          {% if item.type == 'reaction' %}reacted <span class="text-[13px]">{{ slack_emoji_glyph(item.emoji) }}</span> to your message in{% endif %}
+        </span>
+        {% if ch %}
+        <span class="text-[12px] font-semibold text-white">
+          {% if ch.is_im or ch.is_mpim %}{{ ch.name }}{% else %}#{{ ch.name }}{% endif %}
+        </span>
+        {% endif %}
+      </div>
+      <span class="text-[11px] text-[#cfc3cf] flex-shrink-0" data-act-ts="{{ item.ts }}"></span>
+    </div>
+
+    <!-- Thread context (parent snippet) -->
+    {% if ctx and item.type == 'thread' %}
+    <div class="act-context-bar mb-1">
+      <span class="font-medium text-[#cfc3cf]">{{ ctx.text[:80] }}{% if ctx.text|length > 80 %}…{% endif %}</span>
+    </div>
+    {% endif %}
+
+    <!-- Message preview -->
+    {% if msg %}
+    <p class="act-preview">{{ msg.text }}</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  (function() {
+    // Ensure the activity timestamp formatter is only initialized once per page.
+    if (window.__activityTsFormatterInit) {
+      return;
+    }
+    window.__activityTsFormatterInit = true;
+
+    // Expose a reusable function to format all unformatted activity timestamps.
+    window.__formatActivityTimestamps = function() {
+      document.querySelectorAll('[data-act-ts]:not([data-act-ts-done])').forEach(function(el) {
+        el.setAttribute('data-act-ts-done', '1');
+        var ts = parseFloat(el.getAttribute('data-act-ts'));
+        if (isNaN(ts)) return;
+        var d = new Date(ts * 1000);
+        var now = new Date();
+        var diff = (now - d) / 1000;
+        var text;
+        if (diff < 60) text = 'just now';
+        else if (diff < 3600) text = Math.floor(diff/60) + 'm ago';
+        else if (diff < 86400) text = Math.floor(diff/3600) + 'h ago';
+        else text = d.toLocaleDateString([], {month: 'short', day: 'numeric'});
+        el.textContent = text;
+      });
+    };
+
+    // Run once on initial page load.
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', window.__formatActivityTimestamps);
+    } else {
+      window.__formatActivityTimestamps();
+    }
+
+    // If HTMX is used, re-run after content swaps to handle newly added items.
+    document.addEventListener('htmx:afterSwap', function() {
+      window.__formatActivityTimestamps();
+    });
+  })();
+</script>

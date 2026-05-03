@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}GDrive Dev Dashboard{% endblock %}
+{% block content %}
+<div class="p-6 space-y-6">
+    <div>
+        <h1 class="font-google-sans text-2xl text-gray-800">Dev Dashboard</h1>
+        <p class="text-gray-500 mt-1">Live mock Drive state, seed diff, and recent API activity.</p>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-6 gap-3">
+        {% for label, value, icon in [
+            ("Files", file_count, "description"),
+            ("Folders", folder_count, "folder"),
+            ("Trashed", trashed_count, "delete"),
+            ("Permissions", permission_count, "lock"),
+            ("Comments", comment_count, "comment"),
+            ("Revisions", revision_count, "history")
+        ] %}
+        <div class="bg-white border border-gray-200 rounded-xl p-4">
+            <div class="flex items-center gap-2 text-gray-500">
+                <span class="material-symbols-outlined text-[18px]">{{ icon }}</span>
+                <span class="text-xs uppercase tracking-wide">{{ label }}</span>
+            </div>
+            <div class="font-google-sans text-2xl mt-2">{{ value }}</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-4">
+        <section class="bg-white border border-gray-200 rounded-xl p-4">
+            <h2 class="font-google-sans text-lg mb-3">Mime Mix</h2>
+            <div class="space-y-2">
+                {% for mime_type, count in mime_rows %}
+                <div class="flex items-center justify-between gap-3">
+                    <code class="text-xs bg-gray-100 rounded px-1.5 py-0.5 truncate">{{ mime_type }}</code>
+                    <span class="text-sm text-gray-600">{{ count }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="bg-white border border-gray-200 rounded-xl p-4">
+            <h2 class="font-google-sans text-lg mb-3">Diff Since Initial Seed</h2>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+                {% for key, value in diff_summary.items() %}
+                <div class="flex justify-between bg-gray-50 rounded-lg px-3 py-2">
+                    <span class="text-gray-500">{{ key.replace("_", " ") }}</span>
+                    <span class="font-medium">{{ value }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    <section class="bg-white border border-gray-200 rounded-xl p-4">
+        <h2 class="font-google-sans text-lg mb-3">Recent Action Log</h2>
+        {% if recent_actions %}
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+                <thead class="text-xs uppercase text-gray-500 border-b">
+                    <tr><th class="text-left py-2">Method</th><th class="text-left py-2">Path</th><th class="text-left py-2">Status</th><th class="text-left py-2">User</th></tr>
+                </thead>
+                <tbody>
+                    {% for entry in recent_actions %}
+                    <tr class="border-b border-gray-100">
+                        <td class="py-2 pr-4">{{ entry.method }}</td>
+                        <td class="py-2 pr-4"><code class="text-xs">{{ entry.path }}</code></td>
+                        <td class="py-2 pr-4">{{ entry.response_status }}</td>
+                        <td class="py-2">{{ entry.user_id }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-gray-500">No API calls recorded yet.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}

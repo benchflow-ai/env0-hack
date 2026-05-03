@@ -1,0 +1,112 @@
+{
+  "ok": true,
+  "messages": [
+    {
+      "user": "U0ALX5T9KB9",
+      "type": "message",
+      "ts": "1773840006.084639",
+      "text": "Our new puppy Meatball ! :heart_eyes: delicious tacos",
+      "team": "T0AN6SZBR3J",
+      "thread_ts": "1773840006.084639",
+      "reply_count": 1,
+      "reply_users_count": 1,
+      "latest_reply": "1773840006.237109",
+      "reply_users": [
+        "U0AMG6YMYQ4"
+      ],
+      "is_locked": false,
+      "subscribed": false,
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "pyaE3",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "Our new puppy Meatball ! "
+                },
+                {
+                  "type": "emoji",
+                  "name": "heart_eyes",
+                  "unicode": "1f60d"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "image",
+          "block_id": "u1NFR",
+          "image_url": "https://i.imgur.com/EckgStw.png",
+          "alt_text": "delicious tacos",
+          "image_width": 956,
+          "image_height": 1210,
+          "image_bytes": 720520,
+          "is_animated": true,
+          "fallback": "956x1210px image"
+        }
+      ],
+      "reactions": [
+        {
+          "name": "star-struck",
+          "users": [
+            "U0ALX5T9KB9",
+            "U0AM67KHZ27"
+          ],
+          "count": 2
+        },
+        {
+          "name": "smiling_face_with_3_hearts",
+          "users": [
+            "U0AMAHALJUW"
+          ],
+          "count": 1
+        },
+        {
+          "name": "heart",
+          "users": [
+            "U0AMAHCF7SA",
+            "U0AMG6YMYQ4"
+          ],
+          "count": 2
+        }
+      ]
+    },
+    {
+      "user": "U0AMG6YMYQ4",
+      "type": "message",
+      "ts": "1773840006.237109",
+      "text": "OMG so cute  :star-struck: ",
+      "team": "T0AN6SZBR3J",
+      "thread_ts": "1773840006.084639",
+      "parent_user_id": "U0ALX5T9KB9",
+      "blocks": [
+        {
+          "type": "rich_text",
+          "block_id": "pBdSI",
+          "elements": [
+            {
+              "type": "rich_text_section",
+              "elements": [
+                {
+                  "type": "text",
+                  "text": "OMG so cute  "
+                },
+                {
+                  "type": "emoji",
+                  "name": "star-struck",
+                  "unicode": "1f929"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "has_more": false,
+  "_captured_at": "2026-03-27T20:39:37.098043+00:00"
+}

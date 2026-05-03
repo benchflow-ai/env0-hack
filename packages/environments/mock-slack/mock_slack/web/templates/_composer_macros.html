@@ -1,0 +1,135 @@
+{% macro render_slack_composer(
+  textarea_name='text',
+  textarea_id='slack-composer-input',
+  textarea_value='',
+  placeholder='Write a message',
+  placeholder_base='Write a message',
+  target_input_id='',
+  toolbar_id='',
+  actions_id='',
+  data_channel_id='',
+  data_channel_name='',
+  autofocus=false
+) -%}
+<div
+  class="slack-composer-shell"
+  data-slack-composer
+  data-target-input-id="{{ target_input_id }}"
+  data-placeholder-base="{{ placeholder_base }}"
+  data-format-expanded="true"
+>
+  <div{% if toolbar_id %} id="{{ toolbar_id }}"{% endif %} class="slack-composer-toolbar" data-format-toolbar>
+    <div class="slack-composer-toolbar-group is-formatting-group">
+      <button type="button" class="slack-composer-toolbar-button is-textual is-bold-mark text-[15px] font-bold" aria-label="Bold">B</button>
+      <button type="button" class="slack-composer-toolbar-button is-textual is-italic-mark text-[15px] italic" aria-label="Italic">I</button>
+      <button type="button" class="slack-composer-toolbar-button is-textual is-underline-mark text-[14px] underline underline-offset-[3px]" aria-label="Underline">U</button>
+      <button type="button" class="slack-composer-toolbar-button is-textual is-strike-mark text-[14px] line-through" aria-label="Strikethrough">S</button>
+      <div class="slack-composer-divider"></div>
+      <button type="button" class="slack-composer-toolbar-button is-link-icon" aria-label="Insert link">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 010 5.656l-3 3a4 4 0 01-5.656-5.656l1.5-1.5m4-4l1.5-1.5a4 4 0 115.656 5.656l-3 3a4 4 0 01-5.656 0"/>
+        </svg>
+      </button>
+      <button type="button" class="slack-composer-toolbar-button is-list-icon is-ordered-list-icon" aria-label="Ordered list">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h10M10 12h10M10 18h10"/>
+          <text x="3" y="9.5" font-size="7.5" font-weight="700" fill="currentColor" stroke="none" font-family="system-ui, -apple-system, sans-serif" text-anchor="start">1</text>
+          <text x="3" y="15.5" font-size="7.5" font-weight="700" fill="currentColor" stroke="none" font-family="system-ui, -apple-system, sans-serif" text-anchor="start">2</text>
+        </svg>
+      </button>
+      <button type="button" class="slack-composer-toolbar-button is-list-icon is-bulleted-list-icon" aria-label="Bulleted list">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="5" cy="6" r="2" fill="currentColor" stroke="none"/>
+          <circle cx="5" cy="12" r="2" fill="currentColor" stroke="none"/>
+          <circle cx="5" cy="18" r="2" fill="currentColor" stroke="none"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 6h11M9 12h11M9 18h11"/>
+        </svg>
+      </button>
+      <div class="slack-composer-divider"></div>
+      <button type="button" class="slack-composer-toolbar-button is-quote-icon" aria-label="Quote">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 6v12M11 8h7M11 12h7M11 16h5"/>
+        </svg>
+      </button>
+      <button type="button" class="slack-composer-toolbar-button is-textual is-code-mark text-[12px] font-semibold" aria-label="Code">&lt;/&gt;</button>
+      <button type="button" class="slack-composer-toolbar-button is-code-block-icon" aria-label="Code block">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5h16a1 1 0 011 1v12a1 1 0 01-1 1H4a1 1 0 01-1-1V6a1 1 0 011-1zm5 7l-2 2 2 2m6-4l2 2-2 2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="slack-composer-body">
+    <textarea
+      id="{{ textarea_id }}"
+      name="{{ textarea_name }}"
+      rows="1"
+      data-composer-input
+      data-placeholder-base="{{ placeholder_base }}"
+      placeholder="{{ placeholder }}"
+      class="slack-composer-textarea w-full resize-none bg-transparent text-[15px] leading-6 text-gray-900 outline-none placeholder-gray-400"
+      autocomplete="off"
+      required
+      {% if data_channel_id %}data-channel-id="{{ data_channel_id }}"{% endif %}
+      {% if data_channel_name %}data-channel-name="{{ data_channel_name }}"{% endif %}
+      {% if autofocus %}autofocus{% endif %}
+    >{{ textarea_value or '' }}</textarea>
+  </div>
+  <div{% if actions_id %} id="{{ actions_id }}"{% endif %} class="slack-composer-footer">
+    <div class="slack-composer-footer-group is-primary-actions">
+      <button type="button" class="slack-composer-action-button is-round is-tonal-round is-plus-icon" aria-label="Open insert menu">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v14m7-7H5"/>
+        </svg>
+      </button>
+      <button type="button" class="slack-composer-action-button is-compact-text is-textual-icon is-format-toggle-mark is-active" aria-label="Toggle formatting options" aria-pressed="true" data-format-toggle>Aa</button>
+      <button type="button" class="slack-composer-action-button is-emoji-icon" aria-label="Add emoji">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" stroke-width="1.8"></circle>
+          <circle cx="9.25" cy="10" r="1.1" fill="currentColor" stroke="none"></circle>
+          <circle cx="14.75" cy="10" r="1.1" fill="currentColor" stroke="none"></circle>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8.8 14.3c.9 1.35 2.08 2.02 3.2 2.02 1.12 0 2.3-.67 3.2-2.02"/>
+        </svg>
+      </button>
+      <button type="button" class="slack-composer-action-button is-textual-icon is-at-glyph" aria-label="Mention someone">@</button>
+      <div class="slack-composer-footer-divider"></div>
+      <button type="button" class="slack-composer-action-button is-video-icon" aria-label="Start video clip">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <rect x="3" y="6" width="12" height="12" rx="2" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 10.5l5.2-2.6a.5.5 0 01.8.5v7.2a.5.5 0 01-.8.5L15 13.5"/>
+        </svg>
+      </button>
+      <button type="button" class="slack-composer-action-button is-mic-icon" aria-label="Record voice message">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <rect x="9" y="2" width="6" height="11" rx="3" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 10v1a5 5 0 01-10 0v-1"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 16v4m-3 0h6"/>
+        </svg>
+      </button>
+      <div class="slack-composer-footer-divider"></div>
+      <button type="button" class="slack-composer-action-button is-outline-square is-textual-icon is-slash-glyph" aria-label="Use slash command">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.2" d="M14.5 7l-5 10"/>
+        </svg>
+      </button>
+    </div>
+    <div class="slack-composer-footer-group is-send-cluster">
+      <button
+        type="submit"
+        class="slack-composer-send"
+        data-send-button
+        title="Send message"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor">
+          <path d="M1.5 2.25a.755.755 0 0 1 1-.71l15.596 7.807a.73.73 0 0 1 0 1.306L2.5 18.46a.755.755 0 0 1-1-.71v-5.5L12.5 10 1.5 7.75v-5.5Z"/>
+        </svg>
+      </button>
+      <button type="button" class="slack-composer-send-option is-send-chevron" aria-label="Open send options">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+{%- endmacro %}

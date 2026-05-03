@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Google Docs{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL@20..48,100..700,0..1" rel="stylesheet">
+    <style>
+        :root {
+            --gdoc-blue: #1a73e8;
+            --gdoc-blue-hover: #1765cc;
+            --gdoc-bg: #f8f9fa;
+            --gdoc-surface: #ffffff;
+            --gdoc-text: #202124;
+            --gdoc-text-secondary: #5f6368;
+            --gdoc-border: #dadce0;
+            --gdoc-toolbar-bg: #edf2fa;
+            --gdoc-menu-hover: #f1f3f4;
+        }
+        body { font-family: 'Roboto', Arial, sans-serif; margin: 0; color: var(--gdoc-text); }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+            font-size: 20px;
+            vertical-align: middle;
+        }
+        .material-symbols-outlined.filled {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    {% block body %}{% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>
