@@ -7,7 +7,7 @@ name: Env0Mobile
 options:
   bundleIdPrefix: ai.benchflow.env0
   deploymentTarget:
-    iOS: "17.0"
+    iOS: "26.0"
   createIntermediateGroups: true
   groupSortPosition: top
 
