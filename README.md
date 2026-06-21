@@ -59,7 +59,7 @@ The public result we are showing:
 | Model | Completed rows | Stuck counted fail | Passes / Total | Pass rate |
 | --- | ---: | ---: | ---: | ---: |
 | Gemma E4B-it pre-SFT | 60 | 0 | 0 / 60 | 0% |
-| Gemma E4B-it post-SFT | 60 | 0 | 4 / 60 | 7% |
+| Gemma E4B-it post-SFT | 60 | 0 | 4 / 60 | 6/67% |
 | Qwen/Qwen3.5-4B | 60 | 0 | 18 / 60 | 30.00% |
 | Qwen/Qwen3.5-9B | 58 | 2 | 28 / 60 | 46.67% |
 
