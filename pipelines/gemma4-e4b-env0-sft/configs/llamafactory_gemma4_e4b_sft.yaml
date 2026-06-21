@@ -1,0 +1,46 @@
+### model
+model_name_or_path: google/gemma-4-E4B-it
+trust_remote_code: true
+
+### method
+stage: sft
+do_train: true
+finetuning_type: lora
+lora_rank: 32
+lora_alpha: 64
+lora_dropout: 0.05
+lora_target: all
+quantization_bit: 4
+freeze_vision_tower: true
+
+### dataset
+dataset: env0_gemma4_sft
+template: gemma4
+cutoff_len: 2048
+overwrite_cache: true
+preprocessing_num_workers: 8
+
+### output
+output_dir: .local/gemma4-e4b-env0-sft/train/llamafactory-gemma4-e4b
+logging_steps: 1
+save_steps: 50
+plot_loss: true
+overwrite_output_dir: true
+report_to: none
+
+### train
+per_device_train_batch_size: 1
+gradient_accumulation_steps: 8
+learning_rate: 3.0e-5
+num_train_epochs: 3.0
+max_steps: 300
+lr_scheduler_type: cosine
+warmup_ratio: 0.03
+bf16: true
+gradient_checkpointing: true
+
+### eval
+val_size: 0.1
+per_device_eval_batch_size: 1
+eval_strategy: steps
+eval_steps: 20

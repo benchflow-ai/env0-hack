@@ -1,0 +1,36 @@
+{
+  "pipeline_name": "gemma4-e4b-env0-sft",
+  "env0_dir": ".",
+  "output_root": ".local/gemma4-e4b-env0-sft",
+  "teacher_model": "azure/gpt-5.5-xhigh",
+  "teacher_reasoning_effort": "xhigh",
+  "student_model": "google/gemma-4-E4B-it",
+  "task_list": "pipelines/gemma4-e4b-env0-sft/task_lists/google_workspace_core.json",
+  "gpu_provider": "auto",
+  "provider_order": [
+    "fireworks",
+    "prime"
+  ],
+  "data": {
+    "min_score": 1.0,
+    "require_tool_call": true,
+    "reject_safety_violations": true,
+    "reject_errors": true,
+    "label_last_assistant_only": true
+  },
+  "training": {
+    "backend": "llamafactory",
+    "method": "qlora",
+    "max_length": 2048,
+    "max_steps": 300,
+    "learning_rate": 3e-5,
+    "lora_rank": 32,
+    "eval_fraction": 0.1,
+    "load_in_4bit": true,
+    "strip_thinking": true,
+    "template": "gemma4",
+    "stage": "sft",
+    "dataset_name": "env0_gemma4_sft",
+    "output_dir": ".local/gemma4-e4b-env0-sft/train/llamafactory-gemma4-e4b"
+  }
+}
