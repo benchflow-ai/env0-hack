@@ -9,8 +9,6 @@ This repo packages the hackathon build from the env0 workstream:
 - an env0 data recipe for mobile agent use cases;
 - a lite benchmark built from verified synthetic env tasks.
 
-Reference workspace: [benchflow-ai/env-0-experiment](https://github.com/benchflow-ai/env-0-experiment/tree/main)
-
 ## What We Are Shipping
 
 1. **End-to-end training recipe**
