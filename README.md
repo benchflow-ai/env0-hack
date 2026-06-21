@@ -1,162 +1,182 @@
-# env0
+# Hud Hackathon
 
-env0 is the first-party mock-environment runtime for agent testing. It provides
-stateful, deterministic mock services for local development, seed contracts,
-API-parity checks, dev tooling, and a shared Docker base image.
+OpenThoughts Agent, but for mobile agents and small models.
 
-The repo has two deliberately separate task surfaces:
+This repo packages the hackathon build from the env0 workstream:
 
-- `example_tasks/` are small runtime fixtures used to prove env0 service and
-  launcher contracts.
-- `tasks/` contains selected BenchFlow-native task packages copied from
-  `benchflow-ai/env-0` for reference and downstream evaluation.
+- a mobile-first agent demo;
+- an end-to-end SFT pipeline that trains and converges;
+- an env0 data recipe for mobile agent use cases;
+- a lite benchmark built from verified synthetic env tasks.
 
-Canonical benchmark authoring and scoring policy still belong in downstream
-benchmark repos, not in env0.
+Reference workspace: [benchflow-ai/env-0-experiment](https://github.com/benchflow-ai/env-0-experiment/tree/main)
 
-## Quick Start
+## What We Are Shipping
 
-Run commands from the `env0` repo root. Prerequisites:
+1. **End-to-end training recipe**
+   The pipeline turns env0 trajectories into filtered SFT rows, validates the
+   tool-use contract, exports LLaMA-Factory data, trains a Gemma E4B-it adapter,
+   and evaluates on a fixed lite benchmark slice.
 
-- Python 3.12+
-- `uv`
-- Docker daemon for Docker/base-image smoke checks
-- free local ports `9001`-`9005` and `9060`
+2. **Target model**
+   The hackathon target is the latest mobile-class Gemma E4B-it model track.
+   The public story is a small model that can plausibly run on-device or near
+   device, then gets better at mobile agent workflows through env0 training.
 
-Run the unit/control smoke:
+3. **Mobile agent data recipe**
+   env0 supplies the controlled environments and task generators for general
+   mobile assistant work:
 
-```bash
-scripts/smoke_dev.sh
+   - search email and calendar for restaurant, flight, event, and meeting
+     information;
+   - send emails, manage calendar invitations, write notes, research, and prep
+     for meetings;
+   - use Drive and Docs to retrieve personal records, summarize documents, and
+     update artifacts;
+   - model productivity and lifestyle flows, including food logs, daily
+     planning, reminders, and lightweight personal analytics;
+   - start with Google Workspace support: Gmail, Calendar, Docs, and Drive.
+
+4. **Lite benchmark**
+   `tasks-lite/` contains 2,004 synthetic env0 tasks across auth, Gmail,
+   Calendar, Docs, Drive, and multi-app workflows. The benchmark recipe is:
+
+   - generate synthetic tasks with a verified oracle;
+   - keep tasks that are solvable by the teacher trajectory pipeline;
+   - use Gemma pass@5 / trace quality as a selection gate;
+   - train on filtered SFT traces;
+   - evaluate Gemma baseline, Qwen3.5-4B, Qwen3.5-9B, larger reference models,
+     and the fine-tuned Gemma model on fixed eval slices.
+
+5. **Demo frontend**
+   `apps/Env0Mobile/` is a SwiftUI mobile client over `Env0Kit`, covering Mail,
+   Calendar, Docs, Drive, and Settings.
+
+## Headline Results
+
+The public result we are showing:
+
+| Model | Completed rows | Stuck counted fail | Passes / Total | Pass rate |
+| --- | ---: | ---: | ---: | ---: |
+| Gemma E4B-it pre-SFT | 60 | 0 | 0 / 60 | 0% |
+| Gemma E4B-it post-SFT | 60 | 0 | 4 / 60 | 7% |
+| Qwen/Qwen3.5-4B | 60 | 0 | 18 / 60 | 30.00% |
+| Qwen/Qwen3.5-9B | 58 | 2 | 28 / 60 | 46.67% |
+
+The important claim is directional: env0 SFT moves the mobile-class Gemma model
+from 0% to 7% on the fixed reported slice. Qwen3.5-4B and Qwen3.5-9B are
+reference baselines for the same task family, with stuck rows counted as fail.
+
+## Training Cost Snapshot
+
+The SFT loops are cheap enough for hackathon iteration. Costs below use the
+recorded wall-clock minutes and estimated H100 cost at `$3.387/h`.
+
+| SFT run | Train wall-clock | Eval wall-clock | Estimated training cost |
+| --- | ---: | ---: | ---: |
+| Native-tool SFT | 25m | 38m | $1.41 |
+| Tasks-lite native SFT | 49m | n/a | $2.79 |
+| Action-prefix SFT | 94m | n/a | $5.32 |
+| 4096 r32 SFT | 93m | n/a | $5.24 |
+| Text-tool SFT | 48m | n/a | $2.71 |
+
+Only the native-tool SFT run has eval wall-clock recorded in the chart. Missing
+eval elapsed time was not recorded in the log.
+
+## Training Pipeline
+
+The reusable pipeline lives in `pipelines/gemma4-e4b-env0-sft/`.
+
+Pipeline stages:
+
+1. discover env0 task manifests;
+2. collect teacher or model trajectories from env0 tasks;
+3. filter rows by reward, safety, infra status, and tool-call presence;
+4. validate OpenAI-style and ShareGPT tool-use rows;
+5. audit prompt/tool parity against runtime requests;
+6. export LLaMA-Factory datasets;
+7. train Gemma E4B-it with QLoRA;
+8. evaluate on fixed env0 lite slices;
+9. use failures as the next SFT or RL data recipe.
+
+Large artifacts are intentionally not committed. Trained adapter weights,
+external eval logs, and raw trajectory dumps are produced by the pipeline and
+should be published as separate release artifacts.
+
+## Eval Dataset
+
+`tasks-lite/` is the hackathon eval and data-generation corpus.
+
+Current task counts:
+
+| Family | Count |
+| --- | ---: |
+| auth | 300 |
+| gcal | 299 |
+| gdoc | 316 |
+| gdrive | 384 |
+| gmail | 333 |
+| multi | 371 |
+| **total** | **2,004** |
+
+For the presentation, we report the fixed 60-row slice shown above and can draw
+a 100-task slice across the same domains for broader demo evaluation.
+
+## Repo Layout
+
+```text
+env0-hack/
+├── apps/Env0Mobile/                 # SwiftUI mobile demo + Env0Kit
+├── pipelines/gemma4-e4b-env0-sft/   # SFT data, train, and eval pipeline
+├── tasks-lite/                      # 2,004 synthetic env0 tasks
+├── tasks/                           # selected reference tasks
+├── packages/environments/           # mock Gmail/GCal/GDoc/GDrive/Slack services
+├── docker/                          # env0 base image tooling
+├── scripts/                         # local service/dev scripts
+└── docs/                            # env0 runtime documentation
 ```
 
-Render the devhub once without starting services:
+## Quickstart
+
+Run the pipeline tests:
 
 ```bash
-python3 devhub/app.py --render-once
+python3 -m unittest pipelines/gemma4-e4b-env0-sft/tests/test_pipeline.py
 ```
 
-Start every configured mock service plus devhub:
+Run the mobile client package tests:
+
+```bash
+cd apps/Env0Mobile
+swift test
+```
+
+Refresh the task manifests from this checkout:
+
+```bash
+python3 pipelines/gemma4-e4b-env0-sft/scripts/run_pipeline.py discover-tasks \
+  --config pipelines/gemma4-e4b-env0-sft/configs/default.json
+```
+
+Run a zero-spend training preflight:
+
+```bash
+python3 pipelines/gemma4-e4b-env0-sft/scripts/run_pipeline.py preflight \
+  --config pipelines/gemma4-e4b-env0-sft/configs/default.json \
+  --env-file /Users/bingran_you/Downloads/GitHub/bingran-you/.env \
+  --out .local/gemma4-e4b-env0-sft/preflight.json
+```
+
+Start local env0 services for development:
 
 ```bash
 scripts/dev.sh
 ```
 
-Stop with `Ctrl-C`. Local DBs and runtime state live under `.data/dev/`; remove
-that directory if you want a clean local-dev state.
+## Why This Matters
 
-Start only services declared by an example task:
-
-```bash
-scripts/dev.sh task gdrive-archive-stale-drafts
-```
-
-Open devhub:
-
-```text
-http://127.0.0.1:9060
-```
-
-## Docker Base Image
-
-The shared base image tag is:
-
-```text
-ghcr.io/benchflow-ai/env0:0.1.0
-```
-
-`VERSION` is the source of truth for the semver tag. Example task Dockerfiles
-pin `FROM ghcr.io/benchflow-ai/env0:<VERSION>`.
-
-Build locally:
-
-```bash
-docker/build-base.sh
-```
-
-Validate example task images against the locally built base:
-
-```bash
-PULL_BASE=0 scripts/smoke_docker_examples.sh
-```
-
-Push release tags only when the GHCR package exists and the maintainer account
-has package-write permission:
-
-```bash
-docker/build-base.sh --push
-```
-
-Release checklist:
-
-1. Bump `VERSION` if the base image contract changed.
-2. Run `scripts/smoke_dev.sh`.
-3. Run changed env tests, for example `cd packages/environments/mock-gdrive && uv run --extra dev pytest tests -q`.
-4. Build locally with `docker/build-base.sh`.
-5. Run `PULL_BASE=0 scripts/smoke_docker_examples.sh`.
-6. Push with `docker/build-base.sh --push` if package permissions are configured.
-7. Validate remote pull with `docker pull ghcr.io/benchflow-ai/env0:$(cat VERSION)` only after the push succeeds.
-
-## Repo Layout
-
-```text
-env0/
-├── packages/environments/mock-gmail/
-├── packages/environments/mock-gcal/
-├── packages/environments/mock-gdoc/
-├── packages/environments/mock-gdrive/
-├── packages/environments/mock-slack/
-├── docker/
-├── devhub/
-├── docs/
-├── example_tasks/
-├── scripts/
-├── tests/
-├── config.toml
-└── VERSION
-```
-
-## Runtime Contracts
-
-- Service metadata comes from `config.toml`.
-- Service ids and CLIs are canonical `mock-*` names.
-- Service URLs use canonical `MOCK_*_URL` env vars.
-- Task service declaration uses `task.toml [environment] services = [...]`.
-- Task Dockerfiles are thin and inherit from `ghcr.io/benchflow-ai/env0:<VERSION>`.
-- Hidden task payload lives under `/var/lib/task`.
-- Task-aware seeding uses internal `--task-data` + `--task-name` plumbing.
-- Dev/user UX stays task-name based: `scripts/dev.sh task <name>`.
-
-Current implementation note: `config.toml` is the source of truth for runtime
-metadata, but `scripts/smoke_docker_examples.sh` and `docker/gws-wrapper.sh`
-still contain small service maps and must be kept in sync when adding services.
-
-## Docs
-
-- [Docs index](docs/README.md)
-- [Local dev and devhub](docs/dev.md)
-- [Good first contributions](docs/good-first-contributions.md)
-- [Adding a new environment](docs/adding-new-environment.md)
-- [API validation playbook](docs/api-validation-playbook.md)
-- [Parity audit](docs/parity-audit/README.md)
-- [Validated workflows](docs/validated-workflows.md)
-
-## Example Tasks
-
-`example_tasks/` currently covers:
-
-- `email-confidential-forward`
-- `gdoc-search-keyword-index`
-- `gdrive-archive-stale-drafts`
-- `multi-mail-cal-sync`
-- `multi-misread-approval-scope`
-
-These examples are env0 fixtures/templates, not source-of-truth task
-definitions.
-
-## License
-
-env0 is licensed under the GNU Affero General Public License v3.0 only
-(`AGPL-3.0-only`). See [LICENSE](LICENSE).
-
-You may self-host, use, modify, and redistribute env0 under the terms of
-the AGPL. BenchFlow also offers an official hosted env0 service.
+Mobile agents need models that are small, private, cheap to run, and still able
+to use tools reliably. env0 gives us controllable mobile-adjacent environments,
+verified tasks, oracle traces, and repeatable evals. The thesis is simple:
+train small mobile-class models on realistic env0 agent traces, then measure
+whether they actually become better mobile assistants.
